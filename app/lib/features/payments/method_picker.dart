@@ -107,11 +107,11 @@ class MethodTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.title, style: context.t.titleMedium),
+                  Text(s.tr(item.title), style: context.t.titleMedium),
                   Text(
                     item.isWallet
                         ? '${s.walletBalance} ${som(item.balance ?? 0)} ${s.som}'
-                        : item.subtitle,
+                        : s.tr(item.subtitle),
                     style: context.t.bodySmall,
                   ),
                 ],

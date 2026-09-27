@@ -56,7 +56,7 @@ class ObjectsPage extends ConsumerWidget {
                       if (i > 0) const RowDivider(),
                       AppRow(
                         leading: CatTile(objects[i].cat, objectIcon(objects[i].icon), soft: true),
-                        title: objects[i].name,
+                        title: s.tr(objects[i].name),
                         subtitle:
                             '${state!.byObject(objects[i].id).length} ${s.objectBills} · ${objects[i].address}',
                         trailing: IconButton(

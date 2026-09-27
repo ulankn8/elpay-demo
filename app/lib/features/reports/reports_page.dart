@@ -60,7 +60,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       byObj[p.objectId] = (byObj[p.objectId] ?? 0) + p.amount;
     }
 
-    final title = _year ? '${_anchor.year}' : monthTitle(_anchor);
+    final title = _year ? '${_anchor.year}' : s.monthTitleText(_anchor);
     final future = _year
         ? _anchor.year >= DateTime.now().year
         : !_anchor.isBefore(DateTime(DateTime.now().year, DateTime.now().month));
@@ -132,7 +132,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                                   ? Icons.home_outlined
                                   : Icons.people_outline_rounded,
                               soft: true),
-                          title: objects[i].name,
+                          title: s.tr(objects[i].name),
                           subtitle: objects[i].address,
                           trailing: Amount(som(byObj[objects[i].id] ?? 0), size: 15),
                         ),
@@ -149,8 +149,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                       if (i > 0) const RowDivider(),
                       AppRow(
                         leading: CatTile(list[i].cat, catIcon(list[i].cat), soft: true),
-                        title: list[i].title,
-                        subtitle: '${dayMonth(list[i].date)} · ${list[i].account}',
+                        title: s.tr(list[i].title),
+                        subtitle: '${s.dayMonthText(list[i].date)} · ${list[i].account}',
                         trailing: Amount(som(list[i].amount), size: 15),
                         chevron: true,
                         onTap: () => context.push('/receipt', extra: list[i]),

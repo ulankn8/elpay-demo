@@ -32,11 +32,11 @@ IconData catIcon(String cat) => switch (cat) {
   final left = b.daysLeft(DateTime.now());
   if (left < 0) {
     final n = -left;
-    return (text: '${s.overdue} · $n ${plural(n, 'день', 'дня', 'дней')}', overdue: true, soon: false);
+    return (text: '${s.overdue} · $n ${s.daysWord(n)}', overdue: true, soon: false);
   }
   if (left == 0) return (text: s.dueToday, overdue: false, soon: true);
   if (left <= 3) return (text: s.dueInDays(left), overdue: false, soon: true);
-  return (text: shortDue(b.due), overdue: false, soon: false);
+  return (text: s.shortDueText(b.due), overdue: false, soon: false);
 }
 
 /// Строка счёта: сумма — главное, «Оплатить» мягкая, «Детали» тихая.
@@ -47,6 +47,7 @@ class BillRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = S.of(context);
     final c = context.c;
     final due = dueLabel(context, bill);
 
@@ -63,7 +64,7 @@ class BillRow extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(bill.title,
+                  Text(s.tr(bill.title),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: context.t.titleMedium),

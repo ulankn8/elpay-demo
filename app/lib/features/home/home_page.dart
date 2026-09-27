@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/format.dart';
 import '../../core/l10n/s.dart';
@@ -125,9 +126,18 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-        IconButton(
-          onPressed: () => showAppSnack(context, S.of(context).soonHere),
-          icon: const Icon(Icons.notifications_none_rounded),
+        Consumer(
+          builder: (context, ref, _) {
+            final unread = ref.watch(unreadNoticesProvider);
+            return IconButton(
+              onPressed: () => context.push('/notices'),
+              icon: Badge(
+                isLabelVisible: unread > 0,
+                label: Text('$unread'),
+                child: const Icon(Icons.notifications_none_rounded),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -239,7 +249,7 @@ class _ObjectCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(object.name,
+                child: Text(S.of(context).tr(object.name),
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
               ),

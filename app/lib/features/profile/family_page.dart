@@ -42,7 +42,7 @@ class FamilyPage extends ConsumerWidget {
                       AppRow(
                         leading: _Avatar(name: list[i].name),
                         title: list[i].name,
-                        subtitle: '${list[i].role} · ${list[i].phone}',
+                        subtitle: '${s.tr(list[i].role)} · ${list[i].phone}',
                         trailing: AppChip(
                           list[i].canPay ? s.canPay : s.canView,
                           tone: list[i].canPay ? ChipTone.ok : ChipTone.soft,

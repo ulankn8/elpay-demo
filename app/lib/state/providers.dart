@@ -350,3 +350,38 @@ class AddressesNotifier extends Notifier<List<AddressItem>> {
 
 final addressesProvider =
     NotifierProvider<AddressesNotifier, List<AddressItem>>(AddressesNotifier.new);
+
+// ───────────────────────── уведомления в ленте ─────────────────────────
+
+class NoticesNotifier extends Notifier<List<NoticeItem>> {
+  @override
+  List<NoticeItem> build() => Demo.notices(DateTime.now());
+
+  void readAll() => state = [for (final n in state) n.copyWith(read: true)];
+  void read(String id) =>
+      state = [for (final n in state) n.id == id ? n.copyWith(read: true) : n];
+  void add(NoticeItem n) => state = [n, ...state];
+}
+
+final noticesProvider =
+    NotifierProvider<NoticesNotifier, List<NoticeItem>>(NoticesNotifier.new);
+
+final unreadNoticesProvider =
+    Provider<int>((ref) => ref.watch(noticesProvider).where((n) => !n.read).length);
+
+// ───────────────────────── маркет и билеты ─────────────────────────
+
+final eventsProvider = Provider<List<EventItem>>((ref) => Demo.events(DateTime.now()));
+
+class TicketsNotifier extends Notifier<List<TicketItem>> {
+  @override
+  List<TicketItem> build() => const [];
+
+  void add(TicketItem t) => state = [t, ...state];
+  void markUsed(String id) =>
+      state = [for (final t in state) t.id == id ? t.copyWith(used: true) : t];
+  void remove(String id) => state = state.where((t) => t.id != id).toList();
+}
+
+final ticketsProvider =
+    NotifierProvider<TicketsNotifier, List<TicketItem>>(TicketsNotifier.new);

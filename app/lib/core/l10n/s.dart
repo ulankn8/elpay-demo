@@ -294,6 +294,44 @@ abstract class S {
   String get confirmBigShort;
   String get confirmBigLead;
   String get pinFirst;
+
+  // Уведомления и маркет
+  String get noticesTitle;
+  String get noticesEmpty;
+  String get readAll;
+  String get marketTitle;
+  String get marketLead;
+  String get myTickets;
+  String get ticketsEmpty;
+  String get buyTicket;
+  String get ticketCount;
+  String get ticketBought;
+  String get showQr;
+  String get ticketUsed;
+  String get ticketReturn;
+  String get ticketReturnConfirm;
+  String get ticketReturned;
+  String get eventSoon;
+  String get seats;
+  String get priceFrom;
+
+  // Билеты
+  String seatsCount(int n);
+
+  /// Перевод демо-данных (названия поставщиков, подписи полей).
+  /// Русский текст остаётся ключом — так данные не зависят от языка.
+  String tr(String ru);
+
+  // Автоплатёж в карточке счёта
+  String autopayDay(int day);
+
+  // Даты и сроки — у языков разный порядок слов, поэтому не в format.dart
+  String daysWord(int n);
+  String shortDueText(DateTime d);
+  String longDateText(DateTime d);
+  String monthTitleText(DateTime d);
+  String dayMonthText(DateTime d);
+  String periodText(DateTime d);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
@@ -614,6 +652,40 @@ class SRu implements S {
   @override String get confirmBigShort => 'Подтверждать крупные платежи';
   @override String get confirmBigLead => 'От 20 000 сом — кодом или Face ID';
   @override String get pinFirst => 'Сначала включите код-пароль';
+
+  // Уведомления и маркет
+  @override String get noticesTitle => 'Уведомления';
+  @override String get noticesEmpty => 'Пока ничего нового';
+  @override String get readAll => 'Отметить прочитанными';
+  @override String get marketTitle => 'Маркет и билеты';
+  @override String get marketLead => 'Афиша Оша: концерты, кино, спорт';
+  @override String get myTickets => 'Мои билеты';
+  @override String get ticketsEmpty => 'Билетов пока нет';
+  @override String get buyTicket => 'Купить билет';
+  @override String get ticketCount => 'Сколько билетов';
+  @override String get ticketBought => 'Билет куплен';
+  @override String get showQr => 'Показать QR на входе';
+  @override String get ticketUsed => 'Билет использован';
+  @override String get ticketReturn => 'Вернуть билет';
+  @override String get ticketReturnConfirm => 'Вернуть билет и деньги на кошелёк?';
+  @override String get ticketReturned => 'Билет возвращён, деньги на кошельке';
+  @override String get eventSoon => 'Скоро';
+  @override String get seats => 'мест';
+  @override String get priceFrom => 'от';
+
+  // Билеты
+  @override String seatsCount(int n) => '$n ${plural(n, 'место', 'места', 'мест')}';
+  @override String tr(String ru) => ru;
+
+  // Автоплатёж в карточке счёта
+  @override String autopayDay(int day) => 'Автоплатёж $day-го числа';
+
+  @override String daysWord(int n) => plural(n, 'день', 'дня', 'дней');
+  @override String shortDueText(DateTime d) => shortDue(d);
+  @override String longDateText(DateTime d) => longDate(d);
+  @override String monthTitleText(DateTime d) => monthTitle(d);
+  @override String dayMonthText(DateTime d) => dayMonth(d);
+  @override String periodText(DateTime d) => '${monthName(d.month)} ${d.year}';
 }
 
 class SKy implements S {
@@ -920,6 +992,43 @@ class SKy implements S {
   @override String get confirmBigShort => 'Ири төлөмдөрдү ырастоо';
   @override String get confirmBigLead => '20 000 сомдон жогору — код же Face ID менен';
   @override String get pinFirst => 'Адегенде код-сырсөздү күйгүзүңүз';
+
+  // Уведомления и маркет
+  @override String get noticesTitle => 'Билдирүүлөр';
+  @override String get noticesEmpty => 'Азырынча жаңылык жок';
+  @override String get readAll => 'Окулду деп белгилөө';
+  @override String get marketTitle => 'Маркет жана билеттер';
+  @override String get marketLead => 'Оштун афишасы: концерттер, кино, спорт';
+  @override String get myTickets => 'Менин билеттерим';
+  @override String get ticketsEmpty => 'Азырынча билет жок';
+  @override String get buyTicket => 'Билет сатып алуу';
+  @override String get ticketCount => 'Канча билет';
+  @override String get ticketBought => 'Билет сатып алынды';
+  @override String get showQr => 'Кирүүдө QR көрсөтүү';
+  @override String get ticketUsed => 'Билет колдонулду';
+  @override String get ticketReturn => 'Билетти кайтаруу';
+  @override String get ticketReturnConfirm => 'Билетти кайтарып, акчаны капчыкка саламбы?';
+  @override String get ticketReturned => 'Билет кайтарылды, акча капчыкта';
+  @override String get eventSoon => 'Жакында';
+  @override String get seats => 'орун';
+  @override String get priceFrom => 'баштап';
+
+  // Билеты
+  @override String seatsCount(int n) => '$n орун';
+  @override String tr(String ru) => _kyData[ru] ?? ru;
+
+  // Автоплатёж в карточке счёта
+  @override String autopayDay(int day) => 'Ар айдын $dayинде автотөлөм';
+
+  @override String daysWord(int n) => 'күн';
+  @override String shortDueText(DateTime d) => '${d.day}-${_kyShort[d.month - 1]} чейин';
+  @override String longDateText(DateTime d) => '${d.day}-${_kyMonths[d.month - 1]} ${d.year}';
+  @override String monthTitleText(DateTime d) {
+    final n = _kyMonths[d.month - 1];
+    return '${n[0].toUpperCase()}${n.substring(1)} ${d.year}';
+  }
+  @override String dayMonthText(DateTime d) => '${d.day}-${_kyShort[d.month - 1]}';
+  @override String periodText(DateTime d) => '${_kyMonths[d.month - 1]} ${d.year}';
 }
 
 String plural3(int n, String one, String few, String many) {
@@ -928,3 +1037,94 @@ String plural3(int n, String one, String few, String many) {
   if (d >= 2 && d <= 4 && (h < 10 || h >= 20)) return few;
   return many;
 }
+
+const Map<String, String> _kyData = {
+  "Дом": "Үй",
+  "Родители": "Ата-энелер",
+  "Квартира": "Батир",
+  "Дача": "Дача",
+  "Ош-Тазалык": "Ош-Тазалык",
+  "Электросеть": "Электр тармагы",
+  "Водоканал": "Суу каналы",
+  "Садик «Балапан»": "«Балапан» бакчасы",
+  "Свет родителей": "Ата-энелердин жарыгы",
+  "Вода родителей": "Ата-энелердин суусу",
+  "Вывоз мусора": "Таштанды чыгаруу",
+  "Электроэнергия": "Электр энергиясы",
+  "Холодная вода": "Муздак суу",
+  "Природный газ": "Жаратылыш газы",
+  "Домашний интернет": "Үй интернети",
+  "Интернет и ТВ": "Интернет жана ТВ",
+  "Мобильная связь": "Мобилдик байланыш",
+  "Начисления по ИНН": "ИНН боюнча эсептөөлөр",
+  "Коммунальные услуги": "Коммуналдык кызматтар",
+  "Свет, вода, мусор, газ": "Жарык, суу, таштанды, газ",
+  "Садик, школа, курсы": "Бакча, мектеп, курстар",
+  "Оплата по шаблону на месяц": "Айлык шаблон боюнча төлөм",
+  "Налоги и патент": "Салыктар жана патент",
+  "Домашний интернет, телевидение": "Үй интернети, телекөрсөтүү",
+  "O!, Beeline, MegaCom": "O!, Beeline, MegaCom",
+  "Маркет и билеты": "Маркет жана билеттер",
+  "События и кино в Оше": "Оштогу иш-чаралар жана кино",
+  "Ошэлектро": "Ошэлектро",
+  "Ошводоканал": "Ошсууканалы",
+  "Газпром Кыргызстан": "Газпром Кыргызстан",
+  "Школа №29": "№29 мектеп",
+  "Питание и охрана": "Тамактануу жана коопсуздук",
+  "Курсы английского Smart": "Smart англис тили курстары",
+  "Абонемент на месяц": "Айлык абонемент",
+  "Налоговая служба": "Салык кызматы",
+  "Патент": "Патент",
+  "Месячный патент предпринимателя": "Ишкердин айлык патенти",
+  "Сайма Телеком": "Сайма Телеком",
+  "MegaLine": "MegaLine",
+  "Детский сад №14, Ош": "№14 бала бакча, Ош",
+  "Кошелёк ЭлPay": "ЭлPay капчыгы",
+  "Основная карта": "Негизги карта",
+  "Дополнительная": "Кошумча",
+  "Списание со счёта в банке": "Банктагы эсептен алуу",
+  "Кошелёк оператора": "Оператордун капчыгы",
+  "Получатель": "Алуучу",
+  "ИНН": "ИНН",
+  "Банк": "Банк",
+  "БИК": "БИК",
+  "Расчётный счёт": "Эсептешүү эсеби",
+  "Лицевой счёт": "Жеке эсеп",
+  "Назначение": "Дайындалышы",
+  "Номер договора": "Келишим номери",
+  "Класс и фамилия": "Класс жана фамилия",
+  "Номер ученика": "Окуучунун номери",
+  "Номер телефона": "Телефон номери",
+  "Тариф": "Тариф",
+  "Расход": "Чыгым",
+  "Показания": "Көрсөткүчтөр",
+  "Период": "Мезгил",
+  "Концерт «Ош сезону»": "«Ош сезону» концерти",
+  "Ошский драмтеатр": "Ош драма театры",
+  "Народные и эстрадные песни": "Эл жана эстрада ырлары",
+  "Кино: «Курманжан Датка»": "Кино: «Курманжан Датка»",
+  "Кинотеатр «Ынтымак»": "«Ынтымак» кинотеатры",
+  "Исторический фильм, 2 ч 10 мин": "Тарыхый тасма, 2 саат 10 мүнөт",
+  "Футбол: «Алай» — «Абдыш-Ата»": "Футбол: «Алай» — «Абдыш-Ата»",
+  "Стадион имени Ниязбекова": "Ниязбеков атындагы стадион",
+  "Премьер-лига Кыргызстана": "Кыргызстандын Премьер-лигасы",
+  "Детский спектакль «Алтын балык»": "«Алтын балык» балдар спектакли",
+  "Театр кукол": "Куурчак театры",
+  "Для детей от 4 лет": "4 жаштан жогорку балдар үчүн",
+  "Супруг": "Жубайы",
+  "Мама": "Апасы",
+  "Браузер Chrome": "Chrome браузери",
+  "сейчас": "азыр",
+  "Ош, Кыргызстан": "Ош, Кыргызстан",
+  "Бишкек, Кыргызстан": "Бишкек, Кыргызстан",
+};
+
+/// Названия месяцев на кыргызском (заимствованные формы, как в афишах Оша).
+const _kyMonths = [
+  'январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+  'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'
+];
+const _kyShort = [
+  'янв', 'фев', 'мар', 'апр', 'май', 'июн',
+  'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'
+];

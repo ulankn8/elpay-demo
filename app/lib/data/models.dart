@@ -262,3 +262,81 @@ class DeviceItem {
   final String id, title, place, lastSeen;
   final bool current;
 }
+
+enum NoticeKind { outage, bill, payment, market }
+
+/// Уведомление в ленте: отключение, новый счёт, прошедший платёж.
+@immutable
+class NoticeItem {
+  const NoticeItem({
+    required this.id,
+    required this.kind,
+    required this.title,
+    required this.text,
+    required this.date,
+    this.read = false,
+  });
+  final String id, title, text;
+  final NoticeKind kind;
+  final DateTime date;
+  final bool read;
+
+  NoticeItem copyWith({bool? read}) => NoticeItem(
+        id: id,
+        kind: kind,
+        title: title,
+        text: text,
+        date: date,
+        read: read ?? this.read,
+      );
+}
+
+/// Событие маркета: концерт, кино, спорт.
+@immutable
+class EventItem {
+  const EventItem({
+    required this.id,
+    required this.title,
+    required this.place,
+    required this.date,
+    required this.price,
+    required this.cat,
+    required this.lead,
+  });
+  final String id, title, place, cat, lead;
+  final DateTime date;
+  final double price;
+}
+
+/// Купленный билет с QR.
+@immutable
+class TicketItem {
+  const TicketItem({
+    required this.id,
+    required this.eventId,
+    required this.title,
+    required this.place,
+    required this.date,
+    required this.price,
+    required this.code,
+    required this.seats,
+    this.used = false,
+  });
+  final String id, eventId, title, place, code;
+  final DateTime date;
+  final double price;
+  final int seats;
+  final bool used;
+
+  TicketItem copyWith({bool? used}) => TicketItem(
+        id: id,
+        eventId: eventId,
+        title: title,
+        place: place,
+        date: date,
+        price: price,
+        code: code,
+        seats: seats,
+        used: used ?? this.used,
+      );
+}

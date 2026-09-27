@@ -174,8 +174,8 @@ class DevicesPage extends ConsumerWidget {
                             : Icons.smartphone_rounded,
                         soft: true,
                       ),
-                      title: list[i].title,
-                      subtitle: '${list[i].place} · ${list[i].lastSeen}',
+                      title: s.tr(list[i].title),
+                      subtitle: '${s.tr(list[i].place)} · ${s.tr(list[i].lastSeen)}',
                       trailing: list[i].current
                           ? AppChip(s.thisDevice, tone: ChipTone.ok)
                           : TextButton(

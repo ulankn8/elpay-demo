@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/s.dart';
 import '../../core/tokens.dart';
-import '../../core/widgets.dart';
 
 /// Нижняя навигация: четыре раздела, как в утверждённом прототипе.
 class ShellPage extends StatelessWidget {
@@ -14,6 +13,8 @@ class ShellPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = S.of(context);
     final c = context.c;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final selected = dark ? const Color(0xFF6FE0BB) : Brand.p600;
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
@@ -29,55 +30,28 @@ class ShellPage extends StatelessWidget {
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           height: 66,
-          indicatorColor: Brand.light2,
+          indicatorColor: dark ? Brand.primary.withValues(alpha: .18) : Brand.light2,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: [
             NavigationDestination(
               icon: const Icon(Icons.home_outlined),
-              selectedIcon: const Icon(Icons.home_rounded, color: Brand.p600),
+              selectedIcon: Icon(Icons.home_rounded, color: selected),
               label: s.tabHome,
             ),
             NavigationDestination(
               icon: const Icon(Icons.account_balance_wallet_outlined),
-              selectedIcon: const Icon(Icons.account_balance_wallet_rounded, color: Brand.p600),
+              selectedIcon: Icon(Icons.account_balance_wallet_rounded, color: selected),
               label: s.tabPayments,
             ),
             NavigationDestination(
               icon: const Icon(Icons.bar_chart_rounded),
-              selectedIcon: const Icon(Icons.bar_chart_rounded, color: Brand.p600),
+              selectedIcon: Icon(Icons.bar_chart_rounded, color: selected),
               label: s.tabReports,
             ),
             NavigationDestination(
               icon: const Icon(Icons.person_outline_rounded),
-              selectedIcon: const Icon(Icons.person_rounded, color: Brand.p600),
+              selectedIcon: Icon(Icons.person_rounded, color: selected),
               label: s.tabProfile,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Временная страница для разделов, которые ещё разрабатываются.
-class SoonPage extends StatelessWidget {
-  const SoonPage({super.key, required this.title, required this.icon, this.lead});
-  final String title;
-  final IconData icon;
-  final String? lead;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = S.of(context);
-    return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(Brand.gutter, 8, Brand.gutter, 28),
-          children: [
-            Text(title, style: context.t.displaySmall),
-            const SizedBox(height: 28),
-            AppCard(
-              child: EmptyState(icon: icon, title: s.soonHere, lead: lead),
             ),
           ],
         ),

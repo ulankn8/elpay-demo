@@ -419,4 +419,58 @@ class Demo {
         id: 'd3', title: 'Браузер Chrome', place: 'Бишкек, Кыргызстан',
         lastSeen: '2 сентября, 08:12'),
   ];
+
+  // ───────────────────── уведомления и маркет ─────────────────────
+
+  static List<NoticeItem> notices(DateTime now) => [
+        NoticeItem(
+          id: 'n1',
+          kind: NoticeKind.outage,
+          title: 'Отключение воды 3 октября',
+          text: 'Ош, ул. Курманжан Датка: с 09:00 до 17:00 — плановый ремонт сети.',
+          date: now.subtract(const Duration(hours: 3)),
+        ),
+        NoticeItem(
+          id: 'n2',
+          kind: NoticeKind.bill,
+          title: 'Пришёл счёт за электроэнергию',
+          text: 'Электросеть, 564,44 сом. Оплатить до 25 числа.',
+          date: now.subtract(const Duration(days: 1, hours: 2)),
+        ),
+        NoticeItem(
+          id: 'n3',
+          kind: NoticeKind.outage,
+          title: 'Отключение света 28 сентября',
+          text: 'Ош, ул. Масалиева: с 10:00 до 14:00 — замена трансформатора.',
+          date: now.subtract(const Duration(days: 2)),
+          read: true,
+        ),
+        NoticeItem(
+          id: 'n4',
+          kind: NoticeKind.payment,
+          title: 'Платёж прошёл',
+          text: 'Садик «Балапан», 3 500 сом. Квитанция сохранена в истории.',
+          date: now.subtract(const Duration(days: 4)),
+          read: true,
+        ),
+      ];
+
+  static List<EventItem> events(DateTime now) {
+    DateTime at(int days, int hour) =>
+        DateTime(now.year, now.month, now.day + days, hour);
+    return [
+      EventItem(
+        id: 'e1', title: 'Концерт «Ош сезону»', place: 'Ошский драмтеатр',
+        date: at(6, 19), price: 800, cat: 'market', lead: 'Народные и эстрадные песни'),
+      EventItem(
+        id: 'e2', title: 'Кино: «Курманжан Датка»', place: 'Кинотеатр «Ынтымак»',
+        date: at(2, 17), price: 250, cat: 'course', lead: 'Исторический фильм, 2 ч 10 мин'),
+      EventItem(
+        id: 'e3', title: 'Футбол: «Алай» — «Абдыш-Ата»', place: 'Стадион имени Ниязбекова',
+        date: at(9, 16), price: 300, cat: 'school', lead: 'Премьер-лига Кыргызстана'),
+      EventItem(
+        id: 'e4', title: 'Детский спектакль «Алтын балык»', place: 'Театр кукол',
+        date: at(4, 12), price: 200, cat: 'kid', lead: 'Для детей от 4 лет'),
+    ];
+  }
 }

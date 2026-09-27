@@ -44,7 +44,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final cats = <String>{for (final p in all) p.cat}.toList();
     final groups = <String, List<Payment>>{};
     for (final p in list) {
-      groups.putIfAbsent(monthTitle(p.date), () => []).add(p);
+      groups.putIfAbsent(s.monthTitleText(p.date), () => []).add(p);
     }
 
     return Scaffold(
@@ -152,8 +152,8 @@ class _PaymentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppRow(
         leading: CatTile(payment.cat, catIcon(payment.cat), soft: true),
-        title: payment.title,
-        subtitle: '${dayMonth(payment.date)}, ${hhmm(payment.date)} · ${payment.account}',
+        title: S.of(context).tr(payment.title),
+        subtitle: '${S.of(context).dayMonthText(payment.date)}, ${hhmm(payment.date)} · ${payment.account}',
         trailing: Amount(som(payment.amount), size: 15),
         chevron: true,
         onTap: () => context.push('/receipt', extra: payment),

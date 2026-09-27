@@ -171,8 +171,8 @@ class _NewPaymentPageState extends ConsumerState<NewPaymentPage> {
                   if (i > 0) const RowDivider(),
                   AppRow(
                     leading: CatTile(list[i].cat, catIcon(list[i].cat), soft: true),
-                    title: list[i].title,
-                    subtitle: list[i].subtitle,
+                    title: s.tr(list[i].title),
+                    subtitle: s.tr(list[i].subtitle),
                     chevron: true,
                     onTap: () => _pick(list[i]),
                   ),
@@ -194,8 +194,8 @@ class _NewPaymentPageState extends ConsumerState<NewPaymentPage> {
         AppCard(
           child: AppRow(
             leading: CatTile(p.cat, catIcon(p.cat), soft: true),
-            title: p.title,
-            subtitle: p.subtitle,
+            title: s.tr(p.title),
+            subtitle: s.tr(p.subtitle),
             trailing: TextButton(
               onPressed: () => setState(() => _step = 0),
               child: Text(s.editWord),
@@ -206,7 +206,7 @@ class _NewPaymentPageState extends ConsumerState<NewPaymentPage> {
         TextField(
           controller: _account,
           decoration: InputDecoration(
-            labelText: p.accountLabel,
+            labelText: s.tr(p.accountLabel),
             hintText: p.accountHint,
             errorText: _accountError,
           ),
@@ -246,9 +246,9 @@ class _NewPaymentPageState extends ConsumerState<NewPaymentPage> {
                   children: [
                     CatTile(p.cat, catIcon(p.cat), size: 52, radius: 15),
                     const SizedBox(height: 10),
-                    Text(p.title, style: context.t.titleLarge),
+                    Text(s.tr(p.title), style: context.t.titleLarge),
                     const SizedBox(height: 2),
-                    Text('${p.accountLabel} · ${_account.text.trim()}',
+                    Text('${s.tr(p.accountLabel)} · ${_account.text.trim()}',
                         style: context.t.bodySmall),
                     const SizedBox(height: 14),
                     Amount(som(_sum), size: 30),
@@ -256,7 +256,7 @@ class _NewPaymentPageState extends ConsumerState<NewPaymentPage> {
                 ),
               ),
               SectionTitle(s.requisites),
-              KeyValueBox([for (final f in p.requisites) (f.label, f.value)]),
+              KeyValueBox([for (final f in p.requisites) (s.tr(f.label), s.tr(f.value))]),
               SectionTitle(s.payMethod),
               MethodTile(
                 item: method,

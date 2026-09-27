@@ -134,7 +134,7 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
                 if (!multi) ...[
                   SectionTitle(s.whatFor),
                   KeyValueBox([
-                    for (final f in widget.bills.first.requisites.take(2)) (f.label, f.value),
+                    for (final f in widget.bills.first.requisites.take(2)) (s.tr(f.label), s.tr(f.value)),
                     (s.period, widget.bills.first.period),
                   ]),
                 ],
@@ -246,7 +246,7 @@ class _CheckoutRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(bill.title,
+                    Text(s.tr(bill.title),
                         maxLines: 1, overflow: TextOverflow.ellipsis, style: context.t.titleMedium),
                     Text(due.text,
                         maxLines: 1,

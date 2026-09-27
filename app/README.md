@@ -1,17 +1,64 @@
-# elpay
+# ЭлPay — мобильное приложение (Flutter)
 
-ЭлPay — коммунальные платежи, садик и школа, билеты
+Нативное приложение под **Android и iOS** из одного кода. Собрано по утверждённому
+прототипу (`../index.html`): коммуналка, садик и школа, налоги, билеты. Пилот — Ош.
 
-## Getting Started
+**Платежи сейчас — заглушка.** Платёжный шлюз не подключён: `StubPaymentsRepository`
+имитирует ответ процессинга, а интерфейс честно об этом предупреждает. Всё остальное
+работает по-настоящему.
 
-This project is a starting point for a Flutter application.
+## Что уже есть
 
-A few resources to get you started if this is your first Flutter project:
+- **Вход:** телефон, почта и Telegram, код из четырёх цифр (в демо — `4815`), знакомство
+  (имя, город, адрес).
+- **Главная:** карточки объектов (Дом, Родители), лента счетов, «Оплатить всё»,
+  детали счёта с расчётом и реквизитами, уведомления об отключениях.
+- **Платежи:** кошелёк с пополнением, новая оплата по реквизитам в три шага, оплата по QR,
+  каталог получателей (14 поставщиков), автоплатежи, способы оплаты.
+- **История и отчёты:** поиск и фильтры, квитанция по каждому платежу, отчёт за месяц и год
+  с разбивкой по категориям и объектам.
+- **Маркет:** афиша Оша, покупка билета, QR-билет на входе, возврат.
+- **Профиль:** личные данные, объекты, счета и реквизиты, адреса, семейный доступ,
+  безопасность (код-пароль, Face ID, подтверждение крупных платежей), устройства,
+  уведомления, тарифы, поддержка, удаление аккаунта.
+- **Два языка** (русский и кыргызский) и **тёмная тема**.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Запуск
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter pub get
+flutter run                 # на подключённом телефоне или эмуляторе
+flutter run -d chrome       # быстрый просмотр в браузере
+```
+
+Сборки:
+
+```bash
+flutter build apk --release        # Android
+flutter build appbundle --release  # Google Play
+flutter build ipa                  # iOS, нужен macOS и Xcode
+flutter build web                  # веб-демо
+```
+
+## Проверка
+
+```bash
+flutter analyze   # статический анализ, должно быть «No issues found»
+flutter test      # тесты: форматы, состояние, главная, вкладка «Платежи»
+```
+
+## Как устроено
+
+| Папка | Что внутри |
+|---|---|
+| `lib/core` | Токены бренда, тема, форматы сумм и дат, хранилище настроек, общие виджеты, переводы. |
+| `lib/data` | Модели, демо-данные пилота и репозитории (счета, вход, платежи). |
+| `lib/state` | Состояние на Riverpod: сессия, счета, кошелёк, история, семья, безопасность. |
+| `lib/features` | Экраны по разделам: `auth`, `home`, `bills`, `payments`, `history`, `reports`, `market`, `notices`, `profile`, `shell`. |
+
+Данные приходят через абстракции (`BillsRepository`, `AuthRepository`,
+`PaymentsRepository`). Когда появится бэкенд и платёжный шлюз, меняются только их
+реализации — экраны трогать не нужно.
+
+Переводы — типизированный класс `S` (`lib/core/l10n/s.dart`): новая строка не
+скомпилируется, пока её не добавят в оба языка. Демо-данные переводятся словарём `s.tr()`.

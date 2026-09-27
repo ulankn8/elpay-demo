@@ -25,7 +25,7 @@ class BillDetailsPage extends ConsumerWidget {
     final object = state?.objects.where((o) => o.id == b.objectId).firstOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: Text(b.title)),
+      appBar: AppBar(title: Text(s.tr(b.title))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(Brand.gutter, 4, Brand.gutter, 28),
         children: [
@@ -37,7 +37,7 @@ class BillDetailsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(b.subtitle, style: context.t.titleMedium),
+                    Text(s.tr(b.subtitle), style: context.t.titleMedium),
                     if (b.account.isNotEmpty && b.account != '—')
                       Text('${s.account} ${b.account}', style: context.t.bodySmall),
                   ],
@@ -61,20 +61,21 @@ class BillDetailsPage extends ConsumerWidget {
           const SizedBox(height: 16),
           KeyValueBox([
             (s.period, b.period),
-            (s.dueDate, longDate(b.due)),
-            if (object != null) (s.object, object.name),
+            (s.dueDate, s.longDateText(b.due)),
+            if (object != null) (s.object, s.tr(object.name)),
           ]),
           const SizedBox(height: 14),
           _AutopayRow(bill: b),
           SectionTitle(s.howCharged),
-          KeyValueBox([for (final f in b.calc) (f.label, f.value)]),
+          KeyValueBox([for (final f in b.calc) (s.tr(f.label), s.tr(f.value))]),
           SectionTitle(s.requisites),
           AppCard(
             child: Column(
               children: [
                 for (var i = 0; i < b.requisites.length; i++) ...[
                   if (i > 0) const RowDivider(indent: 16),
-                  CopyRow(b.requisites[i].label, b.requisites[i].value, copiedText: s.copied),
+                  CopyRow(s.tr(b.requisites[i].label), s.tr(b.requisites[i].value),
+                      copiedText: s.copied),
                 ],
               ],
             ),
@@ -106,7 +107,7 @@ class _AutopayRow extends ConsumerWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text('Автоплатёж ${bill.due.day}-го числа',
+            child: Text(S.of(context).autopayDay(bill.due.day),
                 style: context.t.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
           ),
           Switch(

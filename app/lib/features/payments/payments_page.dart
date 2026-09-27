@@ -69,11 +69,11 @@ class PaymentsPage extends ConsumerWidget {
                     AppRow(
                       leading: CatTile(Demo.categories[i].cat,
                           _catIcon(Demo.categories[i].id), soft: true),
-                      title: Demo.categories[i].title,
-                      subtitle: Demo.categories[i].lead,
+                      title: s.tr(Demo.categories[i].title),
+                      subtitle: s.tr(Demo.categories[i].lead),
                       chevron: true,
                       onTap: () => Demo.categories[i].id == 'market'
-                          ? showAppSnack(context, s.soonHere)
+                          ? context.push('/market')
                           : context.push('/new-payment',
                               extra: NewPaymentArgs(categoryId: Demo.categories[i].id)),
                     ),
@@ -123,10 +123,10 @@ class PaymentsPage extends ConsumerWidget {
                                 balance: wallet)
                             : m,
                       ),
-                      title: m.title,
+                      title: s.tr(m.title),
                       subtitle: m.isWallet
                           ? '${s.walletBalance} ${som(wallet)} ${s.som}'
-                          : m.subtitle,
+                          : s.tr(m.subtitle),
                       trailing: method == m.id
                           ? const AppChip('Основной', tone: ChipTone.ok)
                           : null,

@@ -43,7 +43,7 @@ class AccountsPage extends ConsumerWidget {
                 ),
               ),
             for (final obj in objects) ...[
-              SectionTitle(obj.name),
+              SectionTitle(s.tr(obj.name)),
               AppCard(
                 child: Column(
                   children: [
@@ -53,8 +53,8 @@ class AccountsPage extends ConsumerWidget {
                         final b = state.byObject(obj.id)[i];
                         return AppRow(
                           leading: CatTile(b.cat, catIcon(b.cat), soft: true),
-                          title: b.title,
-                          subtitle: '${b.account} · ${b.subtitle}',
+                          title: s.tr(b.title),
+                          subtitle: '${b.account} · ${s.tr(b.subtitle)}',
                           trailing: IconButton(
                             icon: const Icon(Icons.edit_outlined, size: 19),
                             onPressed: () => _editSheet(context, ref, b, objects),
@@ -98,8 +98,8 @@ class AccountsPage extends ConsumerWidget {
                     AppRow(
                       leading: CatTile(Demo.providers[i].cat,
                           catIcon(Demo.providers[i].cat), soft: true),
-                      title: Demo.providers[i].title,
-                      subtitle: Demo.providers[i].subtitle,
+                      title: s.tr(Demo.providers[i].title),
+                      subtitle: s.tr(Demo.providers[i].subtitle),
                       chevron: true,
                       onTap: () {
                         Navigator.pop(ctx);
