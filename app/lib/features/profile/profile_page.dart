@@ -228,6 +228,7 @@ class ProfilePage extends ConsumerWidget {
     final s = S.of(context);
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -254,6 +255,7 @@ class ProfilePage extends ConsumerWidget {
   void _langSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -19,6 +19,8 @@ import 'features/market/event_page.dart';
 import 'features/market/market_page.dart';
 import 'features/market/tickets_page.dart';
 import 'features/notices/notices_page.dart';
+import 'features/objects/object_page.dart';
+import 'features/stories/story_viewer_page.dart';
 import 'features/payments/autopay_page.dart';
 import 'features/payments/new_payment_page.dart';
 import 'features/payments/payments_page.dart';
@@ -75,6 +77,14 @@ GoRouter buildRouter(Ref ref) {
         builder: (_, state) => NewPaymentPage(args: state.extra as NewPaymentArgs?),
       ),
       GoRoute(path: '/qr', builder: (_, _) => const QrPage()),
+      GoRoute(
+        path: '/object',
+        builder: (_, state) => ObjectPage(objectId: state.extra! as String),
+      ),
+      GoRoute(
+        path: '/story',
+        builder: (_, state) => StoryViewerPage(initialIndex: (state.extra as int?) ?? 0),
+      ),
       GoRoute(path: '/notices', builder: (_, _) => const NoticesPage()),
       GoRoute(path: '/market', builder: (_, _) => const MarketPage()),
       GoRoute(path: '/tickets', builder: (_, _) => const TicketsPage()),

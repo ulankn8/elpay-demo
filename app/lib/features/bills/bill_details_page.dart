@@ -7,10 +7,12 @@ import '../../core/tokens.dart';
 import '../../core/widgets.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
-import '../payments/checkout_sheet.dart';
+import '../payments/pay_flow.dart';
+import '../payments/pay_sheet.dart';
 import 'bill_row.dart';
 
-/// Карточка счёта: за что платим, как начислено и полные реквизиты.
+/// Разбор счёта: за что платим, как начислено и полные реквизиты.
+/// Оплата — только кнопкой внизу, способ спрашиваем следующим шагом.
 class BillDetailsPage extends ConsumerWidget {
   const BillDetailsPage({super.key, required this.bill});
   final Bill bill;
@@ -26,68 +28,106 @@ class BillDetailsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(s.tr(b.title))),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(Brand.gutter, 4, Brand.gutter, 28),
-        children: [
-          Row(
-            children: [
-              CatTile(b.cat, catIcon(b.cat)),
-              const SizedBox(width: 12),
-              Expanded(
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(Brand.gutter, 4, Brand.gutter, 20),
+                children: [
+                  AppCard(
+                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                    child: Column(
+                      children: [
+                        CatTile(b.cat, catIcon(b.cat), size: 56, radius: 16),
+                        const SizedBox(height: 10),
+                        Text(s.tr(b.title),
+                            textAlign: TextAlign.center, style: context.t.titleLarge),
+                        const SizedBox(height: 3),
+                        Text('${s.tr(b.subtitle)} · ${b.period}',
+                            textAlign: TextAlign.center, style: context.t.bodySmall),
+                        const SizedBox(height: 12),
+                        Amount(som(b.amount), size: 30),
+                        const SizedBox(height: 10),
+                        AppChip(
+                          b.paid ? s.paidTitle : due.text,
+                          tone: b.paid
+                              ? ChipTone.ok
+                              : due.overdue
+                                  ? ChipTone.bad
+                                  : due.soon
+                                      ? ChipTone.warn
+                                      : ChipTone.soft,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SectionTitle(s.whatForTitle),
+                  KeyValueBox([
+                    if (object != null && object.address.isNotEmpty)
+                      (s.address, object.address),
+                    if (b.account.isNotEmpty) (s.tr('Лицевой счёт'), b.account),
+                    (s.payBy, s.longDateText(b.due)),
+                    if (object != null) (s.object, s.tr(object.name)),
+                  ]),
+                  if (b.calc.isNotEmpty) ...[
+                    SectionTitle(s.howCharged),
+                    KeyValueBox([for (final f in b.calc) (s.tr(f.label), s.tr(f.value))]),
+                  ],
+                  SectionTitle(s.requisites),
+                  AppCard(
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < b.requisites.length; i++) ...[
+                          if (i > 0) const RowDivider(indent: 16),
+                          CopyRow(s.tr(b.requisites[i].label), s.tr(b.requisites[i].value),
+                              copiedText: s.copied),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(s.requisitesHint,
+                      style: context.t.labelSmall?.copyWith(color: c.muted, height: 1.45)),
+                  const SizedBox(height: 16),
+                  _AutopayRow(bill: b),
+                ],
+              ),
+            ),
+            if (!b.paid)
+              Container(
+                padding: EdgeInsets.fromLTRB(Brand.gutter, 12, Brand.gutter,
+                    MediaQuery.of(context).padding.bottom + 14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border(top: BorderSide(color: c.line2)),
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(s.tr(b.subtitle), style: context.t.titleMedium),
-                    if (b.account.isNotEmpty && b.account != '—')
-                      Text('${s.account} ${b.account}', style: context.t.bodySmall),
+                    Row(
+                      children: [
+                        Expanded(child: Text(s.toPayShort, style: context.t.titleMedium)),
+                        Amount(som(b.amount), size: 22),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: () => openPaySheet(
+                        context,
+                        ref,
+                        amount: b.amount,
+                        bills: [b],
+                        records: recordsFromBills([b]),
+                      ),
+                      child: Text('${s.pay} ${som(b.amount)} ${s.som}'),
+                    ),
                   ],
                 ),
               ),
-              AppChip(
-                b.paid ? s.paidTitle : due.text,
-                tone: b.paid
-                    ? ChipTone.ok
-                    : due.overdue
-                        ? ChipTone.bad
-                        : due.soon
-                            ? ChipTone.warn
-                            : ChipTone.soft,
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Amount(som(b.amount), size: 34),
-          const SizedBox(height: 16),
-          KeyValueBox([
-            (s.period, b.period),
-            (s.dueDate, s.longDateText(b.due)),
-            if (object != null) (s.object, s.tr(object.name)),
-          ]),
-          const SizedBox(height: 14),
-          _AutopayRow(bill: b),
-          SectionTitle(s.howCharged),
-          KeyValueBox([for (final f in b.calc) (s.tr(f.label), s.tr(f.value))]),
-          SectionTitle(s.requisites),
-          AppCard(
-            child: Column(
-              children: [
-                for (var i = 0; i < b.requisites.length; i++) ...[
-                  if (i > 0) const RowDivider(indent: 16),
-                  CopyRow(s.tr(b.requisites[i].label), s.tr(b.requisites[i].value),
-                      copiedText: s.copied),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(s.requisitesHint, style: context.t.labelSmall?.copyWith(color: c.muted, height: 1.45)),
-          const SizedBox(height: 22),
-          if (!b.paid)
-            FilledButton(
-              onPressed: () => openCheckout(context, ref, [b]),
-              child: Text('${s.pay} ${som(b.amount)} ${s.som}'),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -101,8 +141,9 @@ class _AutopayRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.c;
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 6, 8, 6),
-      decoration: BoxDecoration(color: c.soft, borderRadius: BorderRadius.circular(Brand.radiusRow)),
+      padding: const EdgeInsets.fromLTRB(14, 4, 8, 4),
+      decoration:
+          BoxDecoration(color: c.soft, borderRadius: BorderRadius.circular(Brand.radiusRow)),
       child: Row(
         children: [
           Expanded(

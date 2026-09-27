@@ -9,6 +9,7 @@ import '../data/demo_data.dart';
 import '../data/bills_repository.dart';
 import '../data/models.dart';
 import '../data/payments_repository.dart';
+import '../data/stories_repository.dart';
 
 /// Заполняется в main() — SharedPreferences читается один раз при старте.
 final prefsProvider = Provider<AppPrefs>((ref) => throw UnimplementedError());
@@ -385,3 +386,25 @@ class TicketsNotifier extends Notifier<List<TicketItem>> {
 
 final ticketsProvider =
     NotifierProvider<TicketsNotifier, List<TicketItem>>(TicketsNotifier.new);
+
+// ───────────────────────── сторисы ─────────────────────────
+
+final storiesRepoProvider = Provider<StoriesRepository>((ref) => MockStoriesRepository());
+
+/// Сторисы главной. Просмотренные помечаются локально — на бэкенде
+/// это станет отметкой прочтения.
+class StoriesNotifier extends AsyncNotifier<List<StoryItem>> {
+  @override
+  Future<List<StoryItem>> build() => ref.read(storiesRepoProvider).stories();
+
+  void markSeen(String id) {
+    final cur = state.value;
+    if (cur == null) return;
+    state = AsyncData([
+      for (final s in cur) s.id == id ? s.copyWith(seen: true) : s,
+    ]);
+  }
+}
+
+final storiesProvider =
+    AsyncNotifierProvider<StoriesNotifier, List<StoryItem>>(StoriesNotifier.new);

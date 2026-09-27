@@ -83,6 +83,7 @@ class ObjectsPage extends ConsumerWidget {
 
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (ctx) => StatefulBuilder(

@@ -77,6 +77,7 @@ class AccountsPage extends ConsumerWidget {
     final s = S.of(context);
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (ctx) => DraggableScrollableSheet(
@@ -128,6 +129,7 @@ class AccountsPage extends ConsumerWidget {
 
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (ctx) => StatefulBuilder(
@@ -213,6 +215,7 @@ class AccountsPage extends ConsumerWidget {
 
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (ctx) => StatefulBuilder(

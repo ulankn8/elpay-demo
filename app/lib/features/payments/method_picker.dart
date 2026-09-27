@@ -30,6 +30,7 @@ Future<void> openMethodPicker(BuildContext context, WidgetRef ref) {
   final s = S.of(context);
   return showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     useSafeArea: true,
     builder: (ctx) => SafeArea(
       child: Consumer(
@@ -80,10 +81,12 @@ class MethodTile extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.showRadio = true,
+    this.subtitleOverride,
   });
   final PayMethodItem item;
   final bool selected, showRadio;
   final VoidCallback onTap;
+  final String? subtitleOverride;
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +114,7 @@ class MethodTile extends StatelessWidget {
                   Text(
                     item.isWallet
                         ? '${s.walletBalance} ${som(item.balance ?? 0)} ${s.som}'
-                        : s.tr(item.subtitle),
+                        : (subtitleOverride ?? s.tr(item.subtitle)),
                     style: context.t.bodySmall,
                   ),
                 ],

@@ -340,3 +340,59 @@ class TicketItem {
         used: used ?? this.used,
       );
 }
+
+/// Кадр сториса: иллюстрация, заголовок, текст и кнопка-ссылка.
+@immutable
+class StoryFrame {
+  const StoryFrame({
+    required this.title,
+    required this.text,
+    this.ctaLabel,
+    this.ctaRoute,
+  });
+  final String title, text;
+  final String? ctaLabel, ctaRoute;
+}
+
+/// Сторис: одна рамка на главной, внутри — до трёх кадров.
+@immutable
+class StoryItem {
+  const StoryItem({
+    required this.id,
+    required this.tag,
+    required this.preview,
+    required this.cat,
+    required this.icon,
+    required this.author,
+    required this.ago,
+    required this.frames,
+    this.seen = false,
+  });
+
+  final String id, tag, preview, cat, icon, author, ago;
+  final List<StoryFrame> frames;
+  final bool seen;
+
+  StoryItem copyWith({bool? seen}) => StoryItem(
+        id: id,
+        tag: tag,
+        preview: preview,
+        cat: cat,
+        icon: icon,
+        author: author,
+        ago: ago,
+        frames: frames,
+        seen: seen ?? this.seen,
+      );
+}
+
+/// Значок услуги на главной: быстрый вход в оплату или подключение счёта.
+@immutable
+class QuickService {
+  const QuickService({
+    required this.cat,
+    required this.label,
+    required this.providerId,
+  });
+  final String cat, label, providerId;
+}

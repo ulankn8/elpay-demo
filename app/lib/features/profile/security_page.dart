@@ -86,6 +86,7 @@ class SecurityPage extends ConsumerWidget {
     final second = TextEditingController();
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (ctx) => Padding(

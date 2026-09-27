@@ -9,11 +9,25 @@ import '../../data/demo_data.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
 import '../bills/bill_row.dart';
-import 'method_picker.dart';
-import 'pay_flow.dart';
-import 'payments_page.dart' show NewPaymentArgs;
+import 'pay_sheet.dart';
+import 'service_row.dart';
 
-/// Новая оплата: получатель → лицевой счёт и сумма → проверка и оплата.
+/// Аргументы экрана: можно открыть сразу на поставщике, на категории
+/// или с уже распознанной квитанции (QR). `connect` — режим подключения счёта.
+class NewPaymentArgs {
+  const NewPaymentArgs({
+    this.categoryId,
+    this.providerId,
+    this.account,
+    this.amount,
+    this.connect = false,
+  });
+  final String? categoryId, providerId, account;
+  final double? amount;
+  final bool connect;
+}
+
+/// Новая оплата: выбор услуги значками → реквизиты и сумма → оплата.
 class NewPaymentPage extends ConsumerStatefulWidget {
   const NewPaymentPage({super.key, this.args});
   final NewPaymentArgs? args;
@@ -23,15 +37,16 @@ class NewPaymentPage extends ConsumerStatefulWidget {
 }
 
 class _NewPaymentPageState extends ConsumerState<NewPaymentPage> {
-  late final TextEditingController _search = TextEditingController();
-  late final TextEditingController _account = TextEditingController(text: widget.args?.account ?? '');
-  late final TextEditingController _amount = TextEditingController(
+  late final _account = TextEditingController(text: widget.args?.account ?? '');
+  late final _amount = TextEditingController(
       text: widget.args?.amount != null ? som(widget.args!.amount!) : '');
 
   ProviderItem? _provider;
-  int _step = 0;
-  bool _busy = false;
+  String? _objectId;
+  late bool _save = widget.args?.connect ?? false;
   String? _accountError, _amountError;
+
+  bool get _connect => widget.args?.connect ?? false;
 
   @override
   void initState() {
@@ -39,18 +54,14 @@ class _NewPaymentPageState extends ConsumerState<NewPaymentPage> {
     final id = widget.args?.providerId;
     if (id != null) {
       _provider = Demo.providerById(id);
-      if (_provider != null) {
-        _step = widget.args?.amount != null ? 2 : 1;
-        if (_amount.text.isEmpty && _provider!.fixedAmount != null) {
-          _amount.text = som(_provider!.fixedAmount!);
-        }
+      if (_provider?.fixedAmount != null && _amount.text.isEmpty) {
+        _amount.text = som(_provider!.fixedAmount!);
       }
     }
   }
 
   @override
   void dispose() {
-    _search.dispose();
     _account.dispose();
     _amount.dispose();
     super.dispose();
@@ -62,28 +73,61 @@ class _NewPaymentPageState extends ConsumerState<NewPaymentPage> {
   void _pick(ProviderItem p) {
     setState(() {
       _provider = p;
-      _step = 1;
       if (p.fixedAmount != null && _amount.text.isEmpty) _amount.text = som(p.fixedAmount!);
     });
   }
 
-  void _check() {
+  bool _validate({bool needAmount = true}) {
     final s = S.of(context);
     final acc = _account.text.trim();
     setState(() {
       _accountError = acc.length < 4 ? s.accountError : null;
-      _amountError = (_sum < 1 || _sum > 100000) ? s.amountError : null;
+      _amountError = needAmount && (_sum < 1 || _sum > 100000) ? s.amountError : null;
     });
-    if (_accountError == null && _amountError == null) setState(() => _step = 2);
+    return _accountError == null && _amountError == null;
   }
 
-  Future<void> _pay() async {
-    final p = _provider!;
-    setState(() => _busy = true);
+  /// Подключить счёт: реквизиты сохраняются, начисление появится в объекте.
+  void _connectAccount() {
+    if (!_validate(needAmount: false)) return;
+    final s = S.of(context);
+    final saved = _saveBill();
+    if (saved == null) return;
+    showAppSnack(context, s.accountAdded);
+    Navigator.of(context).pop();
+  }
+
+  Bill? _saveBill() {
+    final p = _provider;
+    final objects = ref.read(billsProvider).value?.objects ?? const <PayObject>[];
+    if (p == null || objects.isEmpty) return null;
     final now = DateTime.now();
-    final no = await payAndFinish(
+    final acc = _account.text.trim();
+    final bill = Bill(
+      id: 'b-${now.millisecondsSinceEpoch}',
+      title: p.title,
+      subtitle: p.subtitle,
+      cat: p.cat,
+      amount: _sum > 0 ? _sum : (p.fixedAmount ?? 0),
+      objectId: _objectId ?? objects.first.id,
+      period: '${monthName(now.month)} ${now.year}',
+      due: DateTime(now.year, now.month, 25),
+      account: acc,
+      requisites: [...p.requisites, ...Demo.bank, Field('Лицевой счёт', acc)],
+    );
+    ref.read(billsProvider.notifier).addBill(bill);
+    return bill;
+  }
+
+  void _pay() {
+    if (!_validate()) return;
+    final p = _provider!;
+    final now = DateTime.now();
+    if (_save) _saveBill();
+    openPaySheet(
       context,
       ref,
+      amount: _sum,
       bills: const [],
       records: [
         Payment(
@@ -98,228 +142,247 @@ class _NewPaymentPageState extends ConsumerState<NewPaymentPage> {
           period: '${monthName(now.month)} ${now.year}',
         ),
       ],
-      amount: _sum,
     );
-    if (!mounted) return;
-    setState(() => _busy = false);
-    if (no == null) return;
-    goSuccess(context, _sum, 1, no);
   }
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
+    final picking = _provider == null;
     return Scaffold(
       appBar: AppBar(
-        title: Text(switch (_step) {
-          0 => s.chooseProvider,
-          1 => s.newPayment,
-          _ => s.confirmTitle,
-        }),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () {
-            if (_step == 0 || (widget.args?.providerId != null && _step <= 1)) {
-              Navigator.of(context).pop();
-            } else {
-              setState(() => _step -= 1);
-            }
-          },
-        ),
+        title: Text(picking
+            ? s.whatPaying
+            : _connect
+                ? s.connectAccount
+                : s.newPayment),
       ),
       body: SafeArea(
         top: false,
-        child: switch (_step) {
-          0 => _stepProviders(),
-          1 => _stepForm(),
-          _ => _stepConfirm(),
-        },
+        child: picking ? _stepServices() : _stepForm(),
       ),
     );
   }
 
-  // ── шаг 1: получатель ────────────────────────────────────────────
-  Widget _stepProviders() {
+  // ── шаг 1: услуга значками ───────────────────────────────────────
+  Widget _stepServices() {
     final s = S.of(context);
     final catId = widget.args?.categoryId;
-    final q = _search.text.trim().toLowerCase();
-    final list = Demo.providers.where((p) {
-      if (catId != null && p.categoryId != catId) return false;
-      if (q.isEmpty) return true;
-      return p.title.toLowerCase().contains(q) || p.subtitle.toLowerCase().contains(q);
-    }).toList();
+    final services = catId == null
+        ? Demo.quickServices
+        : Demo.quickServices
+            .where((q) => Demo.providerById(q.providerId)?.categoryId == catId)
+            .toList();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(Brand.gutter, 8, Brand.gutter, 24),
+      padding: const EdgeInsets.fromLTRB(Brand.gutter, 4, Brand.gutter, 28),
       children: [
-        TextField(
-          controller: _search,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            hintText: s.searchHint,
-            prefixIcon: const Icon(Icons.search_rounded),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(2, 0, 2, 18),
+          child: Text(s.whatPayingLead, style: context.t.bodyMedium?.copyWith(height: 1.45)),
+        ),
+        GridView.count(
+          crossAxisCount: 3,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 8,
+          childAspectRatio: .92,
+          children: [
+            for (final q in services)
+              ServiceIcon(
+                service: q,
+                size: 62,
+                onTap: () {
+                  final p = Demo.providerById(q.providerId);
+                  if (p != null) _pick(p);
+                },
+              ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        AppCard(
+          child: AppRow(
+            leading: CatTile('tax', Icons.receipt_long_outlined, soft: true),
+            title: s.otherRecipient,
+            subtitle: s.otherRecipientLead,
+            chevron: true,
+            onTap: () {
+              final p = Demo.providerById('p-tax');
+              if (p != null) _pick(p);
+            },
           ),
         ),
-        const SizedBox(height: 16),
-        if (list.isEmpty)
-          EmptyState(icon: Icons.search_off_rounded, title: s.nothingFound)
-        else
-          AppCard(
-            child: Column(
-              children: [
-                for (var i = 0; i < list.length; i++) ...[
-                  if (i > 0) const RowDivider(),
-                  AppRow(
-                    leading: CatTile(list[i].cat, catIcon(list[i].cat), soft: true),
-                    title: s.tr(list[i].title),
-                    subtitle: s.tr(list[i].subtitle),
-                    chevron: true,
-                    onTap: () => _pick(list[i]),
-                  ),
-                ],
-              ],
-            ),
-          ),
       ],
     );
   }
 
-  // ── шаг 2: счёт и сумма ──────────────────────────────────────────
+  // ── шаг 2: реквизиты и сумма ─────────────────────────────────────
   Widget _stepForm() {
     final s = S.of(context);
     final p = _provider!;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(Brand.gutter, 8, Brand.gutter, 24),
-      children: [
-        AppCard(
-          child: AppRow(
-            leading: CatTile(p.cat, catIcon(p.cat), soft: true),
-            title: s.tr(p.title),
-            subtitle: s.tr(p.subtitle),
-            trailing: TextButton(
-              onPressed: () => setState(() => _step = 0),
-              child: Text(s.editWord),
-            ),
-          ),
-        ),
-        const SizedBox(height: 18),
-        TextField(
-          controller: _account,
-          decoration: InputDecoration(
-            labelText: s.tr(p.accountLabel),
-            hintText: p.accountHint,
-            errorText: _accountError,
-          ),
-        ),
-        const SizedBox(height: 14),
-        TextField(
-          controller: _amount,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: s.amountLabel,
-            suffixText: s.som,
-            errorText: _amountError,
-          ),
-        ),
-        const SizedBox(height: 20),
-        FilledButton(onPressed: _check, child: Text(s.checkAccount)),
-        const SizedBox(height: 14),
-        Tip(s.newPaymentHint),
-      ],
-    );
-  }
+    final objects = ref.watch(billsProvider).value?.objects ?? const <PayObject>[];
+    final objectId = _objectId ?? (objects.isEmpty ? '' : objects.first.id);
+    final objectName = objects
+        .where((o) => o.id == objectId)
+        .map((o) => s.tr(o.name))
+        .firstOrNull ??
+        '';
 
-  // ── шаг 3: проверка и оплата ─────────────────────────────────────
-  Widget _stepConfirm() {
-    final s = S.of(context);
-    final p = _provider!;
-    final method = methodById(ref, ref.watch(payMethodProvider));
     return Column(
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(Brand.gutter, 8, Brand.gutter, 16),
+            padding: const EdgeInsets.fromLTRB(Brand.gutter, 4, Brand.gutter, 20),
             children: [
               AppCard(
-                padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
-                child: Column(
-                  children: [
-                    CatTile(p.cat, catIcon(p.cat), size: 52, radius: 15),
-                    const SizedBox(height: 10),
-                    Text(s.tr(p.title), style: context.t.titleLarge),
-                    const SizedBox(height: 2),
-                    Text('${s.tr(p.accountLabel)} · ${_account.text.trim()}',
-                        style: context.t.bodySmall),
-                    const SizedBox(height: 14),
-                    Amount(som(_sum), size: 30),
-                  ],
+                child: AppRow(
+                  leading: CatTile(p.cat, catIcon(p.cat), soft: true),
+                  title: s.tr(p.title),
+                  subtitle: s.tr(p.subtitle),
+                  trailing: widget.args?.providerId != null
+                      ? null
+                      : TextButton(
+                          onPressed: () => setState(() => _provider = null),
+                          child: Text(s.editWord),
+                        ),
                 ),
               ),
-              SectionTitle(s.requisites),
-              KeyValueBox([for (final f in p.requisites) (s.tr(f.label), s.tr(f.value))]),
-              SectionTitle(s.payMethod),
-              MethodTile(
-                item: method,
-                selected: false,
-                showRadio: false,
-                onTap: () async {
-                  await openMethodPicker(context, ref);
-                  if (mounted) setState(() {});
-                },
+              const SizedBox(height: 18),
+              TextField(
+                controller: _account,
+                decoration: InputDecoration(
+                  labelText: s.tr(p.accountLabel),
+                  hintText: p.accountHint,
+                  errorText: _accountError,
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _amount,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: s.amountSom,
+                  errorText: _amountError,
+                ),
               ),
               const SizedBox(height: 16),
-              Tip(s.paymentsStub, icon: Icons.construction_rounded, tone: ChipTone.warn),
+              Tip(s.newPaymentHint),
+              if (!_connect && objects.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                _SaveRow(
+                  on: _save,
+                  title: s.saveAsMine,
+                  lead: s.saveAsMineLead(objectName),
+                  onTap: () => setState(() => _save = !_save),
+                ),
+              ],
+              if (_save || _connect) ...[
+                const SizedBox(height: 14),
+                Text(s.chooseObject, style: context.t.labelSmall),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final o in objects)
+                      ChoiceChip(
+                        label: Text(s.tr(o.name)),
+                        selected: objectId == o.id,
+                        showCheckmark: false,
+                        onSelected: (_) => setState(() => _objectId = o.id),
+                      ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
-        _BottomBar(
-          total: _sum,
-          busy: _busy,
-          onPay: _pay,
+        Container(
+          padding: EdgeInsets.fromLTRB(
+              Brand.gutter, 12, Brand.gutter, MediaQuery.of(context).padding.bottom + 14),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(top: BorderSide(color: context.c.line2)),
+          ),
+          child: _connect
+              ? FilledButton(onPressed: _connectAccount, child: Text(s.connectAccount))
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text(s.toPayShort, style: context.t.titleMedium)),
+                        if (_sum > 0)
+                          Amount(som(_sum), size: 22)
+                        else
+                          Text('—',
+                              style: context.t.titleLarge?.copyWith(color: context.c.muted2)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(onPressed: _pay, child: Text(s.cont)),
+                  ],
+                ),
         ),
       ],
     );
   }
 }
 
-/// Нижняя панель с итогом и кнопкой оплаты — общая для экранов оплаты.
-class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.total, required this.busy, required this.onPay});
-  final double total;
-  final bool busy;
-  final VoidCallback onPay;
+/// Строка с галочкой «сохранить как мой счёт».
+class _SaveRow extends StatelessWidget {
+  const _SaveRow({
+    required this.on,
+    required this.title,
+    required this.lead,
+    required this.onTap,
+  });
+  final bool on;
+  final String title, lead;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final s = S.of(context);
     final c = context.c;
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-          Brand.gutter, 12, Brand.gutter, MediaQuery.of(context).padding.bottom + 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(top: BorderSide(color: c.line2)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(child: Text(s.total, style: context.t.titleMedium)),
-              Amount(som(total), size: 22),
-            ],
-          ),
-          const SizedBox(height: 12),
-          FilledButton(
-            onPressed: busy ? null : onPay,
-            child: busy
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2.4, color: Brand.onPrimary))
-                : Text('${s.pay} ${som(total)} ${s.som}'),
-          ),
-        ],
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: on ? Brand.primary : c.line, width: 1.5),
+          color: on ? Brand.light2.withValues(alpha: .5) : null,
+        ),
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                color: on ? Brand.primary : Colors.transparent,
+                border: Border.all(color: on ? Brand.primary : c.muted2, width: 1.6),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: on
+                  ? const Icon(Icons.check_rounded, size: 16, color: Brand.onPrimary)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: context.t.titleMedium?.copyWith(fontSize: 14.5)),
+                  const SizedBox(height: 2),
+                  Text(lead, style: context.t.bodySmall?.copyWith(height: 1.35)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

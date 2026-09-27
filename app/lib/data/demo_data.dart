@@ -80,8 +80,8 @@ class Demo {
         due: due(25),
         account: '31-00562',
         calc: const [
-          Field('Тариф', '22,78 сом за м³'),
-          Field('Расход', '9 м³'),
+          Field('Тариф', '41 сом с человека'),
+          Field('Проживающих', '5 человек'),
           Field('Итого', '205 сом'),
         ],
         requisites: const [
@@ -473,4 +473,17 @@ class Demo {
         date: at(4, 12), price: 200, cat: 'kid', lead: 'Для детей от 4 лет'),
     ];
   }
+
+  /// Значки услуг на главной — порядок как в брендбуке.
+  static const quickServices = <QuickService>[
+    QuickService(cat: 'water', label: 'Вода', providerId: 'p-water'),
+    QuickService(cat: 'power', label: 'Свет', providerId: 'p-power'),
+    QuickService(cat: 'trash', label: 'Мусор', providerId: 'p-trash'),
+    QuickService(cat: 'kid', label: 'Садик', providerId: 'p-kid'),
+    QuickService(cat: 'school', label: 'Школа', providerId: 'p-school'),
+    QuickService(cat: 'net', label: 'Интернет', providerId: 'p-saima'),
+    QuickService(cat: 'gas', label: 'Газ', providerId: 'p-gas'),
+    QuickService(cat: 'mobile', label: 'Связь', providerId: 'p-o'),
+    QuickService(cat: 'tax', label: 'Налоги', providerId: 'p-tax'),
+  ];
 }

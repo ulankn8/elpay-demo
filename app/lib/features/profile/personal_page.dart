@@ -107,6 +107,7 @@ class _PersonalPageState extends ConsumerState<PersonalPage> {
     final code = TextEditingController();
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (ctx) => Padding(

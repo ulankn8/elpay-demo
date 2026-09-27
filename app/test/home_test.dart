@@ -4,6 +4,7 @@ import 'package:elpay/app.dart';
 import 'package:elpay/core/prefs.dart';
 import 'package:elpay/data/models.dart';
 import 'package:elpay/state/providers.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,9 +17,17 @@ const _session = Session(
   address: 'ул. Курманжан Датка, 212',
 );
 
+/// Экран телефона: иначе в тесте виден только верх списка.
+void _phoneSurface(WidgetTester tester) {
+  tester.view.physicalSize = const Size(393 * 3, 852 * 3);
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.reset);
+}
+
 void main() {
-  testWidgets('После входа главная показывает счета и кнопку «Оплатить всё»',
+  testWidgets('После входа главная показывает сторисы, объекты и «Новую оплату»',
       (tester) async {
+    _phoneSurface(tester);
     SharedPreferences.setMockInitialValues({
       'flutter.session': jsonEncode(_session.toJson()),
       'flutter.onboarded': true,
@@ -34,9 +43,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Салам'), findsOneWidget);
-    expect(find.text('Счета'), findsOneWidget);
-    expect(find.text('Ош-Тазалык'), findsWidgets);
-    expect(find.textContaining('Оплатить всё'), findsWidgets);
+    // сторисы: первая карточка ленты
+    expect(find.textContaining('Завтра'), findsWidgets);
+    // карточка объекта с кнопкой «Оплатить»
+    expect(find.text('Дом'), findsOneWidget);
+    expect(find.text('Оплатить'), findsWidgets);
+    expect(find.text('Новая оплата'), findsOneWidget);
 
     // Нижняя навигация — четыре раздела.
     for (final tab in ['Главная', 'Платежи', 'Отчёты', 'Профиль']) {
@@ -44,7 +56,8 @@ void main() {
     }
   });
 
-  testWidgets('Вкладка «Платежи» открывает кошелёк и каталог', (tester) async {
+  testWidgets('Вкладка «Платежи» открывает кошелёк и разделы', (tester) async {
+    _phoneSurface(tester);
     SharedPreferences.setMockInitialValues({
       'flutter.session': jsonEncode(_session.toJson()),
       'flutter.onboarded': true,
@@ -63,7 +76,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Кошелёк ЭлPay'), findsWidgets);
-    expect(find.text('Куда платить'), findsOneWidget);
-    expect(find.text('Коммунальные услуги'), findsOneWidget);
+    expect(find.text('История платежей'), findsWidgets);
+    expect(find.text('Способы оплаты'), findsOneWidget);
   });
 }

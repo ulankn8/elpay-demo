@@ -64,6 +64,7 @@ class FamilyPage extends ConsumerWidget {
     final s = S.of(context);
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       useSafeArea: true,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheet) {
@@ -124,6 +125,7 @@ class FamilyPage extends ConsumerWidget {
 
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (ctx) => StatefulBuilder(

@@ -332,6 +332,49 @@ abstract class S {
   String monthTitleText(DateTime d);
   String dayMonthText(DateTime d);
   String periodText(DateTime d);
+
+  // Главная v4 и новый путь оплаты
+  String get payWord;
+  String get payAllSum;
+  String get dueBy;
+  String get storiesMore;
+  String storyStep(int i, int n);
+  String get selectedAll;
+  String get selectNone;
+  String selectedOf(int n, int all);
+  String get whatForTitle;
+  String get address;
+  String get payBy;
+  String get toPayShort;
+  String get payWithTitle;
+  String get payWithLead;
+  String get mainFromProfile;
+  String get byRequisites;
+  String get byRequisitesLead;
+  String get byQrLead;
+  String get whatPaying;
+  String get whatPayingLead;
+  String get otherRecipient;
+  String get otherRecipientLead;
+  String get saveAsMine;
+  String saveAsMineLead(String obj);
+  String get amountSom;
+  String get connectAccount;
+  String get connectAccountLead;
+  String get payOnce;
+  String get payOnceLead;
+  String get allServices;
+
+  // Подписи значков услуг
+  String get svcWater;
+  String get svcPower;
+  String get svcTrash;
+  String get svcKid;
+  String get svcSchool;
+  String get svcNet;
+  String get svcGas;
+  String get svcMobile;
+  String get svcTax;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
@@ -686,6 +729,49 @@ class SRu implements S {
   @override String monthTitleText(DateTime d) => monthTitle(d);
   @override String dayMonthText(DateTime d) => dayMonth(d);
   @override String periodText(DateTime d) => '${monthName(d.month)} ${d.year}';
+
+  // Главная v4 и новый путь оплаты
+  @override String get payWord => 'Оплатить';
+  @override String get payAllSum => 'Оплатить всё';
+  @override String get dueBy => 'срок';
+  @override String get storiesMore => 'листайте вправо';
+  @override String storyStep(int i, int n) => '$i из $n';
+  @override String get selectedAll => 'Выбраны все';
+  @override String get selectNone => 'Снять все';
+  @override String selectedOf(int n, int all) => 'Выбрано $n из $all';
+  @override String get whatForTitle => 'За что платим';
+  @override String get address => 'Адрес';
+  @override String get payBy => 'Оплатить до';
+  @override String get toPayShort => 'К оплате';
+  @override String get payWithTitle => 'Чем оплатить';
+  @override String get payWithLead => 'По умолчанию — способ из настроек профиля';
+  @override String get mainFromProfile => 'Основной способ из профиля';
+  @override String get byRequisites => 'По реквизитам';
+  @override String get byRequisitesLead => 'Выберите услугу и введите лицевой счёт';
+  @override String get byQrLead => 'Наведите камеру — реквизиты подставятся сами';
+  @override String get whatPaying => 'Что оплачиваем';
+  @override String get whatPayingLead => 'Выберите услугу — реквизиты поставщика подставим сами';
+  @override String get otherRecipient => 'Другой получатель';
+  @override String get otherRecipientLead => 'Если услуги нет в списке — по реквизитам вручную';
+  @override String get saveAsMine => 'Сохранить как мой счёт';
+  @override String saveAsMineLead(String obj) => 'Появится в объекте «$obj» и будет приходить каждый месяц';
+  @override String get amountSom => 'Сумма, сом';
+  @override String get connectAccount => 'Подключить счёт';
+  @override String get connectAccountLead => 'Сохраним реквизиты — счёт будет приходить сам';
+  @override String get payOnce => 'Оплатить разово';
+  @override String get payOnceLead => 'Без сохранения: ввели счёт и сумму — и готово';
+  @override String get allServices => 'Все услуги';
+
+  // Подписи значков услуг
+  @override String get svcWater => 'Вода';
+  @override String get svcPower => 'Свет';
+  @override String get svcTrash => 'Мусор';
+  @override String get svcKid => 'Садик';
+  @override String get svcSchool => 'Школа';
+  @override String get svcNet => 'Интернет';
+  @override String get svcGas => 'Газ';
+  @override String get svcMobile => 'Связь';
+  @override String get svcTax => 'Налоги';
 }
 
 class SKy implements S {
@@ -1029,6 +1115,49 @@ class SKy implements S {
   }
   @override String dayMonthText(DateTime d) => '${d.day}-${_kyShort[d.month - 1]}';
   @override String periodText(DateTime d) => '${_kyMonths[d.month - 1]} ${d.year}';
+
+  // Главная v4 и новый путь оплаты
+  @override String get payWord => 'Төлөө';
+  @override String get payAllSum => 'Баарын төлөө';
+  @override String get dueBy => 'мөөнөт';
+  @override String get storiesMore => 'оңго жылдырыңыз';
+  @override String storyStep(int i, int n) => '$n ичинен $i';
+  @override String get selectedAll => 'Баары тандалды';
+  @override String get selectNone => 'Баарын алып салуу';
+  @override String selectedOf(int n, int all) => '$allдан $n тандалды';
+  @override String get whatForTitle => 'Эмне үчүн төлөйбүз';
+  @override String get address => 'Дарек';
+  @override String get payBy => 'Төлөө мөөнөтү';
+  @override String get toPayShort => 'Төлөөгө';
+  @override String get payWithTitle => 'Эмне менен төлөйбүз';
+  @override String get payWithLead => 'Демейки — профилдеги ыкма';
+  @override String get mainFromProfile => 'Профилдеги негизги ыкма';
+  @override String get byRequisites => 'Реквизиттер боюнча';
+  @override String get byRequisitesLead => 'Кызматты тандап, жеке эсепти жазыңыз';
+  @override String get byQrLead => 'Камераны багыттаңыз — реквизиттер өзү коюлат';
+  @override String get whatPaying => 'Эмне төлөйбүз';
+  @override String get whatPayingLead => 'Кызматты тандаңыз — камсыздоочунун реквизиттерин өзүбүз коёбуз';
+  @override String get otherRecipient => 'Башка алуучу';
+  @override String get otherRecipientLead => 'Тизмеде кызмат жок болсо — реквизиттерди колго жазыңыз';
+  @override String get saveAsMine => 'Менин эсебим катары сактоо';
+  @override String saveAsMineLead(String obj) => '«$obj» объектинде пайда болуп, ар ай сайын келип турат';
+  @override String get amountSom => 'Сумма, сом';
+  @override String get connectAccount => 'Эсепти туташтыруу';
+  @override String get connectAccountLead => 'Реквизиттерди сактайбыз — эсеп өзү келип турат';
+  @override String get payOnce => 'Бир жолу төлөө';
+  @override String get payOnceLead => 'Сактабастан: эсеп менен сумманы жазып — бүттү';
+  @override String get allServices => 'Бардык кызматтар';
+
+  // Подписи значков услуг
+  @override String get svcWater => 'Суу';
+  @override String get svcPower => 'Жарык';
+  @override String get svcTrash => 'Таштанды';
+  @override String get svcKid => 'Бакча';
+  @override String get svcSchool => 'Мектеп';
+  @override String get svcNet => 'Интернет';
+  @override String get svcGas => 'Газ';
+  @override String get svcMobile => 'Байланыш';
+  @override String get svcTax => 'Салыктар';
 }
 
 String plural3(int n, String one, String few, String many) {
@@ -1117,6 +1246,11 @@ const Map<String, String> _kyData = {
   "сейчас": "азыр",
   "Ош, Кыргызстан": "Ош, Кыргызстан",
   "Бишкек, Кыргызстан": "Бишкек, Кыргызстан",
+  "Проживающих": "Жашагандар",
+  "5 человек": "5 адам",
+  "41 сом с человека": "адамга 41 сом",
+  "Итого": "Жыйынтык",
+  "Начислено": "Эсептелди",
 };
 
 /// Названия месяцев на кыргызском (заимствованные формы, как в афишах Оша).

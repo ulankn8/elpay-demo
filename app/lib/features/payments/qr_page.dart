@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/l10n/s.dart';
 import '../../core/tokens.dart';
 import '../../core/widgets.dart';
-import 'payments_page.dart' show NewPaymentArgs;
+import 'new_payment_page.dart' show NewPaymentArgs;
 
 /// Оплата по QR с бумажной квитанции.
 ///

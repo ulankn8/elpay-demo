@@ -9,7 +9,6 @@ import '../../core/widgets.dart';
 import '../../data/demo_data.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
-import '../bills/bill_row.dart';
 import 'method_picker.dart';
 
 /// Вкладка «Платежи»: кошелёк, быстрые действия, каталог получателей.
@@ -60,27 +59,6 @@ class PaymentsPage extends ConsumerWidget {
                 ),
               ],
             ),
-            SectionTitle(s.catalogTitle),
-            AppCard(
-              child: Column(
-                children: [
-                  for (var i = 0; i < Demo.categories.length; i++) ...[
-                    if (i > 0) const RowDivider(),
-                    AppRow(
-                      leading: CatTile(Demo.categories[i].cat,
-                          _catIcon(Demo.categories[i].id), soft: true),
-                      title: s.tr(Demo.categories[i].title),
-                      subtitle: s.tr(Demo.categories[i].lead),
-                      chevron: true,
-                      onTap: () => Demo.categories[i].id == 'market'
-                          ? context.push('/market')
-                          : context.push('/new-payment',
-                              extra: NewPaymentArgs(categoryId: Demo.categories[i].id)),
-                    ),
-                  ],
-                ],
-              ),
-            ),
             SectionTitle(s.sectionHistoryAuto),
             AppCard(
               child: Column(
@@ -91,6 +69,14 @@ class PaymentsPage extends ConsumerWidget {
                     subtitle: s.historyLead,
                     chevron: true,
                     onTap: () => context.push('/history'),
+                  ),
+                  const RowDivider(),
+                  AppRow(
+                    leading: CatTile('market', Icons.local_activity_outlined, soft: true),
+                    title: s.marketTitle,
+                    subtitle: s.marketLead,
+                    chevron: true,
+                    onTap: () => context.push('/market'),
                   ),
                   const RowDivider(),
                   AppRow(
@@ -154,19 +140,11 @@ class PaymentsPage extends ConsumerWidget {
     );
   }
 
-  static IconData _catIcon(String id) => switch (id) {
-        'util' => Icons.bolt_rounded,
-        'edu' => Icons.child_care_rounded,
-        'tax' => Icons.account_balance_outlined,
-        'net' => Icons.wifi_rounded,
-        'mobile' => Icons.smartphone_rounded,
-        _ => Icons.confirmation_number_outlined,
-      };
-
   void _topUpSheet(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       useSafeArea: true,
       isScrollControlled: true,
       builder: (ctx) => _TopUpSheet(title: s.topUpTitle),
@@ -272,11 +250,15 @@ class _WalletCard extends StatelessWidget {
                     const Icon(Icons.account_balance_wallet_rounded,
                         size: 16, color: Brand.primary),
                     const SizedBox(width: 7),
-                    Text(s.walletTitle,
-                        style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white.withValues(alpha: .7))),
+                    Flexible(
+                      child: Text(s.walletTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white.withValues(alpha: .7))),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -351,14 +333,3 @@ class _ActionTile extends StatelessWidget {
         ),
       );
 }
-
-/// Аргументы экрана новой оплаты: можно открыть сразу на категории,
-/// на поставщике или с уже распознанной квитанции (QR).
-class NewPaymentArgs {
-  const NewPaymentArgs({this.categoryId, this.providerId, this.account, this.amount});
-  final String? categoryId, providerId, account;
-  final double? amount;
-}
-
-/// Иконка счёта по категории — переиспользуем таблицу из ленты счетов.
-IconData providerIcon(String cat) => catIcon(cat);

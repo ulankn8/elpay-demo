@@ -162,6 +162,8 @@ class AppChip extends StatelessWidget {
         children: [
           if (icon != null) ...[Icon(icon, size: 13, color: fg), const SizedBox(width: 4)],
           Text(text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                   fontSize: 11.5, fontWeight: FontWeight.w600, color: fg, height: 1.2)),
         ],
