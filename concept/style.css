@@ -1,0 +1,151 @@
+@font-face{font-family:Mont;src:url('../app/assets/fonts/Montserrat-400.ttf');font-weight:400}
+@font-face{font-family:Mont;src:url('../app/assets/fonts/Montserrat-500.ttf');font-weight:500}
+@font-face{font-family:Mont;src:url('../app/assets/fonts/Montserrat-600.ttf');font-weight:600}
+@font-face{font-family:Mont;src:url('../app/assets/fonts/Montserrat-700.ttf');font-weight:700}
+
+:root{
+  --p:#1FB886;--p6:#06A06E;--p7:#05804F;--onp:#04332B;--l:#DEF3EC;--l2:#EBF8F2;
+  --ink:#1E2A32;--ink2:#2A3942;--ink3:#3C4A55;--mut:#6B7772;--mut2:#9AA5A0;
+  --line:#E4E8E6;--line2:#EEF1EF;--bg:#fff;--soft:#F5F7F6;--soft2:#F9FAF9;
+  --dan:#E0533F;--warn:#E0A93F;--info:#3F7BE0;
+  --g-water:linear-gradient(135deg,#5B9BF0,#3F7BE0);
+  --g-power:linear-gradient(135deg,#F6C453,#E0A93F);
+  --g-trash:linear-gradient(135deg,#FF9A52,#F0643F);
+  --g-kid:linear-gradient(135deg,#FF7DBE,#E0428D);
+  --g-school:linear-gradient(135deg,#8C75FF,#5B45D9);
+  --g-net:linear-gradient(135deg,#8B9BF0,#6B7EE0);
+  --g-gas:linear-gradient(135deg,#E07A5F,#C0553F);
+  --g-tax:linear-gradient(135deg,#55636E,#3C4A55);
+  --g-mobile:linear-gradient(135deg,#3FC8B4,#1FA894);
+  --g-market:linear-gradient(135deg,#46BEDC,#2AA3C7);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:Mont,system-ui,sans-serif;background:#E9EDEB;color:var(--ink);padding:40px}
+.gallery{display:flex;flex-wrap:wrap;gap:46px;justify-content:center;align-items:flex-start}
+.item{width:393px}
+.cap{font-size:14px;font-weight:700;margin:0 0 10px 2px;color:var(--ink)}
+.cap span{display:block;font-weight:500;font-size:12.5px;color:var(--mut);margin-top:3px;line-height:1.4}
+.screen{width:393px;height:852px;background:var(--soft);border-radius:30px;overflow:hidden;position:relative;
+  box-shadow:0 18px 50px rgba(30,42,50,.16)}
+
+/* ── общие элементы ─────────────────────────────── */
+.pad{padding:0 20px}
+.h1{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.h2{font-size:19px;font-weight:700;letter-spacing:-.3px}
+.h3{font-size:15px;font-weight:600}
+.sub{font-size:13px;color:var(--mut);line-height:1.45}
+.tiny{font-size:11.5px;color:var(--mut2);font-weight:600}
+.card{background:#fff;border-radius:18px;box-shadow:0 1px 2px rgba(30,42,50,.06)}
+.row{display:flex;align-items:center;gap:13px;padding:13px 16px}
+.row+.row{border-top:1px solid var(--line2)}
+.grow{flex:1;min-width:0}
+.ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{height:54px;border-radius:16px;background:var(--p);color:var(--onp);font-family:Mont;font-size:16px;
+  font-weight:700;border:0;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn.sm{height:44px;font-size:14px;border-radius:13px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:999px;
+  background:var(--l2);border:1px solid rgba(31,184,134,.3);color:var(--p7);font-size:12.5px;font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.chip.ok{background:var(--l2);color:var(--p7)}
+.chip.warn{background:#FDF3E0;color:#9A6C12}
+.chip.bad{background:#FCEBE8;color:#B03A28}
+.chip.soft{background:var(--soft);color:var(--mut)}
+.ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.ic svg{width:21px;height:21px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ic.soft svg{stroke:currentColor}
+.amt{font-size:16px;font-weight:700;letter-spacing:-.2px;white-space:nowrap}
+.amt i{font-style:normal;font-size:10px;font-weight:600;color:var(--mut);margin-left:3px}
+
+/* ── шапка ──────────────────────────────────────── */
+.head{display:flex;align-items:center;gap:12px;padding:14px 20px 12px}
+.ava{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1FB886,#06A06E);
+  display:flex;align-items:center;justify-content:center;color:var(--onp);font-weight:700;font-size:15px;flex:none}
+.head .name{font-size:19px;font-weight:700;letter-spacing:-.3px}
+.head .addr{font-size:12.5px;color:var(--mut);display:flex;align-items:center;gap:4px;margin-top:1px}
+.bell{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex:none}
+.bell b{position:absolute;top:2px;right:2px;min-width:17px;height:17px;border-radius:999px;background:var(--dan);
+  color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;border:2px solid var(--soft)}
+
+/* ── сторисы ────────────────────────────────────── */
+.stories{display:flex;gap:11px;padding:4px 20px 2px;overflow:hidden}
+.story{width:108px;height:150px;border-radius:19px;position:relative;overflow:hidden;flex:none;
+  box-shadow:0 6px 16px rgba(30,42,50,.12)}
+.story .txt{position:absolute;left:11px;right:11px;bottom:11px;color:#fff;font-size:13px;font-weight:700;line-height:1.28;
+  text-shadow:0 1px 6px rgba(0,0,0,.3)}
+.story .tag{position:absolute;left:11px;top:11px;font-size:9.5px;font-weight:700;color:#fff;
+  background:rgba(255,255,255,.24);padding:3px 8px;border-radius:999px;backdrop-filter:blur(4px)}
+.story .bars{position:absolute;left:9px;right:9px;top:7px;display:flex;gap:3px}
+.story .bars i{flex:1;height:2.5px;border-radius:2px;background:rgba(255,255,255,.45)}
+.story .bars i.on{background:#fff}
+.story.ring{outline:2.5px solid var(--p);outline-offset:2px}
+
+/* ── карточка объекта ───────────────────────────── */
+.heroes{display:flex;gap:12px;padding:0 20px;overflow:hidden}
+.hero{width:353px;flex:none;border-radius:24px;padding:18px 18px 18px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,#0E3A2C 0%,#12303A 55%,#172A32 100%);
+  box-shadow:0 16px 34px rgba(14,58,44,.28)}
+.hero.b{background:linear-gradient(145deg,#14303C 0%,#1B2A36 60%,#202C33 100%)}
+.hero .top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.hero .top .box{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center}
+.hero .top .box svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:1.9}
+.hero .top b{font-size:16px;font-weight:700;flex:1}
+.hero .top span{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.62)}
+.hero .lab{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.62);display:flex;align-items:center;gap:8px}
+.hero .due{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
+  background:rgba(255,255,255,.13);font-size:11.5px;font-weight:700;color:#fff}
+.hero .big{font-size:38px;font-weight:700;letter-spacing:-1.2px;margin:5px 0 2px}
+.hero .big i{font-style:normal;font-size:16px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:0;margin-left:5px}
+.hero .cnt{font-size:12.5px;color:rgba(255,255,255,.6)}
+.bar{height:9px;border-radius:999px;overflow:hidden;display:flex;margin:14px 0 11px}
+.bar span{height:100%}
+.leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:rgba(255,255,255,.85);margin-bottom:15px}
+.leg b{display:flex;align-items:center;gap:6px;font-weight:600}
+.leg b i{width:8px;height:8px;border-radius:50%;display:block}
+.leg b u{text-decoration:none;font-weight:700;color:#fff}
+.hero .act{height:50px;border-radius:15px;background:var(--p);color:var(--onp);font-size:15.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.dots{display:flex;justify-content:center;gap:5px;margin:12px 0 0}
+.dots i{width:6px;height:6px;border-radius:3px;background:var(--line);display:block}
+.dots i.on{width:18px;background:var(--p)}
+
+/* ── иконки услуг ───────────────────────────────── */
+.svcs{display:flex;gap:14px;padding:2px 20px;overflow:hidden}
+.svc{width:62px;text-align:center;flex:none}
+.svc .c{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:7px;
+  box-shadow:0 5px 12px rgba(30,42,50,.13)}
+.svc .c svg{width:25px;height:25px;stroke:#fff;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.svc span{font-size:12px;font-weight:600;color:var(--ink3)}
+
+/* ── шторки ─────────────────────────────────────── */
+.dim{position:absolute;inset:0;background:rgba(20,30,36,.45)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:26px 26px 0 0;padding:10px 20px 26px}
+.sheet .grab{width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px}
+.nav{position:absolute;left:0;right:0;bottom:0;height:78px;background:#fff;border-top:1px solid var(--line2);
+  display:flex;align-items:flex-start;padding-top:10px}
+.nav div{flex:1;text-align:center;font-size:11.5px;font-weight:600;color:var(--mut)}
+.nav div.on{color:var(--p7)}
+.nav div .n{width:56px;height:32px;margin:0 auto 4px;border-radius:999px;display:flex;align-items:center;justify-content:center}
+.nav div.on .n{background:var(--l2)}
+.nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.appbar{display:flex;align-items:center;gap:6px;padding:16px 16px 10px}
+.appbar .t{font-size:17px;font-weight:700;flex:1;text-align:center;margin-right:32px}
+.appbar .b{width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.appbar svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.check{width:26px;height:26px;border-radius:8px;border:1.6px solid var(--mut2);flex:none;display:flex;align-items:center;justify-content:center}
+.check.on{background:var(--p);border-color:var(--p)}
+.check.on svg{width:15px;height:15px;stroke:var(--onp);stroke-width:2.6;fill:none}
+.kv{background:var(--soft);border-radius:16px;padding:2px 14px}
+.kv div{display:flex;justify-content:space-between;gap:14px;padding:10px 0;font-size:13.5px}
+.kv div+div{border-top:1px solid var(--line)}
+.kv span{color:var(--mut)}
+.kv b{font-weight:600;text-align:right}
+.bank{width:44px;height:30px;border-radius:8px;background:var(--ink);color:#fff;font-size:8.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex:none}
+.radio{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--mut2);flex:none}
+.radio.on{border:7px solid var(--p)}
+.bottombar{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line2);padding:12px 20px 22px}
+.total{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.total b{font-size:15px;font-weight:600}
+.total .v{font-size:22px;font-weight:700;letter-spacing:-.4px}
+.total .v i{font-style:normal;font-size:13px;color:var(--mut);font-weight:600;margin-left:3px}
