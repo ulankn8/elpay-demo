@@ -90,6 +90,7 @@ await p.locator('.screen').screenshot({ path: 'out.png' }); // только эк
 - На главной и в отчётах — карусель карточек объектов (`#heroes`, `#rep-heroes`, механика в `hInit/hSlide/hLayout`).
 - Шторки — `openSheet(title, html, kind)`, поля проверяются через `fErr('#id','текст ошибки')`.
 - Печатные документы — `docWrap/rcptDoc/expDoc/printDoc` (открывают окно и вызывают печать; в iframe могут быть заблокированы — есть честный тост).
+- Реквизиты и расчёт начисления: `payReq(b)`, `payCalc(b)`, блоки `calcBlock/reqBlock` в карточке счёта и `coWhat(items)` в шторке оплаты. Данные поставщиков — поля `rec/inn/racc/calc` в `UTIL`, налоговая — `TAXREQ`.
 - Демо-код из SMS и код-пароль: **4815**.
 - Панель питча слева — 10 сценариев (`.scn[data-scn]` → `scenario(n)`), включая сбой оплаты, офлайн и вход по коду.
 
