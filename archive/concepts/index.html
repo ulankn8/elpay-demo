@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Концепты ЭлPay</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Crect width='240' height='240' rx='52' fill='%231E2A32'/%3E%3Crect x='62' y='56' width='34' height='128' rx='3' fill='%231FB886'/%3E%3Crect x='62' y='150' width='120' height='34' rx='3' fill='%231FB886'/%3E%3Crect x='106' y='56' width='76' height='34' rx='3' fill='%23DEF3EC'/%3E%3Crect x='106' y='103' width='76' height='34' rx='3' fill='%23DEF3EC'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#F5F7F6;--ink:#1E2A32;--ink2:#3C4A55;--cap:#05804F;--line:#E4E8E6;--card:#FFFFFF;--bar:#1E2A32;--k:.62}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#172127;--ink:#F2F5F4;--ink2:#A9BBB3;--cap:#1FB886;--line:rgba(222,243,236,.12);--card:rgba(222,243,236,.05);--bar:#DEF3EC}}
+:root[data-theme="dark"]{--bg:#172127;--ink:#F2F5F4;--ink2:#A9BBB3;--cap:#1FB886;--line:rgba(222,243,236,.12);--card:rgba(222,243,236,.05);--bar:#DEF3EC}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Montserrat','Helvetica Neue',sans-serif;-webkit-font-smoothing:antialiased}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;padding:12px 24px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;color:#1FB886;text-decoration:none}
+.brand b{color:var(--ink)}
+.brand .sub{font-size:13px;font-weight:600;color:var(--ink2)}
+.top nav{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.top nav a{padding:7px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px;font-weight:600;text-decoration:none}
+.top nav a.pri{background:#1FB886;border-color:#1FB886;color:#04332B}
+.top nav a:focus-visible,.brand:focus-visible{outline:2px solid #1FB886;outline-offset:2px}
+main{max-width:1240px;margin:0 auto;padding:32px 24px 72px;display:grid;gap:64px}
+.intro h1{margin:0;font-size:clamp(28px,3.4vw,40px);line-height:1.1;letter-spacing:-.02em;text-wrap:balance}
+.intro p{margin:12px 0 0;max-width:64ch;font-size:15.5px;line-height:1.6;color:var(--ink2)}
+section{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:36px;align-items:start;scroll-margin-top:76px}
+.k{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--cap)}
+.meta h2{margin:6px 0 10px;font-size:28px;letter-spacing:-.02em}
+.meta p{margin:0 0 14px;font-size:15px;line-height:1.6;color:var(--ink2)}
+.sw{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 18px}
+.sw i{width:24px;height:24px;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(30,42,50,.12)}
+.pc{display:grid;gap:10px}
+.pc div{padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.pc b{display:block;margin-bottom:2px;font-size:13px;color:var(--ink)}
+.lang{display:inline-flex;gap:2px;padding:3px;border-radius:12px;border:1px solid var(--line);background:var(--card)}
+.lang button{height:28px;min-width:42px;padding:0 10px;border:0;border-radius:8px;background:none;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer}
+.lang button[aria-pressed="true"]{background:#1FB886;color:#04332B}
+.go{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:10px 16px;border-radius:12px;background:#1FB886;color:#04332B;font-size:14px;font-weight:600;text-decoration:none}
+.phones{display:flex;flex-wrap:wrap;gap:28px}
+figure{margin:0;display:grid;justify-items:center;gap:10px}
+figcaption{font-size:13px;font-weight:600;color:var(--ink2)}
+.ph{width:calc(390px * var(--k) + 16px);height:calc(844px * var(--k) + 16px);padding:8px;border-radius:calc(52px * var(--k) + 8px);background:#10181D;box-shadow:inset 0 0 0 1.5px #2A3942,0 24px 48px -18px rgba(20,28,33,.40)}
+.ph .in{position:relative;width:calc(390px * var(--k));height:calc(844px * var(--k));overflow:hidden;border-radius:calc(52px * var(--k))}
+.ph iframe{display:block;width:390px;height:844px;border:0;transform:scale(var(--k));transform-origin:0 0;background:#F5F7F6}
+@media (min-width:1200px){:root{--k:.74}}
+@media (max-width:980px){section{grid-template-columns:1fr;gap:20px}}
+@media (max-width:620px){:root{--k:.48} .phones{gap:14px} main{padding-inline:16px} .top{padding-inline:16px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#top" aria-label="ЭлPay, концепты интерфейса">
+    <svg viewBox="0 0 240 240" width="30" height="30" aria-hidden="true"><rect x="45" y="40" width="38" height="160" rx="3" fill="#1FB886"/><rect x="45" y="162" width="150" height="38" rx="3" fill="#1FB886"/><rect x="95" y="40" width="100" height="38" rx="3" style="fill:var(--bar)"/><rect x="95" y="101" width="100" height="38" rx="3" style="fill:var(--bar)"/></svg>
+    <span>Эл<b>Pay</b></span><span class="sub">· концепты интерфейса</span>
+  </a>
+  <div class="lang" role="group" aria-label="Язык"><button data-l="ru" aria-pressed="true">RU</button><button data-l="ky" aria-pressed="false">KY</button></div>
+  <nav aria-label="Концепты">
+    <a href="#a">A · Живые категории</a>
+    <a href="#b">B · Тёмный премиум</a>
+    <a href="#c">C · Бенто-плитки</a>
+    <a class="pri" href="../v2.html">Прототип v2</a>
+  </nav>
+</header>
+
+<main id="top">
+  <div class="intro">
+    <h1>Три направления интерфейса ЭлPay</h1>
+    <p>Все три — в бренде ELBAGAR: шрифт Montserrat, знак E+L, изумруд только для действий. Отличаются настроением и тем, как устроена главная. Выберите направление — или сочетание, например тёмную тему B как ночной режим для A.</p>
+  </div>
+
+  <section id="a">
+    <div class="meta">
+      <div class="k">Концепт A</div>
+      <h2>Живые категории</h2>
+      <p>Светлый интерфейс, у каждой услуги свой цвет: вода — синий, свет — янтарный, мусор — оранжевый, садик — розовый, школа — фиолетовый. Карточка суммы «дышит» свечением, полоса показывает, куда уходят деньги; после оплаты — конфетти.</p>
+      <div class="sw" aria-label="Палитра"><i style="background:#3F7BE0"></i><i style="background:#E0A93F"></i><i style="background:#F0643F"></i><i style="background:#E0428D"></i><i style="background:#6B55EC"></i><i style="background:#1FB886"></i><i style="background:#1E2A32"></i></div>
+      <div class="pc"><div><b>Плюсы</b>Считывается за секунду, дружелюбно для всей семьи.</div><div><b>Риски</b>Цветов много — держим их только на иконках и разбивке суммы.</div></div>
+      <a class="go" href="../v2.html">Открыть рабочий прототип</a>
+    </div>
+    <div class="phones">
+      <figure><div class="ph"><div class="in"><iframe data-f="Main.dc.html" src="Main.dc.html" title="Концепт A: главная"></iframe></div></div><figcaption>Главная</figcaption></figure>
+      <figure><div class="ph"><div class="in"><iframe data-f="A-Sadik.dc.html" src="A-Sadik.dc.html" title="Концепт A: шаблон садика"></iframe></div></div><figcaption>Шаблон садика</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="b">
+    <div class="meta">
+      <div class="k">Концепт B</div>
+      <h2>Тёмный премиум</h2>
+      <p>Графит бренда как фон, стеклянные карточки и изумрудное свечение. Главное на экране — крупные цифры и кольцо «оплачено 1 из 4». Кольцо дорисовывается после оплаты, на карте подсвечена зона отключения.</p>
+      <div class="sw" aria-label="Палитра"><i style="background:#10181D"></i><i style="background:#16212A"></i><i style="background:#1E2A32"></i><i style="background:#1FB886"></i><i style="background:#DEF3EC"></i><i style="background:#E0A93F"></i></div>
+      <div class="pc"><div><b>Плюсы</b>Премиально и технологично, удобно вечером, сильное первое впечатление на питче.</div><div><b>Риски</b>Тёмная тема подходит не всем — нужен переключатель на светлую.</div></div>
+    </div>
+    <div class="phones">
+      <figure><div class="ph"><div class="in"><iframe data-f="B-Home.dc.html" src="B-Home.dc.html" title="Концепт B: главная"></iframe></div></div><figcaption>Главная</figcaption></figure>
+      <figure><div class="ph"><div class="in"><iframe data-f="B-Outages.dc.html" src="B-Outages.dc.html" title="Концепт B: отключения"></iframe></div></div><figcaption>Отключения</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="c">
+    <div class="meta">
+      <div class="k">Концепт C</div>
+      <h2>Бенто-плитки</h2>
+      <p>Главная — набор виджетов: у каждой услуги своя плитка со своей цифрой (кубометры, киловатты, срок) и плитка ближайшего отключения. Рядом — календарь, где сроки оплаты и отключения видны на месяц вперёд.</p>
+      <div class="sw" aria-label="Палитра"><i style="background:#E5EDFA"></i><i style="background:#FBF0DD"></i><i style="background:#FCE7F1"></i><i style="background:#FFEDE2"></i><i style="background:#FFFFFF"></i><i style="background:#1FB886"></i></div>
+      <div class="pc"><div><b>Плюсы</b>Всё видно без прокрутки, похоже на виджеты iOS и Android, удобно планировать бюджет.</div><div><b>Риски</b>Плиткам нужны свежие данные от поставщиков; на маленьких экранах сетка плотнее.</div></div>
+    </div>
+    <div class="phones">
+      <figure><div class="ph"><div class="in"><iframe data-f="C-Bento.dc.html" src="C-Bento.dc.html" title="Концепт C: главная-бенто"></iframe></div></div><figcaption>Главная-бенто</figcaption></figure>
+      <figure><div class="ph"><div class="in"><iframe data-f="C-Calendar.dc.html" src="C-Calendar.dc.html" title="Концепт C: календарь платежей"></iframe></div></div><figcaption>Календарь платежей</figcaption></figure>
+    </div>
+  </section>
+</main>
+<script>
+const KY={"· концепты интерфейса": "· интерфейс концепттери", "A · Живые категории": "A · Жандуу категориялар", "B · Тёмный премиум": "B · Караңгы премиум", "C · Бенто-плитки": "C · Бенто-плиткалар", "Прототип v2": "v2 прототиби", "Три направления интерфейса ЭлPay": "ЭлPay интерфейсинин үч багыты", "Все три — в бренде ELBAGAR: шрифт Montserrat, знак E+L, изумруд только для действий. Отличаются настроением и тем, как устроена главная. Выберите направление — или сочетание, например тёмную тему B как ночной режим для A.": "Үчөө тең ELBAGAR брендинде: Montserrat шрифти, E+L белгиси, изумруд — аракеттер үчүн гана. Айырмасы — маанайында жана башкы беттин түзүлүшүндө. Бир багытты тандаңыз же айкалыштырыңыз: мисалы, B караңгы темасын A үчүн түнкү режим катары.", "Концепт A": "A концепти", "Концепт B": "B концепти", "Концепт C": "C концепти", "Живые категории": "Жандуу категориялар", "Тёмный премиум": "Караңгы премиум", "Бенто-плитки": "Бенто-плиткалар", "Светлый интерфейс, у каждой услуги свой цвет: вода — синий, свет — янтарный, мусор — оранжевый, садик — розовый, школа — фиолетовый. Карточка суммы «дышит» свечением, полоса показывает, куда уходят деньги; после оплаты — конфетти.": "Жарык интерфейс, ар бир кызматтын өз түсү бар: суу — көк, жарык — сары, таштанды — кызгылт сары, бала бакча — кызгылт, мектеп — күлгүн. Сумма карточкасы «дем алат», тилке акча кайда кетерин көрсөтөт; төлөмдөн кийин — конфетти.", "Графит бренда как фон, стеклянные карточки и изумрудное свечение. Главное на экране — крупные цифры и кольцо «оплачено 1 из 4». Кольцо дорисовывается после оплаты, на карте подсвечена зона отключения.": "Бренддин графит түсү фон катары, айнек карточкалар жана изумруд жаркырак. Экрандагы негизгиси — ири сандар жана «4 эсептин 1и төлөндү» шакеги. Төлөмдөн кийин шакек толот, картада өчүрүү аймагы белгиленет.", "Главная — набор виджетов: у каждой услуги своя плитка со своей цифрой (кубометры, киловатты, срок) и плитка ближайшего отключения. Рядом — календарь, где сроки оплаты и отключения видны на месяц вперёд.": "Башкы бет — виджеттердин жыйындысы: ар бир кызматтын өз плиткасы жана өз саны (куб метр, киловатт, мөөнөт), ошондой эле жакынкы өчүрүүнүн плиткасы. Жанында — төлөө мөөнөттөрү жана өчүрүүлөр бир ай алдын ала көрүнгөн календарь.", "Плюсы": "Артыкчылыктары", "Риски": "Тобокелдиктер", "Считывается за секунду, дружелюбно для всей семьи.": "Бир көз салганда түшүнүктүү, бүт үй-бүлөгө ыңгайлуу.", "Цветов много — держим их только на иконках и разбивке суммы.": "Түстөр көп — аларды иконкаларда жана сумманын бөлүштүрүүсүндө гана колдонобуз.", "Премиально и технологично, удобно вечером, сильное первое впечатление на питче.": "Премиалдуу жана заманбап, кечинде ыңгайлуу, питчте күчтүү биринчи таасир.", "Тёмная тема подходит не всем — нужен переключатель на светлую.": "Караңгы тема баарына эле туура келбейт — жарык темага которгуч керек.", "Всё видно без прокрутки, похоже на виджеты iOS и Android, удобно планировать бюджет.": "Баары жылдырбай эле көрүнөт, iOS жана Android виджеттерине окшош, бюджетти пландоого ыңгайлуу.", "Плиткам нужны свежие данные от поставщиков; на маленьких экранах сетка плотнее.": "Плиткаларга камсыздоочулардан жаңы маалымат керек; кичине экрандарда тор тыгызыраак.", "Открыть рабочий прототип": "Иштеп турган прототипти ачуу", "Главная": "Башкы бет", "Шаблон садика": "Бала бакча шаблону", "Отключения": "Өчүрүүлөр", "Главная-бенто": "Бенто башкы бет", "Календарь платежей": "Төлөмдөр календары", "Концепт A: главная": "A концепти: башкы бет", "Концепт A: шаблон садика": "A концепти: бала бакча шаблону", "Концепт B: главная": "B концепти: башкы бет", "Концепт B: отключения": "B концепти: өчүрүүлөр", "Концепт C: главная-бенто": "C концепти: бенто башкы бет", "Концепт C: календарь платежей": "C концепти: төлөмдөр календары", "Концепты": "Концепттер", "Язык": "Тил", "ЭлPay, концепты интерфейса": "ЭлPay, интерфейс концепттери"};
+let L='ru';try{if(localStorage.getItem('elpayLang')==='ky')L='ky';}catch(e){}
+const ORIG=new Map(),AT=['title','aria-label'];
+function apply(){
+  document.documentElement.lang=L;document.title=L==='ky'?'ЭлPay концепттери':'Концепты ЭлPay';
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>/^(SCRIPT|STYLE)$/.test(n.parentNode.nodeName)?2:1});
+  for(let n=w.nextNode();n;n=w.nextNode()){
+    if(!ORIG.has(n))ORIG.set(n,n.nodeValue);
+    const src=ORIG.get(n),k=src.replace(/\s+/g,' ').trim(),v=KY[k];
+    n.nodeValue=L==='ky'&&v!==undefined?src.match(/^\s*/)[0]+v+src.match(/\s*$/)[0]:src;
+  }
+  document.querySelectorAll('[title],[aria-label]').forEach(el=>AT.forEach(a=>{
+    if(!el.hasAttribute(a))return;if(!el.dataset['ru'+a.replace('-','')])el.dataset['ru'+a.replace('-','')]=el.getAttribute(a);
+    const src=el.dataset['ru'+a.replace('-','')],v=KY[src];el.setAttribute(a,L==='ky'&&v?v:src);
+  }));
+  document.querySelectorAll('iframe[data-f]').forEach(f=>{const want=(L==='ky'?'ky-':'')+f.dataset.f;if(f.getAttribute('src')!==want)f.setAttribute('src',want);});
+  document.querySelectorAll('.lang [data-l]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.l===L)));
+}
+document.querySelectorAll('.lang [data-l]').forEach(b=>b.addEventListener('click',()=>{L=b.dataset.l;try{localStorage.setItem('elpayLang',L);}catch(e){}apply();}));
+apply();
+</script>
+</body>
+</html>
