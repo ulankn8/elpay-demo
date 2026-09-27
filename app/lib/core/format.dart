@@ -38,6 +38,27 @@ const monthsShort = [
   'июл', 'авг', 'сент', 'окт', 'ноя', 'дек'
 ];
 
+const monthsNom = [
+  'январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+  'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'
+];
+
+/// «сентябрь» — для периода начисления
+String monthName(int m) => monthsNom[m - 1];
+
+/// «Сентябрь 2026» — заголовок месяца в истории и отчётах
+String monthTitle(DateTime d) {
+  final n = monthsNom[d.month - 1];
+  return '${n[0].toUpperCase()}${n.substring(1)} ${d.year}';
+}
+
+/// «4 сент» — короткая дата строки истории
+String dayMonth(DateTime d) => '${d.day} ${monthsShort[d.month - 1]}';
+
+/// «10:15»
+String hhmm(DateTime d) =>
+    '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+
 /// «20 сентября 2026»
 String longDate(DateTime d) => '${d.day} ${monthsGen[d.month - 1]} ${d.year}';
 

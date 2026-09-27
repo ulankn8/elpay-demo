@@ -50,6 +50,7 @@ class Brand {
     'door': [Color(0xFF7A8AA8), Color(0xFF5E6E8C)],
     'course': [Color(0xFFB57BEE), Color(0xFF9B51E0)],
     'tax': [Color(0xFF55636E), Color(0xFF3C4A55)],
+    'mobile': [Color(0xFF3FC8B4), Color(0xFF1FA894)],
     'market': [Color(0xFF46BEDC), Color(0xFF2AA3C7)],
     'city': [Color(0xFF56636D), Color(0xFF1E2A32)],
   };

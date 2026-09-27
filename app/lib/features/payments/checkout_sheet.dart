@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/format.dart';
 import '../../core/l10n/s.dart';
@@ -10,6 +9,8 @@ import '../../data/demo_data.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
 import '../bills/bill_row.dart';
+import 'method_picker.dart';
+import 'pay_flow.dart';
 
 Future<void> openCheckout(BuildContext context, WidgetRef ref, List<Bill> bills) {
   return showModalBottomSheet<void>(
@@ -38,22 +39,21 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
   double get _sum => _chosen.fold(0.0, (a, b) => a + b.amount);
 
   Future<void> _pay() async {
-    final s = S.of(context);
     setState(() => _busy = true);
-    final result = await ref.read(paymentsRepoProvider).pay(
-          bills: _chosen,
-          methodId: ref.read(payMethodProvider),
-        );
+    final chosen = _chosen;
+    final sum = _sum;
+    final no = await payAndFinish(
+      context,
+      ref,
+      bills: chosen,
+      records: recordsFromBills(chosen),
+      amount: sum,
+    );
     if (!mounted) return;
     setState(() => _busy = false);
-    if (result.ok) {
-      ref.read(billsProvider.notifier).markPaid(_chosen.map((b) => b.id));
-      final ids = _chosen.map((b) => b.id).toList();
-      Navigator.of(context).pop();
-      context.push('/success', extra: (_sum, ids.length, result.receiptNo ?? ''));
-    } else {
-      showAppSnack(context, result.reason ?? s.paymentsStub);
-    }
+    if (no == null) return;
+    Navigator.of(context).pop();
+    goSuccess(context, sum, chosen.length, no);
   }
 
   @override
@@ -62,6 +62,7 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
     final c = context.c;
     final multi = widget.bills.length > 1;
     final method = ref.watch(payMethodProvider);
+    final wallet = ref.watch(walletProvider);
     final stub = ref.read(paymentsRepoProvider).isStub;
 
     return DraggableScrollableSheet(
@@ -141,8 +142,16 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
                 for (final m in Demo.methods)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: _MethodTile(
-                      item: m,
+                    child: MethodTile(
+                      item: m.isWallet
+                          ? PayMethodItem(
+                              id: m.id,
+                              title: m.title,
+                              subtitle: m.subtitle,
+                              badge: m.badge,
+                              isWallet: true,
+                              balance: wallet)
+                          : m,
                       selected: method == m.id,
                       onTap: () => ref.read(payMethodProvider.notifier).select(m.id),
                     ),
@@ -260,72 +269,6 @@ class _CheckoutRow extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MethodTile extends StatelessWidget {
-  const _MethodTile({required this.item, required this.selected, required this.onTap});
-  final PayMethodItem item;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = S.of(context);
-    final c = context.c;
-    return InkWell(
-      borderRadius: BorderRadius.circular(Brand.radiusRow),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: selected ? Brand.light2.withValues(alpha: .6) : Colors.transparent,
-          border: Border.all(color: selected ? Brand.primary : c.line, width: 1.5),
-          borderRadius: BorderRadius.circular(Brand.radiusRow),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 30,
-              decoration: BoxDecoration(
-                color: item.isWallet ? Brand.p700 : context.c.heroBg,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.center,
-              child: Text(item.badge,
-                  style: const TextStyle(
-                      fontSize: 8.5, fontWeight: FontWeight.w700, color: Colors.white)),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(item.title, style: context.t.titleMedium),
-                  Text(
-                    item.isWallet
-                        ? '${s.walletBalance} ${som(item.balance ?? 0)} ${s.som}'
-                        : item.subtitle,
-                    style: context.t.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                    color: selected ? Brand.primary : c.muted2,
-                    width: selected ? 7 : 1.5),
-              ),
-            ),
-          ],
         ),
       ),
     );

@@ -7,6 +7,7 @@ import '../../core/tokens.dart';
 import '../../core/widgets.dart';
 import '../../state/providers.dart';
 
+/// Профиль: личные данные, объекты и счета, семья, безопасность, настройки.
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
@@ -15,6 +16,10 @@ class ProfilePage extends ConsumerWidget {
     final s = S.of(context);
     final session = ref.watch(sessionProvider);
     final settings = ref.watch(settingsProvider);
+    final sec = ref.watch(securityProvider);
+    final state = ref.watch(billsProvider).value;
+    final family = ref.watch(familyProvider);
+    final addresses = ref.watch(addressesProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -25,6 +30,7 @@ class ProfilePage extends ConsumerWidget {
             Text(s.profileTitle, style: context.t.displaySmall),
             const SizedBox(height: 16),
             AppCard(
+              onTap: () => context.push('/personal'),
               padding: const EdgeInsets.fromLTRB(16, 22, 16, 18),
               child: Column(
                 children: [
@@ -56,6 +62,73 @@ class ProfilePage extends ConsumerWidget {
                         AppChip(session!.telegram!, tone: ChipTone.ok, icon: Icons.send_rounded),
                     ],
                   ),
+                  const SizedBox(height: 14),
+                  OutlinedButton(
+                    onPressed: () => context.push('/personal'),
+                    child: Text(s.personalData),
+                  ),
+                ],
+              ),
+            ),
+            SectionTitle(s.myAccounts),
+            AppCard(
+              child: Column(
+                children: [
+                  AppRow(
+                    leading: CatTile('water', Icons.home_work_outlined, soft: true),
+                    title: s.objectsTitle,
+                    subtitle: state == null || state.objects.isEmpty
+                        ? s.objectsLead
+                        : state.objects.map((o) => o.name).join(', '),
+                    chevron: true,
+                    onTap: () => context.push('/objects'),
+                  ),
+                  const RowDivider(),
+                  AppRow(
+                    leading: CatTile('power', Icons.receipt_long_outlined, soft: true),
+                    title: s.accountsTitle,
+                    subtitle: s.billsCount(state?.bills.length ?? 0),
+                    chevron: true,
+                    onTap: () => context.push('/accounts'),
+                  ),
+                  const RowDivider(),
+                  AppRow(
+                    leading: CatTile('trash', Icons.place_outlined, soft: true),
+                    title: s.addressesTitle,
+                    subtitle: s.addressCount(addresses.length),
+                    chevron: true,
+                    onTap: () => context.push('/addresses'),
+                  ),
+                  const RowDivider(),
+                  AppRow(
+                    leading: CatTile('kid', Icons.people_outline_rounded, soft: true),
+                    title: s.familyTitle,
+                    subtitle: s.membersCount(family.length),
+                    chevron: true,
+                    onTap: () => context.push('/family'),
+                  ),
+                ],
+              ),
+            ),
+            SectionTitle(s.sectionAccess),
+            AppCard(
+              child: Column(
+                children: [
+                  AppRow(
+                    leading: CatTile('tax', Icons.lock_outline_rounded, soft: true),
+                    title: s.securityTitle,
+                    subtitle: sec.pinOn ? '${s.pinTitle} · ${s.faceId}' : s.securityLead,
+                    chevron: true,
+                    onTap: () => context.push('/security'),
+                  ),
+                  const RowDivider(),
+                  AppRow(
+                    leading: CatTile('net', Icons.notifications_none_rounded, soft: true),
+                    title: s.notifyTitle,
+                    subtitle: s.notifyLead,
+                    chevron: true,
+                    onTap: () => context.push('/notifications'),
+                  ),
                 ],
               ),
             ),
@@ -76,7 +149,7 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   const RowDivider(),
                   AppRow(
-                    leading: CatTile('net', Icons.language_rounded, soft: true),
+                    leading: CatTile('door', Icons.language_rounded, soft: true),
                     title: s.language,
                     subtitle: s.langName,
                     chevron: true,
@@ -84,42 +157,71 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   const RowDivider(),
                   AppRow(
+                    leading: CatTile('power', Icons.percent_rounded, soft: true),
+                    title: s.tariffsTitle,
+                    subtitle: s.tariffsLead,
+                    chevron: true,
+                    onTap: () => context.push('/tariffs'),
+                  ),
+                  const RowDivider(),
+                  AppRow(
+                    leading: CatTile('water', Icons.support_agent_rounded, soft: true),
+                    title: s.supportTitle,
+                    subtitle: s.supportLead,
+                    chevron: true,
+                    onTap: () => context.push('/support'),
+                  ),
+                  const RowDivider(),
+                  AppRow(
                     leading: CatTile('tax', Icons.info_outline_rounded, soft: true),
                     title: s.version,
-                    subtitle: 'ЭлPay 0.1 · ${s.byElbagar}',
+                    subtitle: 'ЭлPay 0.2 · ${s.byElbagar}',
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 18),
             AppCard(
-              child: AppRow(
-                leading: CatTile('trash', Icons.logout_rounded, soft: true),
-                title: s.logout,
-                onTap: () async {
-                  final ok = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: Text(s.logoutConfirm),
-                      actions: [
-                        TextButton(
-                            onPressed: () => Navigator.pop(ctx, false), child: Text(s.cancel)),
-                        TextButton(
-                            onPressed: () => Navigator.pop(ctx, true), child: Text(s.logout)),
-                      ],
-                    ),
-                  );
-                  if (ok == true) {
-                    await ref.read(sessionProvider.notifier).signOut();
-                    if (context.mounted) context.go('/welcome');
-                  }
-                },
+              child: Column(
+                children: [
+                  AppRow(
+                    leading: CatTile('trash', Icons.logout_rounded, soft: true),
+                    title: s.logout,
+                    onTap: () => _logout(context, ref),
+                  ),
+                  const RowDivider(),
+                  AppRow(
+                    leading: CatTile('trash', Icons.delete_outline_rounded, soft: true),
+                    title: s.deleteAccount,
+                    subtitle: s.deleteAccountLead,
+                    onTap: () => _deleteAccount(context, ref),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    final s = S.of(context);
+    final ok = await confirmDialog(context, s.logoutConfirm, s.logout);
+    if (ok != true) return;
+    await ref.read(sessionProvider.notifier).signOut();
+    if (context.mounted) context.go('/welcome');
+  }
+
+  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
+    final s = S.of(context);
+    final ok = await confirmDialog(context, s.deleteAccountLead, s.deleteAccount);
+    if (ok != true) return;
+    await ref.read(prefsProvider).setOnboarded(false);
+    await ref.read(sessionProvider.notifier).signOut();
+    if (!context.mounted) return;
+    showAppSnack(context, s.deleteAccountDone);
+    context.go('/welcome');
   }
 
   void _themeSheet(BuildContext context, WidgetRef ref) {
@@ -171,7 +273,6 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 }
-
 
 class _PickTile extends StatelessWidget {
   const _PickTile({required this.label, required this.selected, required this.onTap});

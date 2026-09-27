@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../format.dart';
+
 /// Строки приложения. Два языка: русский и кыргызский.
 /// Типизированно — без кодогенерации, чтобы перевод нельзя было забыть:
 /// новая строка не скомпилируется, пока не появится в обоих классах.
@@ -139,6 +141,159 @@ abstract class S {
   String get logout;
   String get logoutConfirm;
   String get version;
+
+  // Платежи, история, отчёты, профиль
+  String get paymentsTitle;
+  String get walletTitle;
+  String get topUp;
+  String get topUpTitle;
+  String get topUpDone;
+  String get newPaymentLead;
+  String get qrPay;
+  String get qrPayLead;
+  String get catalogTitle;
+  String get methodsTitle;
+  String get addCard;
+  String get historyTitle;
+  String get historyLead;
+  String get autopayTitle;
+  String get autopayLead;
+  String get autopayOn;
+  String get autopayOff;
+  String get chooseProvider;
+  String get searchHint;
+  String get amountLabel;
+  String get checkAccount;
+  String get accountError;
+  String get amountError;
+  String get confirmTitle;
+  String get qrLead;
+  String get qrDemoBtn;
+  String get qrFound;
+  String get cameraStub;
+  String get historyEmpty;
+  String get receiptTitle;
+  String get receiptNo;
+  String get paidAt;
+  String get methodLabel;
+  String get share;
+  String get savePdf;
+  String get repeatPay;
+  String get filterAll;
+  String get nothingFound;
+  String get reportsTitle;
+  String get periodMonth;
+  String get periodYear;
+  String get spentTotal;
+  String get byCategory;
+  String get byObject;
+  String get exportCsv;
+  String get noDataPeriod;
+  String paymentsCount(int n);
+  String get vsPrevMore;
+  String get vsPrevLess;
+  String get personalData;
+  String get personalLead;
+  String get objectsTitle;
+  String get objectsLead;
+  String get accountsTitle;
+  String get accountsLead;
+  String get addressesTitle;
+  String get addressesLead;
+  String get familyTitle;
+  String get familyLead;
+  String get notifyTitle;
+  String get notifyLead;
+  String get securityTitle;
+  String get securityLead;
+  String get tariffsTitle;
+  String get tariffsLead;
+  String get supportTitle;
+  String get supportLead;
+  String get deleteAccount;
+  String get pinTitle;
+  String get pinLead;
+  String get faceId;
+  String get confirmBig;
+  String get devicesTitle;
+  String get logoutAll;
+  String get thisDevice;
+  String get notifyBills;
+  String get notifyOutages;
+  String get notifyMarket;
+  String get quietHours;
+  String get invite;
+  String get canPay;
+  String get canView;
+  String get removeWord;
+  String get editWord;
+  String get addWord;
+  String get nothingYet;
+  String get soonWord;
+
+  // Названия категорий
+  String catName(String c);
+
+  // Профиль: объекты, счета, семья, безопасность
+  String get saved;
+  String get nameFull;
+  String get phoneChange;
+  String get phoneChangeLead;
+  String get objectName;
+  String get objectAddressLabel;
+  String get newObject;
+  String get editObject;
+  String get deleteObjectConfirm;
+  String get addAccountTitle;
+  String get accountNumber;
+  String get chooseObject;
+  String get deleteAccountConfirm;
+  String get accountAdded;
+  String get addressTitleLabel;
+  String get newAddress;
+  String get deleteAddressConfirm;
+  String get inviteMember;
+  String get memberName;
+  String get memberPhone;
+  String get memberRole;
+  String get memberRights;
+  String get removeMemberConfirm;
+  String get inviteSent;
+  String get pinOnMsg;
+  String get pinOffMsg;
+  String get pinEnter;
+  String get pinRepeat;
+  String get pinMismatch;
+  String get devicesLead;
+  String get logoutAllDone;
+  String get revokeDevice;
+  String get supportChat;
+  String get supportCall;
+  String get supportHours;
+  String get deleteAccountLead;
+  String get deleteAccountDone;
+  String get tariffsNote;
+  String get tariffsLead2;
+  String get offer;
+  String get myAccounts;
+  String get objectBills;
+  List<(String, String, String)> get tariffRows;
+
+  // Счётчики в профиле
+  String addressCount(int n);
+  String membersCount(int n);
+  String get sectionAccess;
+
+  // Новая оплата
+  String get newPaymentHint;
+
+  // Разделы вкладки «Платежи»
+  String get sectionHistoryAuto;
+
+  // Безопасность
+  String get confirmBigShort;
+  String get confirmBigLead;
+  String get pinFirst;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
@@ -284,6 +439,181 @@ class SRu implements S {
   @override String get logout => 'Выйти';
   @override String get logoutConfirm => 'Выйти из аккаунта?';
   @override String get version => 'Версия';
+
+  // Платежи, история, отчёты, профиль
+  @override String get paymentsTitle => 'Платежи';
+  @override String get walletTitle => 'Кошелёк ЭлPay';
+  @override String get topUp => 'Пополнить';
+  @override String get topUpTitle => 'Пополнение кошелька';
+  @override String get topUpDone => 'Кошелёк пополнен';
+  @override String get newPaymentLead => 'По реквизитам или лицевому счёту';
+  @override String get qrPay => 'Оплата по QR';
+  @override String get qrPayLead => 'С бумажной квитанции';
+  @override String get catalogTitle => 'Куда платить';
+  @override String get methodsTitle => 'Способы оплаты';
+  @override String get addCard => 'Добавить карту';
+  @override String get historyTitle => 'История платежей';
+  @override String get historyLead => 'Квитанции и выписки';
+  @override String get autopayTitle => 'Автоплатежи';
+  @override String get autopayLead => 'Списываем сами 25-го числа';
+  @override String get autopayOn => 'Автоплатёж включён';
+  @override String get autopayOff => 'Автоплатёж выключен';
+  @override String get chooseProvider => 'Выберите получателя';
+  @override String get searchHint => 'Поставщик или номер счёта';
+  @override String get amountLabel => 'Сумма';
+  @override String get checkAccount => 'Проверить';
+  @override String get accountError => 'Проверьте номер — такого счёта нет';
+  @override String get amountError => 'Введите сумму от 1 до 100 000 сом';
+  @override String get confirmTitle => 'Проверьте платёж';
+  @override String get qrLead => 'Наведите камеру на QR-код в квитанции';
+  @override String get qrDemoBtn => 'Показать пример квитанции';
+  @override String get qrFound => 'Квитанция распознана';
+  @override String get cameraStub => 'Камера работает в приложении на телефоне. Здесь — пример распознанной квитанции.';
+  @override String get historyEmpty => 'Платежей пока нет';
+  @override String get receiptTitle => 'Квитанция';
+  @override String get receiptNo => 'Номер квитанции';
+  @override String get paidAt => 'Когда';
+  @override String get methodLabel => 'Способ оплаты';
+  @override String get share => 'Поделиться';
+  @override String get savePdf => 'Сохранить PDF';
+  @override String get repeatPay => 'Повторить платёж';
+  @override String get filterAll => 'Все';
+  @override String get nothingFound => 'Ничего не нашлось';
+  @override String get reportsTitle => 'Отчёты';
+  @override String get periodMonth => 'Месяц';
+  @override String get periodYear => 'Год';
+  @override String get spentTotal => 'Потрачено';
+  @override String get byCategory => 'По категориям';
+  @override String get byObject => 'По объектам';
+  @override String get exportCsv => 'Выгрузить CSV';
+  @override String get noDataPeriod => 'За этот период платежей не было';
+  @override String paymentsCount(int n) =>
+      '$n ${plural(n, 'платёж', 'платежа', 'платежей')}';
+  @override String get vsPrevMore => 'больше, чем месяцем раньше';
+  @override String get vsPrevLess => 'меньше, чем месяцем раньше';
+  @override String get personalData => 'Личные данные';
+  @override String get personalLead => 'Имя, телефон, почта';
+  @override String get objectsTitle => 'Объекты';
+  @override String get objectsLead => 'Дом, квартира родителей, дача';
+  @override String get accountsTitle => 'Счета и реквизиты';
+  @override String get accountsLead => 'Что подключено к ЭлPay';
+  @override String get addressesTitle => 'Адреса уведомлений';
+  @override String get addressesLead => 'Куда присылать об отключениях';
+  @override String get familyTitle => 'Семейный доступ';
+  @override String get familyLead => 'Кто видит счета и может платить';
+  @override String get notifyTitle => 'Уведомления';
+  @override String get notifyLead => 'Счета, отключения, тихие часы';
+  @override String get securityTitle => 'Безопасность';
+  @override String get securityLead => 'Код-пароль, Face ID, устройства';
+  @override String get tariffsTitle => 'Тарифы и комиссии';
+  @override String get tariffsLead => 'Сколько стоит платёж';
+  @override String get supportTitle => 'Поддержка';
+  @override String get supportLead => 'Чат и телефон 0 (3222) 5-12-12';
+  @override String get deleteAccount => 'Удалить аккаунт';
+  @override String get pinTitle => 'Код-пароль';
+  @override String get pinLead => 'Спрашивать при входе в приложение';
+  @override String get faceId => 'Вход по Face ID';
+  @override String get confirmBig => 'Подтверждать платежи от 20 000 сом';
+  @override String get devicesTitle => 'Устройства и входы';
+  @override String get logoutAll => 'Выйти на всех устройствах';
+  @override String get thisDevice => 'Это устройство';
+  @override String get notifyBills => 'Счета и сроки оплаты';
+  @override String get notifyOutages => 'Отключения воды и света';
+  @override String get notifyMarket => 'Афиша и билеты';
+  @override String get quietHours => 'Тихие часы 22:00 — 08:00';
+  @override String get invite => 'Пригласить';
+  @override String get canPay => 'Может платить';
+  @override String get canView => 'Только смотрит';
+  @override String get removeWord => 'Удалить';
+  @override String get editWord => 'Изменить';
+  @override String get addWord => 'Добавить';
+  @override String get nothingYet => 'Пока пусто';
+  @override String get soonWord => 'Скоро';
+
+  // Названия категорий
+  @override String catName(String c) => switch (c) {
+        'water' => 'Вода',
+        'power' => 'Свет',
+        'trash' => 'Мусор',
+        'gas' => 'Газ',
+        'net' => 'Интернет',
+        'door' => 'Домофон',
+        'mobile' => 'Связь',
+        'kid' => 'Садик',
+        'school' => 'Школа',
+        'course' => 'Курсы',
+        'tax' => 'Налоги',
+        'market' => 'Билеты',
+        _ => 'Другое',
+      };
+
+  // Профиль: объекты, счета, семья, безопасность
+  @override String get saved => 'Сохранено';
+  @override String get nameFull => 'Фамилия и имя';
+  @override String get phoneChange => 'Сменить номер';
+  @override String get phoneChangeLead => 'Подтвердим новый номер кодом из SMS';
+  @override String get objectName => 'Название объекта';
+  @override String get objectAddressLabel => 'Адрес объекта';
+  @override String get newObject => 'Новый объект';
+  @override String get editObject => 'Изменить объект';
+  @override String get deleteObjectConfirm => 'Удалить объект вместе с его счетами?';
+  @override String get addAccountTitle => 'Добавить счёт';
+  @override String get accountNumber => 'Номер лицевого счёта';
+  @override String get chooseObject => 'К какому объекту';
+  @override String get deleteAccountConfirm => 'Убрать этот счёт из ЭлPay?';
+  @override String get accountAdded => 'Счёт подключён';
+  @override String get addressTitleLabel => 'Название';
+  @override String get newAddress => 'Добавить адрес';
+  @override String get deleteAddressConfirm => 'Удалить адрес?';
+  @override String get inviteMember => 'Пригласить в семью';
+  @override String get memberName => 'Имя';
+  @override String get memberPhone => 'Телефон';
+  @override String get memberRole => 'Кем приходится';
+  @override String get memberRights => 'Права';
+  @override String get removeMemberConfirm => 'Убрать из семейного доступа?';
+  @override String get inviteSent => 'Приглашение отправлено';
+  @override String get pinOnMsg => 'Код-пароль включён';
+  @override String get pinOffMsg => 'Код-пароль выключен';
+  @override String get pinEnter => 'Придумайте код из 4 цифр';
+  @override String get pinRepeat => 'Повторите код';
+  @override String get pinMismatch => 'Коды не совпали';
+  @override String get devicesLead => 'Где вы входили в ЭлPay';
+  @override String get logoutAllDone => 'Вышли на всех устройствах, кроме этого';
+  @override String get revokeDevice => 'Выйти';
+  @override String get supportChat => 'Написать в чат';
+  @override String get supportCall => 'Позвонить 0 (3222) 5-12-12';
+  @override String get supportHours => 'Отвечаем с 8:00 до 20:00, без выходных';
+  @override String get deleteAccountLead => 'Аккаунт, счета и история будут удалены. Отменить будет нельзя.';
+  @override String get deleteAccountDone => 'Аккаунт удалён';
+  @override String get tariffsNote => 'Поставщик платит 0,8% с принятого платежа — это дешевле, чем содержать кассу и бумажные квитанции.';
+  @override String get tariffsLead2 => 'Для пользователя переводы бесплатны. ЭлPay зарабатывает на комиссии поставщиков и билетах маркета.';
+  @override String get offer => 'Публичная оферта';
+  @override String get myAccounts => 'Подключённые счета';
+  @override String get objectBills => 'счетов на объекте';
+  @override List<(String, String, String)> get tariffRows => const [
+    ('Коммунальные платежи', 'Вода, свет, мусор, газ, интернет', '0 сом'),
+    ('Садик, школа, курсы', 'Оплата по шаблону с реквизитами', '0 сом'),
+    ('Налоги и патент', 'Начисления по ИНН', '0 сом'),
+    ('Пополнение кошелька', 'С карты любого банка', '0 сом'),
+    ('Билеты в маркете', 'Комиссия площадки уже в цене билета', '5%'),
+    ('Квитанции и выписки', 'PDF и CSV, без ограничений', '0 сом'),
+  ];
+
+  // Счётчики в профиле
+  @override String addressCount(int n) => '$n ${plural(n, 'адрес', 'адреса', 'адресов')}';
+  @override String membersCount(int n) => '$n ${plural(n, 'участник', 'участника', 'участников')}';
+  @override String get sectionAccess => 'Доступ и уведомления';
+
+  // Новая оплата
+  @override String get newPaymentHint => 'Реквизиты подставятся сами — вводить их не нужно. Сумму возьмите из квитанции.';
+
+  // Разделы вкладки «Платежи»
+  @override String get sectionHistoryAuto => 'История и автоплатежи';
+
+  // Безопасность
+  @override String get confirmBigShort => 'Подтверждать крупные платежи';
+  @override String get confirmBigLead => 'От 20 000 сом — кодом или Face ID';
+  @override String get pinFirst => 'Сначала включите код-пароль';
 }
 
 class SKy implements S {
@@ -416,6 +746,180 @@ class SKy implements S {
   @override String get logout => 'Чыгуу';
   @override String get logoutConfirm => 'Аккаунттан чыгасызбы?';
   @override String get version => 'Версия';
+
+  // Платежи, история, отчёты, профиль
+  @override String get paymentsTitle => 'Төлөмдөр';
+  @override String get walletTitle => 'ЭлPay капчыгы';
+  @override String get topUp => 'Толуктоо';
+  @override String get topUpTitle => 'Капчыкты толуктоо';
+  @override String get topUpDone => 'Капчык толукталды';
+  @override String get newPaymentLead => 'Реквизиттер же жеке эсеп боюнча';
+  @override String get qrPay => 'QR аркылуу төлөм';
+  @override String get qrPayLead => 'Кагаз квитанциядан';
+  @override String get catalogTitle => 'Кайда төлөө';
+  @override String get methodsTitle => 'Төлөм ыкмалары';
+  @override String get addCard => 'Карта кошуу';
+  @override String get historyTitle => 'Төлөмдөр тарыхы';
+  @override String get historyLead => 'Квитанциялар жана көчүрмөлөр';
+  @override String get autopayTitle => 'Автотөлөмдөр';
+  @override String get autopayLead => 'Ар айдын 25инде өзүбүз алабыз';
+  @override String get autopayOn => 'Автотөлөм күйгүзүлдү';
+  @override String get autopayOff => 'Автотөлөм өчүрүлдү';
+  @override String get chooseProvider => 'Алуучуну тандаңыз';
+  @override String get searchHint => 'Камсыздоочу же эсеп номери';
+  @override String get amountLabel => 'Сумма';
+  @override String get checkAccount => 'Текшерүү';
+  @override String get accountError => 'Номерди текшериңиз — мындай эсеп жок';
+  @override String get amountError => '1ден 100 000 сомго чейин сумманы жазыңыз';
+  @override String get confirmTitle => 'Төлөмдү текшериңиз';
+  @override String get qrLead => 'Камераны квитанциядагы QR-кодго багыттаңыз';
+  @override String get qrDemoBtn => 'Квитанциянын үлгүсүн көрсөтүү';
+  @override String get qrFound => 'Квитанция таанылды';
+  @override String get cameraStub => 'Камера телефондогу колдонмодо иштейт. Бул жерде — таанылган квитанциянын үлгүсү.';
+  @override String get historyEmpty => 'Азырынча төлөмдөр жок';
+  @override String get receiptTitle => 'Квитанция';
+  @override String get receiptNo => 'Квитанция номери';
+  @override String get paidAt => 'Качан';
+  @override String get methodLabel => 'Төлөм ыкмасы';
+  @override String get share => 'Бөлүшүү';
+  @override String get savePdf => 'PDF сактоо';
+  @override String get repeatPay => 'Төлөмдү кайталоо';
+  @override String get filterAll => 'Баары';
+  @override String get nothingFound => 'Эч нерсе табылган жок';
+  @override String get reportsTitle => 'Отчёттор';
+  @override String get periodMonth => 'Ай';
+  @override String get periodYear => 'Жыл';
+  @override String get spentTotal => 'Сарпталды';
+  @override String get byCategory => 'Категориялар боюнча';
+  @override String get byObject => 'Объекттер боюнча';
+  @override String get exportCsv => 'CSV жүктөө';
+  @override String get noDataPeriod => 'Бул мезгилде төлөмдөр болгон жок';
+  @override String paymentsCount(int n) => '$n төлөм';
+  @override String get vsPrevMore => 'бир ай мурункуга караганда көп';
+  @override String get vsPrevLess => 'бир ай мурункуга караганда аз';
+  @override String get personalData => 'Жеке маалыматтар';
+  @override String get personalLead => 'Аты, телефон, почта';
+  @override String get objectsTitle => 'Объекттер';
+  @override String get objectsLead => 'Үй, ата-энелердин батири, дача';
+  @override String get accountsTitle => 'Эсептер жана реквизиттер';
+  @override String get accountsLead => 'ЭлPayга эмне туташтырылган';
+  @override String get addressesTitle => 'Билдирүү даректери';
+  @override String get addressesLead => 'Өчүрүлүүлөр жөнүндө кайда жиберүү';
+  @override String get familyTitle => 'Үй-бүлөлүк мүмкүнчүлүк';
+  @override String get familyLead => 'Ким эсептерди көрөт жана төлөй алат';
+  @override String get notifyTitle => 'Билдирүүлөр';
+  @override String get notifyLead => 'Эсептер, өчүрүлүүлөр, тынч саат';
+  @override String get securityTitle => 'Коопсуздук';
+  @override String get securityLead => 'Код-сырсөз, Face ID, түзмөктөр';
+  @override String get tariffsTitle => 'Тарифтер жана комиссиялар';
+  @override String get tariffsLead => 'Төлөм канча турат';
+  @override String get supportTitle => 'Колдоо';
+  @override String get supportLead => 'Чат жана телефон 0 (3222) 5-12-12';
+  @override String get deleteAccount => 'Аккаунтту өчүрүү';
+  @override String get pinTitle => 'Код-сырсөз';
+  @override String get pinLead => 'Колдонмого киргенде суроо';
+  @override String get faceId => 'Face ID менен кирүү';
+  @override String get confirmBig => '20 000 сомдон жогорку төлөмдөрдү ырастоо';
+  @override String get devicesTitle => 'Түзмөктөр жана кирүүлөр';
+  @override String get logoutAll => 'Бардык түзмөктөрдөн чыгуу';
+  @override String get thisDevice => 'Ушул түзмөк';
+  @override String get notifyBills => 'Эсептер жана төлөм мөөнөттөрү';
+  @override String get notifyOutages => 'Суу жана жарык өчүрүлүүлөрү';
+  @override String get notifyMarket => 'Афиша жана билеттер';
+  @override String get quietHours => 'Тынч саат 22:00 — 08:00';
+  @override String get invite => 'Чакыруу';
+  @override String get canPay => 'Төлөй алат';
+  @override String get canView => 'Көрө гана алат';
+  @override String get removeWord => 'Өчүрүү';
+  @override String get editWord => 'Өзгөртүү';
+  @override String get addWord => 'Кошуу';
+  @override String get nothingYet => 'Азырынча бош';
+  @override String get soonWord => 'Жакында';
+
+  // Названия категорий
+  @override String catName(String c) => switch (c) {
+        'water' => 'Суу',
+        'power' => 'Жарык',
+        'trash' => 'Таштанды',
+        'gas' => 'Газ',
+        'net' => 'Интернет',
+        'door' => 'Домофон',
+        'mobile' => 'Байланыш',
+        'kid' => 'Бакча',
+        'school' => 'Мектеп',
+        'course' => 'Курстар',
+        'tax' => 'Салыктар',
+        'market' => 'Билеттер',
+        _ => 'Башка',
+      };
+
+  // Профиль: объекты, счета, семья, безопасность
+  @override String get saved => 'Сакталды';
+  @override String get nameFull => 'Аты-жөнү';
+  @override String get phoneChange => 'Номерди өзгөртүү';
+  @override String get phoneChangeLead => 'Жаңы номерди SMS коду менен ырастайбыз';
+  @override String get objectName => 'Объекттин аталышы';
+  @override String get objectAddressLabel => 'Объекттин дареги';
+  @override String get newObject => 'Жаңы объект';
+  @override String get editObject => 'Объектти өзгөртүү';
+  @override String get deleteObjectConfirm => 'Объектти эсептери менен өчүрөсүзбү?';
+  @override String get addAccountTitle => 'Эсеп кошуу';
+  @override String get accountNumber => 'Жеке эсеп номери';
+  @override String get chooseObject => 'Кайсы объектке';
+  @override String get deleteAccountConfirm => 'Бул эсепти ЭлPayдан алып салабызбы?';
+  @override String get accountAdded => 'Эсеп туташтырылды';
+  @override String get addressTitleLabel => 'Аталышы';
+  @override String get newAddress => 'Дарек кошуу';
+  @override String get deleteAddressConfirm => 'Даректи өчүрөбүзбү?';
+  @override String get inviteMember => 'Үй-бүлөгө чакыруу';
+  @override String get memberName => 'Аты';
+  @override String get memberPhone => 'Телефон';
+  @override String get memberRole => 'Ким болот';
+  @override String get memberRights => 'Укуктар';
+  @override String get removeMemberConfirm => 'Үй-бүлөлүк мүмкүнчүлүктөн алып салабызбы?';
+  @override String get inviteSent => 'Чакыруу жөнөтүлдү';
+  @override String get pinOnMsg => 'Код-сырсөз күйгүзүлдү';
+  @override String get pinOffMsg => 'Код-сырсөз өчүрүлдү';
+  @override String get pinEnter => '4 сандан турган код ойлоп табыңыз';
+  @override String get pinRepeat => 'Кодду кайталаңыз';
+  @override String get pinMismatch => 'Коддор дал келген жок';
+  @override String get devicesLead => 'ЭлPayга кайдан киргенсиз';
+  @override String get logoutAllDone => 'Ушул түзмөктөн башка баарынан чыктык';
+  @override String get revokeDevice => 'Чыгуу';
+  @override String get supportChat => 'Чатка жазуу';
+  @override String get supportCall => '0 (3222) 5-12-12 чалуу';
+  @override String get supportHours => '8:00дөн 20:00гө чейин, дем алышсыз жооп беребиз';
+  @override String get deleteAccountLead => 'Аккаунт, эсептер жана тарых өчүрүлөт. Кайтарууга болбойт.';
+  @override String get deleteAccountDone => 'Аккаунт өчүрүлдү';
+  @override String get tariffsNote => 'Камсыздоочу кабыл алынган төлөмдөн 0,8% төлөйт — бул касса менен кагаз квитанцияларды кармагандан арзан.';
+  @override String get tariffsLead2 => 'Колдонуучу үчүн которуулар акысыз. ЭлPay камсыздоочулардын комиссиясынан жана маркет билеттеринен киреше алат.';
+  @override String get offer => 'Ачык оферта';
+  @override String get myAccounts => 'Туташтырылган эсептер';
+  @override String get objectBills => 'объекттеги эсептер';
+  @override List<(String, String, String)> get tariffRows => const [
+    ('Коммуналдык төлөмдөр', 'Суу, жарык, таштанды, газ, интернет', '0 сом'),
+    ('Бала бакча, мектеп, курстар', 'Реквизиттери бар шаблон боюнча төлөм', '0 сом'),
+    ('Салыктар жана патент', 'ИНН боюнча эсептөөлөр', '0 сом'),
+    ('Капчыкты толуктоо', 'Каалаган банктын картасынан', '0 сом'),
+    ('Маркеттеги билеттер', 'Аянтчанын комиссиясы билеттин баасына кирген', '5%'),
+    ('Квитанциялар жана көчүрмөлөр', 'PDF жана CSV, чектөөсүз', '0 сом'),
+  ];
+
+  // Счётчики в профиле
+  @override String addressCount(int n) => '$n дарек';
+  @override String membersCount(int n) => '$n катышуучу';
+  @override String get sectionAccess => 'Мүмкүнчүлүк жана билдирүүлөр';
+
+  // Новая оплата
+  @override String get newPaymentHint => 'Реквизиттер өзү коюлат — аларды жазуунун кереги жок. Сумманы квитанциядан алыңыз.';
+
+  // Разделы вкладки «Платежи»
+  @override String get sectionHistoryAuto => 'Тарых жана автотөлөмдөр';
+
+  // Безопасность
+  @override String get confirmBigShort => 'Ири төлөмдөрдү ырастоо';
+  @override String get confirmBigLead => '20 000 сомдон жогору — код же Face ID менен';
+  @override String get pinFirst => 'Адегенде код-сырсөздү күйгүзүңүз';
 }
 
 String plural3(int n, String one, String few, String many) {

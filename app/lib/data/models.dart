@@ -124,6 +124,26 @@ class Bill {
         autopay: autopay ?? this.autopay,
       );
 
+  /// Новый номер лицевого счёта и объект — при правке в профиле.
+  Bill withAccount(String account, String objectId) => Bill(
+        id: id,
+        title: title,
+        subtitle: subtitle,
+        cat: cat,
+        amount: amount,
+        objectId: objectId,
+        period: period,
+        due: due,
+        account: account,
+        calc: calc,
+        requisites: [
+          for (final f in requisites)
+            f.label == 'Лицевой счёт' ? Field(f.label, account) : f,
+        ],
+        paid: paid,
+        autopay: autopay,
+      );
+
   int daysLeft(DateTime now) => due.difference(DateTime(now.year, now.month, now.day)).inDays;
 }
 
@@ -150,4 +170,95 @@ class PayMethodItem {
   final String id, title, subtitle, badge;
   final bool isWallet;
   final double? balance;
+}
+
+/// Категория каталога платежей: «Коммунальные услуги», «Садик и школа»…
+@immutable
+class PayCategory {
+  const PayCategory({
+    required this.id,
+    required this.title,
+    required this.lead,
+    required this.cat,
+  });
+  final String id, title, lead, cat;
+}
+
+/// Поставщик из каталога: то, что подставляет реквизиты за пользователя.
+@immutable
+class ProviderItem {
+  const ProviderItem({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.cat,
+    required this.categoryId,
+    required this.accountLabel,
+    required this.accountHint,
+    this.requisites = const [],
+    this.fixedAmount,
+  });
+
+  final String id, title, subtitle, cat, categoryId, accountLabel, accountHint;
+  final List<Field> requisites;
+  final double? fixedAmount;
+}
+
+/// Совершённый платёж — строка истории и основа квитанции.
+@immutable
+class Payment {
+  const Payment({
+    required this.id,
+    required this.title,
+    required this.cat,
+    required this.amount,
+    required this.date,
+    required this.methodId,
+    required this.receiptNo,
+    this.objectId = '',
+    this.account = '',
+    this.period = '',
+    this.status = PayStatus.success,
+  });
+
+  final String id, title, cat, methodId, receiptNo, objectId, account, period;
+  final double amount;
+  final DateTime date;
+  final PayStatus status;
+}
+
+/// Участник семейного доступа.
+@immutable
+class FamilyMember {
+  const FamilyMember({
+    required this.id,
+    required this.name,
+    required this.phone,
+    required this.role,
+    this.canPay = false,
+  });
+  final String id, name, phone, role;
+  final bool canPay;
+
+  FamilyMember copyWith({String? role, bool? canPay}) => FamilyMember(
+        id: id,
+        name: name,
+        phone: phone,
+        role: role ?? this.role,
+        canPay: canPay ?? this.canPay,
+      );
+}
+
+/// Устройство, с которого входили в аккаунт.
+@immutable
+class DeviceItem {
+  const DeviceItem({
+    required this.id,
+    required this.title,
+    required this.place,
+    required this.lastSeen,
+    this.current = false,
+  });
+  final String id, title, place, lastSeen;
+  final bool current;
 }

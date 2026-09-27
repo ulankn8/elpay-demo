@@ -12,9 +12,23 @@ import 'features/auth/otp_page.dart';
 import 'features/auth/setup_page.dart';
 import 'features/auth/welcome_page.dart';
 import 'features/bills/bill_details_page.dart';
+import 'features/history/history_page.dart';
+import 'features/history/receipt_page.dart';
 import 'features/home/home_page.dart';
+import 'features/payments/autopay_page.dart';
+import 'features/payments/new_payment_page.dart';
+import 'features/payments/payments_page.dart';
+import 'features/payments/qr_page.dart';
 import 'features/payments/success_page.dart';
+import 'features/profile/accounts_page.dart';
+import 'features/profile/addresses_page.dart';
+import 'features/profile/family_page.dart';
+import 'features/profile/notifications_page.dart';
+import 'features/profile/objects_page.dart';
+import 'features/profile/personal_page.dart';
 import 'features/profile/profile_page.dart';
+import 'features/profile/security_page.dart';
+import 'features/reports/reports_page.dart';
 import 'features/shell/shell_page.dart';
 import 'state/providers.dart';
 
@@ -53,6 +67,27 @@ GoRouter buildRouter(Ref ref) {
         builder: (_, state) => BillDetailsPage(bill: state.extra! as Bill),
       ),
       GoRoute(
+        path: '/new-payment',
+        builder: (_, state) => NewPaymentPage(args: state.extra as NewPaymentArgs?),
+      ),
+      GoRoute(path: '/qr', builder: (_, _) => const QrPage()),
+      GoRoute(path: '/personal', builder: (_, _) => const PersonalPage()),
+      GoRoute(path: '/objects', builder: (_, _) => const ObjectsPage()),
+      GoRoute(path: '/accounts', builder: (_, _) => const AccountsPage()),
+      GoRoute(path: '/addresses', builder: (_, _) => const AddressesPage()),
+      GoRoute(path: '/family', builder: (_, _) => const FamilyPage()),
+      GoRoute(path: '/security', builder: (_, _) => const SecurityPage()),
+      GoRoute(path: '/devices', builder: (_, _) => const DevicesPage()),
+      GoRoute(path: '/notifications', builder: (_, _) => const NotificationsPage()),
+      GoRoute(path: '/tariffs', builder: (_, _) => const TariffsPage()),
+      GoRoute(path: '/support', builder: (_, _) => const SupportPage()),
+      GoRoute(path: '/history', builder: (_, _) => const HistoryPage()),
+      GoRoute(path: '/autopay', builder: (_, _) => const AutopayPage()),
+      GoRoute(
+        path: '/receipt',
+        builder: (_, state) => ReceiptPage(payment: state.extra! as Payment),
+      ),
+      GoRoute(
         path: '/success',
         builder: (_, state) {
           final args = state.extra as (double, int, String)?;
@@ -70,23 +105,10 @@ GoRouter buildRouter(Ref ref) {
             GoRoute(path: '/home', builder: (_, _) => const HomePage()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/payments',
-              builder: (context, _) => SoonPage(
-                title: S.of(context).tabPayments,
-                icon: Icons.account_balance_wallet_outlined,
-                lead: S.of(context).paymentsStub,
-              ),
-            ),
+            GoRoute(path: '/payments', builder: (_, _) => const PaymentsPage()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/reports',
-              builder: (context, _) => SoonPage(
-                title: S.of(context).tabReports,
-                icon: Icons.bar_chart_rounded,
-              ),
-            ),
+            GoRoute(path: '/reports', builder: (_, _) => const ReportsPage()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: '/profile', builder: (_, _) => const ProfilePage()),

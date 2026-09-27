@@ -372,3 +372,24 @@ void showAppSnack(BuildContext context, String text) {
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(text)));
 }
+
+/// Короткое подтверждение опасного действия.
+Future<bool?> confirmDialog(BuildContext context, String question, String action) {
+  return showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(question),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          style: TextButton.styleFrom(foregroundColor: Brand.danger),
+          child: Text(action),
+        ),
+      ],
+    ),
+  );
+}

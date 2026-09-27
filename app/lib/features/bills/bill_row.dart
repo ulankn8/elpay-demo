@@ -17,6 +17,7 @@ IconData catIcon(String cat) => switch (cat) {
       'gas' => Icons.local_fire_department_outlined,
       'net' => Icons.wifi_rounded,
       'door' => Icons.sensor_door_outlined,
+      'mobile' => Icons.smartphone_rounded,
       'kid' => Icons.child_care_rounded,
       'school' => Icons.school_outlined,
       'course' => Icons.menu_book_rounded,
@@ -46,14 +47,13 @@ class BillRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final s = S.of(context);
     final c = context.c;
     final due = dueLabel(context, bill);
 
     return InkWell(
       onTap: () => context.push('/bill', extra: bill),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 11, 14, 11),
+        padding: const EdgeInsets.fromLTRB(16, 11, 8, 11),
         child: Row(
           children: [
             CatTile(bill.cat, catIcon(bill.cat)),
@@ -68,30 +68,19 @@ class BillRow extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       style: context.t.titleMedium),
                   const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          showObject == null ? due.text : '$showObject · ${due.text}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.t.bodySmall?.copyWith(
-                            color: due.overdue ? c.chipBadFg : c.muted,
-                            fontWeight: due.overdue ? FontWeight.w600 : FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                      Text('· ${s.details}',
-                          style: context.t.bodySmall?.copyWith(
-                              color: c.muted2, fontWeight: FontWeight.w500)),
-                      Icon(Icons.chevron_right_rounded, size: 15, color: c.muted2),
-                    ],
+                  Text(
+                    showObject == null ? due.text : '$showObject · ${due.text}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.t.bodySmall?.copyWith(
+                      color: due.overdue ? c.chipBadFg : c.muted,
+                      fontWeight: due.overdue ? FontWeight.w600 : FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
@@ -101,6 +90,7 @@ class BillRow extends ConsumerWidget {
                 _PayPill(onTap: () => openCheckout(context, ref, [bill])),
               ],
             ),
+            Icon(Icons.chevron_right_rounded, size: 18, color: c.muted2),
           ],
         ),
       ),
@@ -124,25 +114,17 @@ class _PayPill extends StatelessWidget {
         onTap: onTap,
         child: Container(
           height: 30,
-          padding: const EdgeInsets.symmetric(horizontal: 13),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             border: Border.all(color: Brand.primary.withValues(alpha: .3), width: 1),
           ),
           alignment: Alignment.center,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.arrow_forward_rounded,
-                  size: 15, color: dark ? const Color(0xFF6FE0BB) : Brand.p700),
-              const SizedBox(width: 6),
-              Text(s.pay,
-                  style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: dark ? const Color(0xFF6FE0BB) : Brand.p700)),
-            ],
-          ),
+          child: Text(s.pay,
+              style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: dark ? const Color(0xFF6FE0BB) : Brand.p700)),
         ),
       ),
     );
