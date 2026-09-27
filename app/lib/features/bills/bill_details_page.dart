@@ -56,8 +56,7 @@ class BillDetailsPage extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 14),
-          Text(som(b.amount),
-              style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w700, letterSpacing: -.8)),
+          Amount(som(b.amount), size: 34),
           const SizedBox(height: 16),
           KeyValueBox([
             (s.period, b.period),

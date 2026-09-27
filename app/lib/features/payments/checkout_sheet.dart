@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/format.dart';
 import '../../core/l10n/s.dart';
@@ -262,9 +263,20 @@ class _CheckoutRow extends StatelessWidget {
                 children: [
                   Amount(som(bill.amount), size: 16),
                   if (selectable)
-                    Text(s.details,
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600, color: c.muted)),
+                    GestureDetector(
+                      onTap: () => context.push('/bill', extra: bill),
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(s.details,
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: c.muted,
+                                decoration: TextDecoration.underline,
+                                decorationColor: c.line)),
+                      ),
+                    ),
                 ],
               ),
             ],
