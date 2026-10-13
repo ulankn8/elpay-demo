@@ -2,7 +2,6 @@ import 'package:elpay/core/cache/local_store.dart';
 import 'package:elpay/core/failure.dart';
 import 'package:elpay/core/net/connectivity.dart';
 import 'package:elpay/core/net/outbox.dart';
-import 'package:elpay/core/result.dart';
 import 'package:elpay/data/accounts_repository.dart';
 import 'package:elpay/data/api/mock_api.dart';
 import 'package:elpay/data/models.dart';

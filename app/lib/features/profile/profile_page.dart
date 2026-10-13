@@ -198,13 +198,10 @@ class ProfilePage extends ConsumerWidget {
                     leading: CatTile('net', Icons.wifi_rounded, soft: true),
                     title: s.demoOffline,
                     subtitle: s.demoOfflineLead,
+                    onTap: () => _toggleNetwork(context, ref, online),
                     trailing: Switch(
                       value: !online,
-                      onChanged: (v) {
-                        final net = ref.read(connectivityProvider);
-                        if (net is ManualConnectivity) net.setOnline(!v);
-                        showAppSnack(context, v ? s.offlineBanner : s.syncOk);
-                      },
+                      onChanged: (_) => _toggleNetwork(context, ref, online),
                     ),
                   ),
                   const RowDivider(),
@@ -239,6 +236,15 @@ class ProfilePage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Демо-переключатель сети: показывает, как приложение ведёт себя офлайн.
+  void _toggleNetwork(BuildContext context, WidgetRef ref, bool online) {
+    final s = S.of(context);
+    final net = ref.read(connectivityProvider);
+    if (net is! ManualConnectivity) return;
+    net.setOnline(!online);
+    showAppSnack(context, online ? s.offlineBanner : s.syncOk);
   }
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
