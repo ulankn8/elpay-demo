@@ -2,11 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/failure_text.dart';
 import '../../core/l10n/s.dart';
 import '../../core/net/connectivity.dart';
 import '../../core/tokens.dart';
 import '../../core/widgets.dart';
 import '../../state/providers.dart';
+
+/// Мост до [signOutEverywhere]: функция принимает `Ref`, а экран держит
+/// `WidgetRef` — это разные типы, и напрямую вызов не компилируется.
+///
+/// РАСХОЖДЕНИЕ С ПЛАНОМ: по-хорошему такой провайдер живёт в
+/// state/app_state.dart рядом с самим выходом (там же лежит
+/// `resetOnSignOut`). Как только он появится там, этот уедет.
+final _signOutProvider =
+    Provider<Future<void> Function()>((ref) => () => signOutEverywhere(ref));
 
 /// Профиль: личные данные, объекты и счета, семья, безопасность, настройки.
 class ProfilePage extends ConsumerWidget {
@@ -18,7 +28,7 @@ class ProfilePage extends ConsumerWidget {
     final session = ref.watch(sessionProvider);
     final settings = ref.watch(settingsProvider);
     final sec = ref.watch(securityProvider);
-    final state = ref.watch(billsProvider).value;
+    final billsAsync = ref.watch(billsProvider);
     final family = ref.watch(familyProvider);
     final accounts = ref.watch(accountsProvider);
     final config = ref.watch(configProvider);
@@ -83,9 +93,15 @@ class ProfilePage extends ConsumerWidget {
                   AppRow(
                     leading: CatTile('water', Icons.home_work_outlined, soft: true),
                     title: s.objectsTitle,
-                    subtitle: state == null || state.objects.isEmpty
-                        ? s.objectsLead
-                        : state.objects.map((o) => o.name).join(', '),
+                    // Загрузка и ошибка подписаны честно: раньше любой
+                    // отказ выглядел как «объектов нет».
+                    subtitle: billsAsync.when(
+                      data: (state) => state.objects.isEmpty
+                          ? s.objectsLead
+                          : state.objects.map((o) => s.tr(o.name)).join(', '),
+                      loading: () => s.loadingData,
+                      error: (e, _) => failureTitle(s, failureOf(e)),
+                    ),
                     chevron: true,
                     onTap: () => context.push('/objects'),
                   ),
@@ -96,7 +112,7 @@ class ProfilePage extends ConsumerWidget {
                     subtitle: accounts.when(
                       data: (list) => s.billsCount(list.length),
                       loading: () => s.loadingData,
-                      error: (_, _) => s.accountsLead,
+                      error: (e, _) => failureTitle(s, failureOf(e)),
                     ),
                     chevron: true,
                     onTap: () => context.push('/accounts'),
@@ -247,11 +263,15 @@ class ProfilePage extends ConsumerWidget {
     showAppSnack(context, online ? s.offlineBanner : s.syncOk);
   }
 
+  /// Выход чистит ОБА хранилища и сбрасывает состояние: у AppPrefs и
+  /// LocalStore разные префиксы, и выход «только из сессии» оставлял на
+  /// устройстве счета, историю, кошелёк и билеты прошлого пользователя —
+  /// следующий вход показывал чужие данные.
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     final s = S.of(context);
     final ok = await confirmDialog(context, s.logoutConfirm, s.logout);
     if (ok != true) return;
-    await ref.read(sessionProvider.notifier).signOut();
+    await ref.read(_signOutProvider)();
     if (context.mounted) context.go('/welcome');
   }
 
@@ -259,8 +279,9 @@ class ProfilePage extends ConsumerWidget {
     final s = S.of(context);
     final ok = await confirmDialog(context, s.deleteAccountLead, s.deleteAccount);
     if (ok != true) return;
+    // Онбординг снимается до выхода: сам выход чистит хранилища целиком.
     await ref.read(prefsProvider).setOnboarded(false);
-    await ref.read(sessionProvider.notifier).signOut();
+    await ref.read(_signOutProvider)();
     if (!context.mounted) return;
     showAppSnack(context, s.deleteAccountDone);
     context.go('/welcome');

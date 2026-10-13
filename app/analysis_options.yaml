@@ -10,6 +10,17 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  # Строгий режим типов. Разбор JSON написан руками (data/models.dart,
+  # api/http_api.dart), и без этих двух флагов его не защищает ничто:
+  #   strict-casts    — `j['amount'] as double` из dynamic перестаёт быть
+  #                     бесплатным, каждое приведение видно глазом;
+  #   strict-raw-types — `List` и `Map` без параметров типа запрещены,
+  #                     поэтому `as Map` вместо `as Map<String, dynamic>`
+  #                     ловится анализатором, а не падением на устройстве.
+  # На момент включения существующий код проходит оба флага без замечаний.
+  language:
+    strict-casts: true
+    strict-raw-types: true
   exclude:
     - build/**
     - android/**

@@ -20,9 +20,13 @@ class Demo {
 
   static List<Bill> bills(DateTime now) {
     DateTime due(int day) => DateTime(now.year, now.month, day);
+    // Начало расчётного периода: 0 — текущий месяц, -1 — прошлый, 1 — следующий.
+    DateTime month(int shift) => DateTime(now.year, now.month + shift, 1);
     return [
       Bill(
         id: 'trash-1',
+        accountId: 'acc-trash-1',
+        periodAt: month(0),
         title: 'Ош-Тазалык',
         subtitle: 'Вывоз мусора',
         cat: 'trash',
@@ -47,6 +51,8 @@ class Demo {
       ),
       Bill(
         id: 'power-1',
+        accountId: 'acc-power-1',
+        periodAt: month(-1),
         title: 'Электросеть',
         subtitle: 'Электроэнергия',
         cat: 'power',
@@ -71,6 +77,8 @@ class Demo {
       ),
       Bill(
         id: 'water-1',
+        accountId: 'acc-water-1',
+        periodAt: month(-1),
         title: 'Водоканал',
         subtitle: 'Холодная вода',
         cat: 'water',
@@ -95,6 +103,8 @@ class Demo {
       ),
       Bill(
         id: 'kid-1',
+        accountId: 'acc-kid-1',
+        periodAt: month(1),
         title: 'Садик «Балапан»',
         subtitle: 'Амир · октябрь',
         cat: 'kid',
@@ -119,6 +129,8 @@ class Demo {
       ),
       Bill(
         id: 'power-2',
+        accountId: 'acc-power-2',
+        periodAt: month(-1),
         title: 'Свет родителей',
         subtitle: 'Электроэнергия',
         cat: 'power',
@@ -143,6 +155,8 @@ class Demo {
       ),
       Bill(
         id: 'water-2',
+        accountId: 'acc-water-2',
+        periodAt: month(-1),
         title: 'Вода родителей',
         subtitle: 'Холодная вода',
         cat: 'water',
@@ -205,7 +219,8 @@ class Demo {
     ProviderItem(
       id: 'p-power', title: 'Ошэлектро', subtitle: 'Электроэнергия',
       cat: 'power', categoryId: 'util',
-      accountLabel: 'Лицевой счёт', accountHint: '12-44530',
+      accountLabel: 'Лицевой счёт', accountHint: '7710-3348',
+      mask: AccountMask(pattern: r'^\d{8}$', hint: '7710-3348'),
       requisites: [
         Field('Получатель', 'ОАО «Ошэлектро»'),
         Field('ИНН', '02905199510045'),
@@ -216,6 +231,7 @@ class Demo {
       id: 'p-water', title: 'Ошводоканал', subtitle: 'Холодная вода',
       cat: 'water', categoryId: 'util',
       accountLabel: 'Лицевой счёт', accountHint: '31-01187',
+      mask: AccountMask(pattern: r'^\d{7}$', hint: '31-01187'),
       requisites: [
         Field('Получатель', 'МП «Ошводоканал»'),
         Field('ИНН', '02212199410063'),
@@ -225,7 +241,8 @@ class Demo {
     ProviderItem(
       id: 'p-trash', title: 'Ош-Тазалык', subtitle: 'Вывоз мусора',
       cat: 'trash', categoryId: 'util',
-      accountLabel: 'Лицевой счёт', accountHint: '77-20841',
+      accountLabel: 'Лицевой счёт', accountHint: '04-118725',
+      mask: AccountMask(pattern: r'^\d{8}$', hint: '04-118725'),
       requisites: [
         Field('Получатель', 'МП «Ош-Тазалык»'),
         Field('ИНН', '02308199210079'),
@@ -236,6 +253,7 @@ class Demo {
       id: 'p-gas', title: 'Газпром Кыргызстан', subtitle: 'Природный газ',
       cat: 'gas', categoryId: 'util',
       accountLabel: 'Лицевой счёт', accountHint: '55-20841',
+      mask: AccountMask(pattern: r'^\d{7}$', hint: '55-20841'),
       requisites: [
         Field('Получатель', 'ОсОО «Газпром Кыргызстан»'),
         Field('ИНН', '01502201410098'),
@@ -246,6 +264,7 @@ class Demo {
       id: 'p-kid', title: 'Садик «Балапан»', subtitle: 'Детский сад №14, Ош',
       cat: 'kid', categoryId: 'edu',
       accountLabel: 'Номер договора', accountHint: 'Д-2291',
+      mask: AccountMask(pattern: r'^[А-ЯA-Z]\d{4}$', hint: 'Д-2291'),
       fixedAmount: 3500,
       requisites: [
         Field('Получатель', 'МДОУ «Балапан» №14'),
@@ -256,6 +275,8 @@ class Demo {
     ProviderItem(
       id: 'p-school', title: 'Школа №29', subtitle: 'Питание и охрана',
       cat: 'school', categoryId: 'edu',
+      // Формата у «класс и фамилия» нет — маска остаётся AccountMask.any,
+      // иначе проверка до сети отбросит правильный ввод.
       accountLabel: 'Класс и фамилия', accountHint: '5В, Токтогулов',
       fixedAmount: 1200,
       requisites: [
@@ -268,6 +289,7 @@ class Demo {
       id: 'p-course', title: 'Курсы английского Smart', subtitle: 'Абонемент на месяц',
       cat: 'course', categoryId: 'edu',
       accountLabel: 'Номер ученика', accountHint: 'SM-1180',
+      mask: AccountMask(pattern: r'^[A-Z]{2}\d{4}$', hint: 'SM-1180'),
       fixedAmount: 2400,
       requisites: [
         Field('Получатель', 'ОсОО «Смарт Эдьюкейшн»'),
@@ -279,6 +301,7 @@ class Demo {
       id: 'p-tax', title: 'Налоговая служба', subtitle: 'Начисления по ИНН',
       cat: 'tax', categoryId: 'tax',
       accountLabel: 'ИНН', accountHint: '22505199800123',
+      mask: AccountMask(pattern: r'^\d{14}$', hint: '22505199800123'),
       requisites: [
         Field('Получатель', 'УГНС по г. Ош'),
         Field('ИНН', '00109199210012'),
@@ -289,6 +312,7 @@ class Demo {
       id: 'p-patent', title: 'Патент', subtitle: 'Месячный патент предпринимателя',
       cat: 'tax', categoryId: 'tax',
       accountLabel: 'ИНН', accountHint: '22505199800123',
+      mask: AccountMask(pattern: r'^\d{14}$', hint: '22505199800123'),
       fixedAmount: 1800,
       requisites: [
         Field('Получатель', 'УГНС по г. Ош'),
@@ -300,6 +324,7 @@ class Demo {
       id: 'p-saima', title: 'Сайма Телеком', subtitle: 'Домашний интернет',
       cat: 'net', categoryId: 'net',
       accountLabel: 'Номер договора', accountHint: 'OSH-44120',
+      mask: AccountMask(pattern: r'^[A-Z]{3}\d{5}$', hint: 'OSH-44120'),
       fixedAmount: 1000,
       requisites: [
         Field('Получатель', 'ОсОО «Сайма Телеком»'),
@@ -311,6 +336,7 @@ class Demo {
       id: 'p-megaline', title: 'MegaLine', subtitle: 'Интернет и ТВ',
       cat: 'net', categoryId: 'net',
       accountLabel: 'Номер договора', accountHint: '0322-88190',
+      mask: AccountMask(pattern: r'^\d{9}$', hint: '0322-88190'),
       fixedAmount: 900,
       requisites: [
         Field('Получатель', 'ОАО «Кыргызтелеком»'),
@@ -322,6 +348,7 @@ class Demo {
       id: 'p-o', title: 'O!', subtitle: 'Мобильная связь',
       cat: 'mobile', categoryId: 'mobile',
       accountLabel: 'Номер телефона', accountHint: '0700 12 34 56',
+      mask: AccountMask(pattern: r'^0\d{9}$', hint: '0700 12 34 56'),
       requisites: [
         Field('Получатель', 'ЗАО «Альфа Телеком»'),
         Field('ИНН', '00510199710032'),
@@ -332,6 +359,7 @@ class Demo {
       id: 'p-beeline', title: 'Beeline', subtitle: 'Мобильная связь',
       cat: 'mobile', categoryId: 'mobile',
       accountLabel: 'Номер телефона', accountHint: '0770 12 34 56',
+      mask: AccountMask(pattern: r'^0\d{9}$', hint: '0770 12 34 56'),
       requisites: [
         Field('Получатель', 'ОсОО «Скай Мобайл»'),
         Field('ИНН', '00306200210014'),
@@ -342,6 +370,7 @@ class Demo {
       id: 'p-mega', title: 'MegaCom', subtitle: 'Мобильная связь',
       cat: 'mobile', categoryId: 'mobile',
       accountLabel: 'Номер телефона', accountHint: '0555 12 34 56',
+      mask: AccountMask(pattern: r'^0\d{9}$', hint: '0555 12 34 56'),
       requisites: [
         Field('Получатель', 'ЗАО «Альфа Телеком»'),
         Field('ИНН', '00510199710032'),
@@ -486,4 +515,16 @@ class Demo {
     QuickService(cat: 'mobile', label: 'Связь', providerId: 'p-o'),
     QuickService(cat: 'tax', label: 'Налоги', providerId: 'p-tax'),
   ];
+
+  /// Каталог одним объектом: именно этим отвечает демо-бэкенд
+  /// (`MockElPayApi.catalog()`), и это же кладёт в кэш [CatalogRepository].
+  /// Экраны берут каталог из репозитория, а не отсюда, — иначе подмена
+  /// реализации «одной строкой» остаётся обещанием.
+  static const catalog = Catalog(
+    categories: categories,
+    providers: providers,
+    quickServices: quickServices,
+    methods: methods,
+    bank: bank,
+  );
 }

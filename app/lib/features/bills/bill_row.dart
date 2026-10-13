@@ -1,24 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../../core/l10n/s.dart';
+import '../../core/service_cat.dart';
 import '../../data/models.dart';
 
 /// Иконка категории услуги.
-IconData catIcon(String cat) => switch (cat) {
-      'water' => Icons.water_drop_outlined,
-      'power' => Icons.bolt_rounded,
-      'trash' => Icons.delete_outline_rounded,
-      'gas' => Icons.local_fire_department_outlined,
-      'net' => Icons.wifi_rounded,
-      'door' => Icons.sensor_door_outlined,
-      'mobile' => Icons.smartphone_rounded,
-      'kid' => Icons.child_care_rounded,
-      'school' => Icons.school_outlined,
-      'course' => Icons.menu_book_rounded,
-      'tax' => Icons.account_balance_outlined,
-      'market' => Icons.confirmation_number_outlined,
-      _ => Icons.receipt_long_outlined,
-    };
+///
+/// Тонкая обёртка над [iconOf]: сам switch по категориям переехал в
+/// core/service_cat.dart, где рядом лежат градиент и разбор значения
+/// с сервера. Обёртка оставлена, чтобы не править десятки мест вызова
+/// разом — она уйдёт вместе с последним строковым `cat` в моделях.
+IconData catIcon(String cat) => iconOfRaw(cat);
 
 /// Человеческий срок: «просрочено на 2 дня», «осталось 3 дня», «до 25 сент».
 ({String text, bool overdue, bool soon}) dueLabel(BuildContext context, Bill b) {

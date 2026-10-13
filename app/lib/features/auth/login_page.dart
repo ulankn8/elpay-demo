@@ -265,14 +265,19 @@ class _MethodSwitch extends StatelessWidget {
                           size: 16,
                           color: m == method ? Theme.of(context).colorScheme.onSurface : c.muted),
                       const SizedBox(width: 6),
-                      Text(label,
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w600,
-                            color: m == method
-                                ? Theme.of(context).colorScheme.onSurface
-                                : c.muted,
-                          )),
+                      // Flexible — иначе на узком телефоне «Telegram» распирает сегмент.
+                      Flexible(
+                        child: Text(label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: m == method
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : c.muted,
+                            )),
+                      ),
                     ],
                   ),
                 ),

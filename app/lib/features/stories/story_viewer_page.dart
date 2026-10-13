@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/s.dart';
+import '../../core/service_cat.dart';
 import '../../core/tokens.dart';
+import '../../core/widgets.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
-import '../bills/bill_row.dart';
 
 /// Просмотр сторисов на весь экран: кадры переключаются сами,
 /// тап слева и справа листает, свайп — между сторисами.
@@ -29,13 +30,17 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage>
   late int _story = widget.initialIndex;
   int _frame = 0;
 
-  List<StoryItem> get _stories => ref.read(storiesProvider).value ?? const [];
+  /// Сторисы, с которыми работает автопрокрутка.
+  ///
+  /// Поле, а не чтение провайдера в обработчиках: список приходит
+  /// асинхронно, и `_stories[_story]` до загрузки давал RangeError.
+  /// Состояния загрузки и ошибки разбирает AsyncSection в [build].
+  List<StoryItem> _loaded = const [];
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _startFrame());
-  }
+  /// Текущий сторис или null, если список ещё не пришёл (или ссылка
+  /// привела на несуществующий индекс).
+  StoryItem? get _current =>
+      _story >= 0 && _story < _loaded.length ? _loaded[_story] : null;
 
   @override
   void dispose() {
@@ -44,8 +49,21 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage>
     super.dispose();
   }
 
+  /// Запоминает пришедший список и запускает первый кадр — один раз,
+  /// когда сторисы появились.
+  void _adopt(List<StoryItem> stories) {
+    final first = _loaded.isEmpty && stories.isNotEmpty;
+    _loaded = stories;
+    if (!first) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _startFrame();
+    });
+  }
+
   void _startFrame() {
-    ref.read(storiesProvider.notifier).markSeen(_stories[_story].id);
+    final story = _current;
+    if (story == null) return;
+    ref.read(storiesProvider.notifier).markSeen(story.id);
     _progress
       ..reset()
       ..forward();
@@ -56,11 +74,12 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage>
   }
 
   void _next() {
-    final story = _stories[_story];
+    final story = _current;
+    if (story == null) return;
     if (_frame + 1 < story.frames.length) {
       setState(() => _frame++);
       _startFrame();
-    } else if (_story + 1 < _stories.length) {
+    } else if (_story + 1 < _loaded.length) {
       _pages.nextPage(
           duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
     } else {
@@ -80,29 +99,45 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage>
 
   @override
   Widget build(BuildContext context) {
-    final stories = ref.watch(storiesProvider).value ?? const <StoryItem>[];
-    if (stories.isEmpty) return const Scaffold(body: SizedBox.shrink());
+    final stories = ref.watch(storiesProvider);
+    final ready = stories.hasValue && stories.requireValue.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: PageView.builder(
-        controller: _pages,
-        itemCount: stories.length,
-        onPageChanged: (i) {
-          setState(() {
-            _story = i;
-            _frame = 0;
-          });
-          _startFrame();
-        },
-        itemBuilder: (context, i) => _StoryPage(
-          story: stories[i],
-          frameIndex: i == _story ? _frame : 0,
-          progress: _progress,
-          onNext: _next,
-          onPrev: _prev,
-          onHold: (hold) => hold ? _progress.stop() : _progress.forward(),
-        ),
+      // Чёрный фон — только под самими сторисами: на нём не прочитать
+      // ни скелет, ни текст ошибки.
+      backgroundColor: ready ? Colors.black : null,
+      // Отказ загрузки больше не выглядит как «сторисов нет»: текст
+      // ошибки и «Повторить» приходят из AsyncSection.
+      body: AsyncSection<List<StoryItem>>(
+        value: stories,
+        onRetry: () => ref.invalidate(storiesProvider),
+        skeleton: const Center(child: CircularProgressIndicator()),
+        isEmpty: (list) => list.isEmpty,
+        empty: const SizedBox.shrink(),
+        data: _pager,
+      ),
+    );
+  }
+
+  Widget _pager(List<StoryItem> stories) {
+    _adopt(stories);
+    return PageView.builder(
+      controller: _pages,
+      itemCount: stories.length,
+      onPageChanged: (i) {
+        setState(() {
+          _story = i;
+          _frame = 0;
+        });
+        _startFrame();
+      },
+      itemBuilder: (context, i) => _StoryPage(
+        story: stories[i],
+        frameIndex: i == _story ? _frame : 0,
+        progress: _progress,
+        onNext: _next,
+        onPrev: _prev,
+        onHold: (hold) => hold ? _progress.stop() : _progress.forward(),
       ),
     );
   }
@@ -128,7 +163,7 @@ class _StoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = S.of(context);
     final frame = story.frames[frameIndex];
-    final colors = Brand.category[story.cat] ?? Brand.category['market']!;
+    final colors = colorsOf(ServiceCat.parse(story.cat));
     final pad = MediaQuery.of(context).padding;
 
     return Container(
@@ -200,7 +235,7 @@ class _StoryPage extends StatelessWidget {
                     color: Colors.white.withValues(alpha: .22),
                     borderRadius: BorderRadius.circular(9),
                   ),
-                  child: Icon(catIcon(story.icon), size: 16, color: Colors.white),
+                  child: Icon(iconOfRaw(story.icon), size: 16, color: Colors.white),
                 ),
                 const SizedBox(width: 10),
                 Text(S.of(context).tr(story.author),
@@ -234,7 +269,7 @@ class _StoryPage extends StatelessWidget {
                       color: Colors.white.withValues(alpha: .18),
                       borderRadius: BorderRadius.circular(26),
                     ),
-                    child: Icon(catIcon(story.icon), size: 44, color: Colors.white),
+                    child: Icon(iconOfRaw(story.icon), size: 44, color: Colors.white),
                   ),
                   const SizedBox(height: 24),
                   Text(

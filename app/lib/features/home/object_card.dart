@@ -2,8 +2,22 @@ import 'package:flutter/material.dart';
 
 import '../../core/format.dart';
 import '../../core/l10n/s.dart';
-import '../../core/tokens.dart';
+import '../../core/service_cat.dart';
 import '../../data/models.dart';
+
+/// Минимальная доля в полоске разбивки: иначе тонкий сегмент исчезает
+/// совсем и в легенде остаётся цвет, которого на полоске нет.
+const _minShare = 12;
+
+/// Доля счёта в итоге — значение для `flex` сегмента полоски.
+///
+/// ЗАЩИТА ОТ ПАДЕНИЯ: при [total] == 0 выражение `amount / total` даёт NaN,
+/// а `NaN.round()` бросает UnsupportedError — то есть падает вся главная.
+/// Нулевой итог бывает честным: счёт подключён, а начисление поставщик
+/// ещё не выставил. В этом случае доли считаем ровными.
+int _share(double amount, double total) => total <= 0
+    ? _minShare
+    : (amount / total * 1000).round().clamp(_minShare, 1000);
 
 /// Карточка объекта: сумма к оплате, срок и разбивка по услугам.
 class ObjectCard extends StatelessWidget {
@@ -215,9 +229,15 @@ class _Breakdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shown = bills.take(4).toList();
+    // Показывать нечего — не рисуем ни полоску, ни легенду: пустая полоска
+    // выглядит как сломанная вёрстка.
+    if (shown.isEmpty) return const SizedBox.shrink();
+    // Остаток «прочих» услуг. Порог в полтыйына: без него накопленная
+    // погрешность double рисует серый сегмент там, где остатка нет.
     final rest = total - shown.fold<double>(0, (a, b) => a + b.amount);
+    final hasRest = rest > 0.005;
 
-    Color colorOf(Bill b) => (Brand.category[b.cat] ?? Brand.category['city']!).last;
+    Color colorOf(Bill b) => colorsOf(ServiceCat.parse(b.cat)).last;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,12 +250,12 @@ class _Breakdown extends StatelessWidget {
               children: [
                 for (final b in shown)
                   Expanded(
-                    flex: (b.amount / total * 1000).round().clamp(12, 1000),
+                    flex: _share(b.amount, total),
                     child: Container(color: colorOf(b)),
                   ),
-                if (rest > 0)
+                if (hasRest)
                   Expanded(
-                    flex: (rest / total * 1000).round().clamp(12, 1000),
+                    flex: _share(rest, total),
                     child: Container(color: Colors.white.withValues(alpha: .18)),
                   ),
               ],

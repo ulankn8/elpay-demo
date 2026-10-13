@@ -54,9 +54,10 @@ class OutboxItem {
 /// Очередь отложенных операций. Пока сети нет, действия пользователя
 /// не теряются: они ложатся сюда и уходят, когда связь появится.
 class Outbox {
-  Outbox(this._store);
+  Outbox(this._store, {DateTime Function()? clock}) : _clock = clock ?? DateTime.now;
 
   final LocalStore _store;
+  final DateTime Function() _clock;
   static const _maxAttempts = 5;
 
   List<OutboxItem> get items =>
@@ -105,7 +106,9 @@ class Outbox {
   Future<void> clear() => _store.remove(CacheKeys.outbox);
 
   Future<void> _save(List<OutboxItem> list) async {
-    final now = list.isEmpty ? DateTime(2026) : list.last.createdAt;
+    // Отметка — момент записи, а не дата последнего элемента: по ней
+    // решается, не пора ли выбросить залежавшуюся очередь.
+    final now = _clock();
     await _store.writeJson(CacheKeys.outbox, list.map((i) => i.toJson()).toList(), now: now);
   }
 

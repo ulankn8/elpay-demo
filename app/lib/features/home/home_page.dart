@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/failure.dart';
 import '../../core/l10n/s.dart';
 import '../../core/tokens.dart';
 import '../../core/widgets.dart';
@@ -39,46 +38,48 @@ class HomePage extends ConsumerWidget {
               ),
               const StoriesStrip(),
               const SizedBox(height: 18),
-              ...billsAsync.when(
-                loading: () => [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: Brand.gutter),
-                    child: LoadingRows(count: 3),
-                  ),
-                ],
-                error: (e, _) => [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
-                    child: ErrorView(
-                      failure: e is AppFailure ? e : const AppFailure(FailureKind.unknown),
-                      onRetry: () => ref.invalidate(billsProvider),
-                    ),
-                  ),
-                ],
-                data: (state) => [
-                  if (state.failure != null || state.fromCache) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
-                      child: OfflineBanner(
-                        onRetry: () => ref.read(billsProvider.notifier).refresh(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  if (state.objects.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
-                      child: AppCard(
-                        child: EmptyState(
-                          icon: Icons.home_outlined,
-                          title: s.nothingYet,
-                          lead: s.objectsLead,
+              // Загрузка, ошибка и пустота — одной триадой. Сырое '$e'
+              // в интерфейс больше не попадает ни одним путём: текст
+              // ошибки берётся из S внутри AsyncSection.
+              //
+              // Плашка офлайна остаётся здесь, а не отдаётся AsyncSection:
+              // BillsState сам несёт fromCache и failure (сеть упала, а
+              // кэш есть), и плашке нужен горизонтальный отступ, которого
+              // карусель объектов не терпит — она идёт от края до края.
+              AsyncSection<BillsState>(
+                value: billsAsync,
+                onRetry: () => ref.read(billsProvider.notifier).refresh(),
+                skeleton: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: Brand.gutter),
+                  child: LoadingRows(count: 3),
+                ),
+                data: (state) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (state.failure != null || state.fromCache) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
+                        child: OfflineBanner(
+                          onRetry: () => ref.read(billsProvider.notifier).refresh(),
                         ),
                       ),
-                    )
-                  else
-                    _ObjectCarousel(state: state),
-                ],
+                      const SizedBox(height: 16),
+                    ],
+                    if (state.objects.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
+                        child: AppCard(
+                          child: EmptyState(
+                            icon: Icons.home_outlined,
+                            title: s.nothingYet,
+                            lead: s.objectsLead,
+                          ),
+                        ),
+                      )
+                    else
+                      _ObjectCarousel(state: state),
+                  ],
+                ),
               ),
               const SizedBox(height: 18),
               Padding(

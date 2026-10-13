@@ -1,13 +1,19 @@
 import 'package:elpay/core/cache/local_store.dart';
 import 'package:elpay/core/failure.dart';
+import 'package:elpay/core/logger.dart';
 import 'package:elpay/core/net/outbox.dart';
 import 'package:elpay/core/result.dart';
 import 'package:elpay/data/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/env.dart';
+
 void main() {
+  // Биндинг нужен ТОЛЬКО группе «LocalStore: боевая реализация»: она про
+  // SharedPreferences и есть. Всё остальное обходится без него.
   TestWidgetsFlutterBinding.ensureInitialized();
+  Log.enabled = false;
 
   group('Result', () {
     test('Ok несёт значение, Fail — ошибку', () {
@@ -55,58 +61,120 @@ void main() {
       expect(const AppFailure.server().isRetryable, isTrue);
       expect(const AppFailure.validation('плохо').isRetryable, isFalse);
     });
+
+    test('ошибка валидации называет поле формы', () {
+      const f = AppFailure.validation('номер не по формату', field: 'accountNo');
+
+      // По этому полю ошибка садится в errorText, а не в снек.
+      expect(f.field, 'accountNo');
+      expect(f.isNetwork, isFalse);
+    });
   });
 
-  group('LocalStore', () {
-    test('пишет и читает список, помнит время', () async {
-      SharedPreferences.setMockInitialValues({});
-      final store = await LocalStore.open();
-      final now = DateTime(2026, 10, 13, 9, 30);
+  // Контракт хранилища один, реализаций две. Проверяем ОБЕ одним набором
+  // ожиданий: иначе тесты гоняют MemoryLocalStore, а на устройстве
+  // работает PrefsLocalStore, и расхождение находит пользователь.
+  group('LocalStore: контракт', () {
+    for (final (name, open) in <(String, Future<LocalStore> Function())>[
+      ('в памяти', _openMemory),
+      ('поверх SharedPreferences', _openPrefs),
+    ]) {
+      test('$name: пишет и читает список, помнит время', () async {
+        final store = await open();
 
-      await store.writeJson('bills', [
-        {'id': 'b1', 'title': 'Вода'},
-      ], now: now);
+        await store.writeJson('bills', [
+          {'id': 'b1', 'title': 'Вода'},
+        ], now: testNow);
 
-      expect(store.readList('bills'), hasLength(1));
-      expect(store.updatedAt('bills'), now);
-      expect(store.isStale('bills', const Duration(minutes: 10), now: now), isFalse);
-      expect(
-        store.isStale('bills', const Duration(minutes: 10),
-            now: now.add(const Duration(minutes: 11))),
-        isTrue,
-      );
-    });
+        expect(store.readList('bills'), hasLength(1));
+        expect(store.readList('bills')!.first['title'], 'Вода');
+        expect(store.updatedAt('bills'), testNow);
+        expect(
+          store.isStale('bills', const Duration(minutes: 10), now: testNow),
+          isFalse,
+        );
+        expect(
+          store.isStale('bills', const Duration(minutes: 10),
+              now: testNow.add(const Duration(minutes: 11))),
+          isTrue,
+        );
+      });
 
-    test('нет записи — считается устаревшей', () async {
-      SharedPreferences.setMockInitialValues({});
-      final store = await LocalStore.open();
-      expect(store.isStale('bills', const Duration(days: 1), now: DateTime(2026)), isTrue);
-      expect(store.readList('bills'), isNull);
-    });
+      test('$name: нет записи — считается устаревшей', () async {
+        final store = await open();
 
-    test('clear стирает только кэш', () async {
+        expect(store.isStale('bills', const Duration(days: 1), now: testNow), isTrue);
+        expect(store.readList('bills'), isNull);
+        expect(store.updatedAt('bills'), isNull);
+      });
+
+      test('$name: карта читается отдельно от списка', () async {
+        final store = await open();
+
+        await store.writeJson('catalog', {'providers': []}, now: testNow);
+
+        expect(store.readMap('catalog'), isNotNull);
+        // Запись есть, но это не список: читатель получает null, а не падение.
+        expect(store.readList('catalog'), isNull);
+      });
+
+      test('$name: remove убирает и запись, и отметку времени', () async {
+        final store = await open();
+        await store.writeJson('bills', const [], now: testNow);
+
+        await store.remove('bills');
+
+        expect(store.readList('bills'), isNull);
+        expect(store.updatedAt('bills'), isNull);
+      });
+    }
+  });
+
+  group('LocalStore: боевая реализация', () {
+    test('clear стирает кэш и не задевает настройки', () async {
       SharedPreferences.setMockInitialValues({'flutter.session': 'оставить'});
       final store = await LocalStore.open();
-      await store.writeJson('bills', [], now: DateTime(2026));
+      await store.writeJson('bills', const [], now: testNow);
 
       await store.clear();
 
       expect(store.readList('bills'), isNull);
+      // Сессия, язык, тема и код-пароль живут в AppPrefs без префикса
+      // 'cache.' — выход из кэша их не касается.
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('session'), 'оставить');
     });
   });
 
+  group('MemoryLocalStore: то, чего нет у боевой', () {
+    test('битая запись стирается при чтении', () {
+      final store = MemoryLocalStore();
+      store.corrupt('bills', now: testNow);
+
+      expect(store.readList('bills'), isNull);
+      expect(store.raw('bills'), isNull);
+    });
+
+    test('считает записи — по нему проверяется, что кэш дождались', () async {
+      final store = MemoryLocalStore();
+
+      await store.writeJson('bills', const [], now: testNow);
+      await store.writeJson('bills', const [], now: testNow);
+
+      expect(store.writes, 2);
+      expect(store.keys, contains('bills'));
+    });
+  });
+
   group('Outbox', () {
     test('копит операции и отдаёт их по очереди', () async {
-      SharedPreferences.setMockInitialValues({});
-      final outbox = Outbox(await LocalStore.open());
+      final outbox = Outbox(MemoryLocalStore());
 
       await outbox.add(OutboxItem(
         id: '1',
         kind: 'connect_account',
         payload: const {'candidateId': 'reg-gas-1'},
-        createdAt: DateTime(2026, 10, 13),
+        createdAt: testNow,
       ));
 
       expect(outbox.length, 1);
@@ -116,13 +184,12 @@ void main() {
     });
 
     test('неудачная отправка остаётся в очереди и считает попытки', () async {
-      SharedPreferences.setMockInitialValues({});
-      final outbox = Outbox(await LocalStore.open());
+      final outbox = Outbox(MemoryLocalStore());
       await outbox.add(OutboxItem(
         id: '1',
         kind: 'connect_account',
         payload: const {},
-        createdAt: DateTime(2026, 10, 13),
+        createdAt: testNow,
       ));
 
       await outbox.flush((item) async => false);
@@ -132,13 +199,12 @@ void main() {
     });
 
     test('после пяти неудач операция выбрасывается', () async {
-      SharedPreferences.setMockInitialValues({});
-      final outbox = Outbox(await LocalStore.open());
+      final outbox = Outbox(MemoryLocalStore());
       await outbox.add(OutboxItem(
         id: '1',
         kind: 'connect_account',
         payload: const {},
-        createdAt: DateTime(2026, 10, 13),
+        createdAt: testNow,
       ));
 
       for (var i = 0; i < 5; i++) {
@@ -161,6 +227,7 @@ void main() {
         period: 'сентябрь 2026',
         due: DateTime(2026, 9, 20),
         account: '31-00562',
+        accountId: 'acc-b1',
         calc: const [Field('Тариф', '41 сом')],
         requisites: const [Field('ИНН', '0221')],
       );
@@ -170,6 +237,9 @@ void main() {
       expect(back.id, bill.id);
       expect(back.amount, bill.amount);
       expect(back.due, bill.due);
+      // Привязка к счёту обязана переживать кэш: по ней убирают начисления
+      // отключённого счёта.
+      expect(back.accountId, 'acc-b1');
       expect(back.calc.first.value, '41 сом');
       expect(back.requisites.first.label, 'ИНН');
     });
@@ -187,6 +257,7 @@ void main() {
         address: 'Ош',
         connectedAt: DateTime(2026, 9, 1),
         status: AccountSyncStatus.failed,
+        pendingOp: AccountOp.disconnect,
         syncedAt: DateTime(2026, 10, 1),
         lastError: 'нет связи',
       );
@@ -196,6 +267,41 @@ void main() {
       expect(back.status, AccountSyncStatus.failed);
       expect(back.syncedAt, DateTime(2026, 10, 1));
       expect(back.lastError, 'нет связи');
+      // Операция в очереди — тоже состояние устройства, а не экрана.
+      expect(back.isPendingDisconnect, isTrue);
+    });
+
+    test('copyWith умеет СТЕРЕТЬ ошибку, а не только записать новую', () {
+      final failed = ConnectedAccount(
+        id: 'acc1',
+        providerId: 'p-water',
+        title: 'Ошводоканал',
+        subtitle: '',
+        cat: 'water',
+        accountNo: '31-00562',
+        objectId: 'o1',
+        holder: 'Токтогулова А.',
+        address: 'Ош',
+        connectedAt: testNow,
+        status: AccountSyncStatus.failed,
+        lastError: 'нет связи',
+      );
+
+      // Без clearError прошлая ошибка переживала удачное обновление,
+      // и в списке висела подпись об отказе, которого больше нет.
+      expect(failed.copyWith(status: AccountSyncStatus.ok).lastError, 'нет связи');
+      expect(
+        failed.copyWith(status: AccountSyncStatus.ok, clearError: true).lastError,
+        isNull,
+      );
+      expect(failed.copyWith(clearPendingOp: true).pendingOp, isNull);
     });
   });
+}
+
+Future<LocalStore> _openMemory() async => MemoryLocalStore();
+
+Future<LocalStore> _openPrefs() async {
+  SharedPreferences.setMockInitialValues(const <String, Object>{});
+  return LocalStore.open();
 }

@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/analytics.dart';
 import 'core/app_theme.dart';
 import 'core/l10n/s.dart';
 import 'data/models.dart';
@@ -26,7 +27,9 @@ import 'features/payments/new_payment_page.dart';
 import 'features/payments/payments_page.dart';
 import 'features/payments/qr_page.dart';
 import 'features/payments/success_page.dart';
+import 'features/accounts/account_page.dart';
 import 'features/accounts/accounts_page.dart';
+import 'features/accounts/connect_args.dart';
 import 'features/accounts/connect_page.dart';
 import 'features/profile/addresses_page.dart';
 import 'features/profile/family_page.dart';
@@ -36,15 +39,29 @@ import 'features/profile/personal_page.dart';
 import 'features/profile/profile_page.dart';
 import 'features/profile/security_page.dart';
 import 'features/reports/reports_page.dart';
+import 'features/shell/not_found_page.dart';
 import 'features/shell/shell_page.dart';
 import 'state/providers.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
 
 GoRouter buildRouter(Ref ref) {
+  // Смена сессии меняет набор доступных экранов: без refreshListenable
+  // выход из аккаунта не вызывал redirect, и это приходилось
+  // компенсировать ручными context.go в экранах.
+  final refresh = _SessionRefresh(ref);
+  ref.onDispose(refresh.dispose);
+
   return GoRouter(
     navigatorKey: _rootKey,
     initialLocation: '/welcome',
+    refreshListenable: refresh,
+    // События экрана уже были описаны в Analytics, но не отправлялись
+    // ниоткуда: один наблюдатель закрывает это для всех переходов сразу.
+    observers: [_ScreenObserver(ref.read(analyticsProvider))],
+    // Нераспознанная и устаревшая ссылка открывает понятную страницу,
+    // а не роняет приложение.
+    errorBuilder: (_, state) => NotFoundPage(location: state.uri.toString()),
     redirect: (context, state) {
       final signedIn = ref.read(sessionProvider) != null;
       final onboarded = ref.read(prefsProvider).onboarded;
@@ -71,7 +88,12 @@ GoRouter buildRouter(Ref ref) {
       GoRoute(path: '/setup', builder: (_, _) => const SetupPage()),
       GoRoute(
         path: '/bill',
-        builder: (_, state) => BillDetailsPage(bill: state.extra! as Bill),
+        // Прямой вход по ссылке приходит без extra — раньше это было
+        // падение на force-unwrap прямо в сборке экрана.
+        builder: (_, state) => switch (state.extra) {
+          final Bill bill => BillDetailsPage(bill: bill),
+          _ => NotFoundPage(location: state.uri.toString()),
+        },
       ),
       GoRoute(
         path: '/new-payment',
@@ -80,7 +102,10 @@ GoRouter buildRouter(Ref ref) {
       GoRoute(path: '/qr', builder: (_, _) => const QrPage()),
       GoRoute(
         path: '/object',
-        builder: (_, state) => ObjectPage(objectId: state.extra! as String),
+        builder: (_, state) => switch (state.extra) {
+          final String id when id.isNotEmpty => ObjectPage(objectId: id),
+          _ => NotFoundPage(location: state.uri.toString()),
+        },
       ),
       GoRoute(
         path: '/story',
@@ -91,14 +116,48 @@ GoRouter buildRouter(Ref ref) {
       GoRoute(path: '/tickets', builder: (_, _) => const TicketsPage()),
       GoRoute(
         path: '/event',
-        builder: (_, state) => EventPage(event: state.extra! as EventItem),
+        builder: (_, state) => switch (state.extra) {
+          final EventItem event => EventPage(event: event),
+          _ => NotFoundPage(location: state.uri.toString()),
+        },
       ),
       GoRoute(path: '/personal', builder: (_, _) => const PersonalPage()),
       GoRoute(path: '/objects', builder: (_, _) => const ObjectsPage()),
       GoRoute(path: '/accounts', builder: (_, _) => const AccountsPage()),
       GoRoute(
+        // Экран подключённого счёта открывается по path-параметру, а не
+        // через extra: прямой вход и ссылка работают, а не падают.
+        path: '/accounts/:id',
+        builder: (_, state) => AccountPage(accountId: state.pathParameters['id'] ?? ''),
+      ),
+      // Короткая форма той же ссылки: /account/o-1 ведёт туда же.
+      GoRoute(
+        path: '/account/:id',
+        redirect: (_, state) => '/accounts/${state.pathParameters['id'] ?? ''}',
+      ),
+      GoRoute(
+        // ЕДИНСТВЕННЫЙ вход в мастер подключения. Аргументы берутся из
+        // ссылки, поэтому /connect?provider=p-water&source=story работает
+        // и при прямом переходе.
         path: '/connect',
-        builder: (_, state) => ConnectAccountPage(providerId: state.extra as String?),
+        builder: (_, state) {
+          final args = ConnectArgs.fromQuery(state.uri.queryParameters);
+          final extra = state.extra;
+          // СОВМЕСТИМОСТЬ: значок услуги пока передаёт providerId через
+          // extra. Когда он перейдёт на ConnectArgs.location, ветка уйдёт.
+          if (extra is String && extra.isNotEmpty) {
+            return ConnectAccountPage(
+              args: ConnectArgs(
+                providerId: extra,
+                objectId: args.objectId,
+                source: args.source == ConnectArgs.sourceManual
+                    ? ConnectArgs.sourceService
+                    : args.source,
+              ),
+            );
+          }
+          return ConnectAccountPage(args: args);
+        },
       ),
       GoRoute(path: '/addresses', builder: (_, _) => const AddressesPage()),
       GoRoute(path: '/family', builder: (_, _) => const FamilyPage()),
@@ -111,7 +170,10 @@ GoRouter buildRouter(Ref ref) {
       GoRoute(path: '/autopay', builder: (_, _) => const AutopayPage()),
       GoRoute(
         path: '/receipt',
-        builder: (_, state) => ReceiptPage(payment: state.extra! as Payment),
+        builder: (_, state) => switch (state.extra) {
+          final Payment payment => ReceiptPage(payment: payment),
+          _ => NotFoundPage(location: state.uri.toString()),
+        },
       ),
       GoRoute(
         path: '/success',
@@ -154,6 +216,10 @@ class ElPayApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final router = ref.watch(routerProvider);
+    // ЕДИНСТВЕННЫЙ слушатель сети на всё приложение: он разгружает очередь
+    // отложенных операций. Без этой строки подключение, сделанное без
+    // сети, лежало бы в очереди и не отправлялось никогда.
+    ref.watch(syncWatcherProvider);
     return MaterialApp.router(
       title: 'ЭлPay',
       debugShowCheckedModeBanner: false,
@@ -176,6 +242,52 @@ class ElPayApp extends ConsumerWidget {
       routerConfig: router,
     );
   }
+}
+
+/// Пересчёт маршрутов при входе и выходе.
+///
+/// `redirect` читает сессию через `ref.read`, поэтому сам об изменении не
+/// узнаёт: об этом ему сообщает этот слушатель.
+class _SessionRefresh extends ChangeNotifier {
+  _SessionRefresh(Ref ref) {
+    _sub = ref.listen<Session?>(sessionProvider, (previous, next) {
+      // Правка профиля меняет сессию, но не меняет доступные экраны:
+      // перестраиваем маршруты только на вход и выход.
+      if ((previous == null) != (next == null)) notifyListeners();
+    });
+  }
+
+  late final ProviderSubscription<Session?> _sub;
+
+  @override
+  void dispose() {
+    _sub.close();
+    super.dispose();
+  }
+}
+
+/// Отправляет `screen_view` на каждый переход.
+class _ScreenObserver extends NavigatorObserver {
+  _ScreenObserver(this._analytics);
+
+  final Analytics _analytics;
+
+  void _track(Route<dynamic>? route) {
+    // go_router подставляет в settings.name путь маршрута; у системных
+    // маршрутов (шторки, диалоги) имени нет — такие события не нужны.
+    final name = route?.settings.name;
+    if (name == null || name.isEmpty) return;
+    _analytics.track(AnalyticsEvent.screen(name));
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) => _track(route);
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => _track(previousRoute);
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) => _track(newRoute);
 }
 
 class _KyMaterial extends LocalizationsDelegate<MaterialLocalizations> {

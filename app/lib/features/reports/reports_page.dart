@@ -20,7 +20,12 @@ class ReportsPage extends ConsumerStatefulWidget {
 
 class _ReportsPageState extends ConsumerState<ReportsPage> {
   bool _year = false;
-  late DateTime _anchor = DateTime.now();
+
+  /// «Сейчас» берётся из [clockProvider], а не из DateTime.now(): иначе
+  /// тест про пустой период зависит от дня, в который его запустили.
+  late DateTime _anchor = ref.read(clockProvider)();
+
+  DateTime get _now => ref.read(clockProvider)();
 
   bool _inPeriod(Payment p, DateTime anchor) => _year
       ? p.date.year == anchor.year
@@ -38,7 +43,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   Widget build(BuildContext context) {
     final s = S.of(context);
     final all = ref.watch(historyProvider);
-    final objects = ref.watch(billsProvider).value?.objects ?? const <PayObject>[];
 
     final list = all.where((p) => _inPeriod(p, _anchor)).toList();
     final prevAnchor =
@@ -60,10 +64,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       byObj[p.objectId] = (byObj[p.objectId] ?? 0) + p.amount;
     }
 
+    final recent = list.take(5).toList();
+    final now = _now;
     final title = _year ? '${_anchor.year}' : s.monthTitleText(_anchor);
     final future = _year
-        ? _anchor.year >= DateTime.now().year
-        : !_anchor.isBefore(DateTime(DateTime.now().year, DateTime.now().month));
+        ? _anchor.year >= now.year
+        : !_anchor.isBefore(DateTime(now.year, now.month));
 
     return Scaffold(
       body: SafeArea(
@@ -119,41 +125,60 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                   ],
                 ),
               ),
-              if (objects.isNotEmpty) ...[
-                SectionTitle(s.byObject),
-                AppCard(
-                  child: Column(
+              // Объекты приходят из слоя данных: пока их грузят — скелет,
+              // при отказе — плашка с причиной. Пустой список объектов
+              // раздел просто не рисует.
+              AsyncSection<BillsState>(
+                value: ref.watch(billsProvider),
+                onRetry: () => ref.read(billsProvider.notifier).refresh(),
+                skeleton: const LoadingRows(count: 2),
+                compactError: true,
+                isEmpty: (state) => state.objects.isEmpty,
+                empty: const SizedBox.shrink(),
+                data: (state) {
+                  final objects = state.objects;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      for (var i = 0; i < objects.length; i++) ...[
-                        if (i > 0) const RowDivider(),
-                        AppRow(
-                          leading: CatTile(objects[i].cat,
-                              objects[i].icon == 'house'
-                                  ? Icons.home_outlined
-                                  : Icons.people_outline_rounded,
-                              soft: true),
-                          title: s.tr(objects[i].name),
-                          subtitle: objects[i].address,
-                          trailing: Amount(som(byObj[objects[i].id] ?? 0), size: 15),
+                      SectionTitle(s.byObject),
+                      AppCard(
+                        child: Column(
+                          children: [
+                            for (var i = 0; i < objects.length; i++) ...[
+                              if (i > 0) const RowDivider(),
+                              AppRow(
+                                leading: CatTile(objects[i].cat,
+                                    objects[i].icon == 'house'
+                                        ? Icons.home_outlined
+                                        : Icons.people_outline_rounded,
+                                    soft: true),
+                                title: s.tr(objects[i].name),
+                                subtitle: objects[i].address,
+                                trailing:
+                                    Amount(som(byObj[objects[i].id] ?? 0), size: 15),
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
+                      ),
                     ],
-                  ),
-                ),
-              ],
+                  );
+                },
+              ),
               SectionTitle(s.historyTitle),
               AppCard(
                 child: Column(
                   children: [
-                    for (var i = 0; i < list.take(5).length; i++) ...[
+                    for (var i = 0; i < recent.length; i++) ...[
                       if (i > 0) const RowDivider(),
                       AppRow(
-                        leading: CatTile(list[i].cat, catIcon(list[i].cat), soft: true),
-                        title: s.tr(list[i].title),
-                        subtitle: '${s.dayMonthText(list[i].date)} · ${list[i].account}',
-                        trailing: Amount(som(list[i].amount), size: 15),
+                        leading: CatTile(recent[i].cat, catIcon(recent[i].cat), soft: true),
+                        title: s.tr(recent[i].title),
+                        subtitle:
+                            '${s.dayMonthText(recent[i].date)} · ${recent[i].account}',
+                        trailing: Amount(som(recent[i].amount), size: 15),
                         chevron: true,
-                        onTap: () => context.push('/receipt', extra: list[i]),
+                        onTap: () => context.push('/receipt', extra: recent[i]),
                       ),
                     ],
                   ],

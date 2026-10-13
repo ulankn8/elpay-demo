@@ -122,6 +122,8 @@ class Bill {
     required this.period,
     required this.due,
     this.account = '',
+    this.accountId = '',
+    this.periodAt,
     this.calc = const [],
     this.requisites = const [],
     this.paid = false,
@@ -134,7 +136,19 @@ class Bill {
   final List<Field> calc, requisites;
   final bool paid, autopay;
 
-  Bill copyWith({bool? paid, bool? autopay, double? amount}) => Bill(
+  /// id подключённого счёта ([ConnectedAccount.id]), по которому пришло
+  /// начисление. Строка номера (`account`) для этого не годится: у разных
+  /// поставщиков номера совпадают, и отключение одного счёта снесёт
+  /// начисления другого. Пусто — начисление без привязки (демо-набор или
+  /// бэкенд, который счёт не назвал).
+  final String accountId;
+
+  /// Начало расчётного периода. Нужно, чтобы подпись периода собиралась
+  /// локализованно через `S.periodText(d)`, а не лежала русской строкой
+  /// «сентябрь 2026» в кыргызской локали.
+  final DateTime? periodAt;
+
+  Bill copyWith({bool? paid, bool? autopay, double? amount, String? accountId}) => Bill(
         id: id,
         title: title,
         subtitle: subtitle,
@@ -144,6 +158,8 @@ class Bill {
         period: period,
         due: due,
         account: account,
+        accountId: accountId ?? this.accountId,
+        periodAt: periodAt,
         calc: calc,
         requisites: requisites,
         paid: paid ?? this.paid,
@@ -160,6 +176,8 @@ class Bill {
         'period': period,
         'due': due.toIso8601String(),
         'account': account,
+        'accountId': accountId,
+        'periodAt': periodAt?.toIso8601String(),
         'calc': [for (final f in calc) f.toJson()],
         'requisites': [for (final f in requisites) f.toJson()],
         'paid': paid,
@@ -176,6 +194,8 @@ class Bill {
         period: j['period'] as String? ?? '',
         due: DateTime.tryParse(j['due'] as String? ?? '') ?? DateTime(2026),
         account: j['account'] as String? ?? '',
+        accountId: j['accountId'] as String? ?? '',
+        periodAt: DateTime.tryParse(j['periodAt'] as String? ?? ''),
         calc: Field.listFrom(j['calc']),
         requisites: Field.listFrom(j['requisites']),
         paid: j['paid'] as bool? ?? false,
@@ -183,6 +203,8 @@ class Bill {
       );
 
   /// Новый номер лицевого счёта и объект — при правке в профиле.
+  /// [accountId] при этом сбрасывается: номер больше не тот, что был
+  /// у подключённого счёта, и прежняя привязка стала неправдой.
   Bill withAccount(String account, String objectId) => Bill(
         id: id,
         title: title,
@@ -193,6 +215,7 @@ class Bill {
         period: period,
         due: due,
         account: account,
+        periodAt: periodAt,
         calc: calc,
         requisites: [
           for (final f in requisites)
@@ -228,6 +251,24 @@ class PayMethodItem {
   final String id, title, subtitle, badge;
   final bool isWallet;
   final double? balance;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'subtitle': subtitle,
+        'badge': badge,
+        'isWallet': isWallet,
+        'balance': balance,
+      };
+
+  static PayMethodItem fromJson(Map<String, dynamic> j) => PayMethodItem(
+        id: j['id'] as String,
+        title: j['title'] as String? ?? '',
+        subtitle: j['subtitle'] as String? ?? '',
+        badge: j['badge'] as String? ?? '',
+        isWallet: j['isWallet'] as bool? ?? false,
+        balance: (j['balance'] as num?)?.toDouble(),
+      );
 }
 
 /// Категория каталога платежей: «Коммунальные услуги», «Садик и школа»…
@@ -240,6 +281,116 @@ class PayCategory {
     required this.cat,
   });
   final String id, title, lead, cat;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'lead': lead,
+        'cat': cat,
+      };
+
+  static PayCategory fromJson(Map<String, dynamic> j) => PayCategory(
+        id: j['id'] as String,
+        title: j['title'] as String? ?? '',
+        lead: j['lead'] as String? ?? '',
+        cat: j['cat'] as String? ?? 'city',
+      );
+}
+
+/// Формат лицевого счёта. Принадлежит поставщику, а не экрану: одна и та же
+/// проверка нужна форме подключения, правилам подключения и реестру, поэтому
+/// номер нормализуется и проверяется в одном месте.
+@immutable
+class AccountMask {
+  const AccountMask({
+    required this.pattern,
+    required this.hint,
+    this.minLength = 4,
+    this.maxLength = 20,
+  });
+
+  /// Регулярное выражение по «чистому» виду номера — без разделителей,
+  /// буквы в верхнем регистре. Пусто — формат поставщику неизвестен,
+  /// проверяется только длина.
+  final String pattern;
+
+  /// Образец номера: и подсказка в поле ввода, и шаблон расстановки
+  /// разделителей для [normalize].
+  final String hint;
+
+  /// Границы длины «чистого» вида.
+  final int minLength, maxLength;
+
+  /// Формат неизвестен: принимаем любой номер разумной длины.
+  static const any = AccountMask(pattern: '', hint: '');
+
+  /// Мусор и разделители в номере: пробелы, дефисы, точки, запятые,
+  /// «№», кавычки, косая черта.
+  static final _noise = RegExp(r'[\s\-–—.,№"«»/]');
+
+  /// «Чистый» вид: мусор убран, «ё» → «е», буквы в верхнем регистре —
+  /// чтобы 'osh-44120' и 'OSH 44120' были одним номером.
+  static String clean(String raw) => raw
+      .replaceAll(_noise, '')
+      .replaceAll('ё', 'е')
+      .replaceAll('Ё', 'Е')
+      .toUpperCase();
+
+  /// Ключ сравнения двух номеров: тот же набор мусора, что у демо-реестра
+  /// (`Registry.matchesAccount`), плюс косая черта. Сверка подключённого
+  /// с найденным не зависит от того, как номер напечатали.
+  static String keyOf(String raw) => clean(raw).toLowerCase();
+
+  /// Формат не задан.
+  bool get isAny => pattern.isEmpty;
+
+  /// Проверка номера. Принимает и сырой ввод, и уже нормализованный:
+  /// обе формы сводятся к «чистому» виду.
+  bool matches(String value) {
+    if (isAny) {
+      final v = value.trim();
+      return v.length >= minLength && v.length <= maxLength;
+    }
+    final v = clean(value);
+    if (v.length < minLength || v.length > maxLength) return false;
+    return RegExp(pattern).hasMatch(v);
+  }
+
+  /// Канонический вид для показа и отправки: '3101187' → '31-01187'.
+  /// Разделители расставляются по образцу [hint]; если длина не совпала
+  /// с образцом, возвращается «чистый» вид без разделителей — такой номер
+  /// всё равно не пройдёт [matches], и ошибка покажется у поля.
+  String normalize(String raw) {
+    if (isAny || hint.isEmpty) return raw.trim().replaceAll(RegExp(r'\s+'), ' ');
+    final v = clean(raw);
+    if (v.length != hint.replaceAll(_noise, '').length) return v;
+    final out = StringBuffer();
+    var i = 0;
+    for (final ch in hint.split('')) {
+      if (_noise.hasMatch(ch)) {
+        out.write(ch);
+      } else {
+        out.write(v[i++]);
+      }
+    }
+    return out.toString();
+  }
+
+  Map<String, dynamic> toJson() => {
+        'pattern': pattern,
+        'hint': hint,
+        'minLength': minLength,
+        'maxLength': maxLength,
+      };
+
+  static AccountMask fromJson(Map<String, dynamic>? j) => j == null
+      ? any
+      : AccountMask(
+          pattern: j['pattern'] as String? ?? '',
+          hint: j['hint'] as String? ?? '',
+          minLength: (j['minLength'] as num?)?.toInt() ?? 4,
+          maxLength: (j['maxLength'] as num?)?.toInt() ?? 20,
+        );
 }
 
 /// Поставщик из каталога: то, что подставляет реквизиты за пользователя.
@@ -255,11 +406,41 @@ class ProviderItem {
     required this.accountHint,
     this.requisites = const [],
     this.fixedAmount,
+    this.mask = AccountMask.any,
   });
 
   final String id, title, subtitle, cat, categoryId, accountLabel, accountHint;
   final List<Field> requisites;
   final double? fixedAmount;
+
+  /// Формат лицевого счёта: по нему номер проверяется ДО обращения в сеть.
+  final AccountMask mask;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'subtitle': subtitle,
+        'cat': cat,
+        'categoryId': categoryId,
+        'accountLabel': accountLabel,
+        'accountHint': accountHint,
+        'requisites': [for (final f in requisites) f.toJson()],
+        'fixedAmount': fixedAmount,
+        'mask': mask.toJson(),
+      };
+
+  static ProviderItem fromJson(Map<String, dynamic> j) => ProviderItem(
+        id: j['id'] as String,
+        title: j['title'] as String? ?? '',
+        subtitle: j['subtitle'] as String? ?? '',
+        cat: j['cat'] as String? ?? 'city',
+        categoryId: j['categoryId'] as String? ?? '',
+        accountLabel: j['accountLabel'] as String? ?? '',
+        accountHint: j['accountHint'] as String? ?? '',
+        requisites: Field.listFrom(j['requisites']),
+        fixedAmount: (j['fixedAmount'] as num?)?.toDouble(),
+        mask: AccountMask.fromJson((j['mask'] as Map?)?.cast<String, dynamic>()),
+      );
 }
 
 /// Совершённый платёж — строка истории и основа квитанции.
@@ -484,10 +665,150 @@ class QuickService {
     required this.providerId,
   });
   final String cat, label, providerId;
+
+  Map<String, dynamic> toJson() => {
+        'cat': cat,
+        'label': label,
+        'providerId': providerId,
+      };
+
+  static QuickService fromJson(Map<String, dynamic> j) => QuickService(
+        cat: j['cat'] as String? ?? 'city',
+        label: j['label'] as String? ?? '',
+        providerId: j['providerId'] as String? ?? '',
+      );
 }
 
+/// Каталог платежей одним объектом: пять списков всегда нужны вместе,
+/// поэтому это один тип, один репозиторий и один провайдер, а не пять.
+///
+/// Лежит в моделях, а не в `catalog_repository.dart`, как предполагал план:
+/// иначе `demo_data.dart` (ему нужен тип для `Demo.catalog`) и репозиторий
+/// (ему нужны демо-данные как источник) импортировали бы друг друга.
+/// Репозиторий этот тип реэкспортирует, поэтому `import 'catalog_repository.dart'`
+/// из плана тоже работает.
+@immutable
+class Catalog {
+  const Catalog({
+    required this.categories,
+    required this.providers,
+    required this.quickServices,
+    required this.methods,
+    required this.bank,
+  });
+
+  final List<PayCategory> categories;
+  final List<ProviderItem> providers;
+  final List<QuickService> quickServices;
+  final List<PayMethodItem> methods;
+
+  /// Реквизиты банка-получателя — общая часть каждой квитанции.
+  final List<Field> bank;
+
+  static const empty = Catalog(
+      categories: [], providers: [], quickServices: [], methods: [], bank: []);
+
+  /// Каталога нет: ни категорий, ни поставщиков, ни способов оплаты.
+  bool get isEmpty => categories.isEmpty && providers.isEmpty && methods.isEmpty;
+
+  ProviderItem? providerById(String id) {
+    for (final p in providers) {
+      if (p.id == id) return p;
+    }
+    return null;
+  }
+
+  PayMethodItem? methodById(String id) {
+    for (final m in methods) {
+      if (m.id == id) return m;
+    }
+    return null;
+  }
+
+  PayCategory? categoryById(String id) {
+    for (final c in categories) {
+      if (c.id == id) return c;
+    }
+    return null;
+  }
+
+  List<ProviderItem> byCategory(String categoryId) =>
+      [for (final p in providers) if (p.categoryId == categoryId) p];
+
+  /// Значки услуг: все или только те, чей поставщик из этой категории.
+  List<QuickService> quickFor(String? categoryId) {
+    if (categoryId == null) return quickServices;
+    return [
+      for (final q in quickServices)
+        if (providerById(q.providerId)?.categoryId == categoryId) q,
+    ];
+  }
+
+  /// Поиск поставщика по названию, услуге и номеру-образцу. Пустой запрос —
+  /// весь список, чтобы шторка выбора не начиналась с пустого экрана.
+  List<ProviderItem> searchProviders(String query, {String? categoryId}) {
+    final pool = categoryId == null ? providers : byCategory(categoryId);
+    final q = _fold(query);
+    if (q.isEmpty) return pool;
+    return [
+      for (final p in pool)
+        if (_fold(p.title).contains(q) ||
+            _fold(p.subtitle).contains(q) ||
+            _fold(p.accountLabel).contains(q) ||
+            _fold(p.accountHint).contains(q))
+          p,
+    ];
+  }
+
+  /// Формат лицевого счёта у поставщика — проверка номера до обращения
+  /// в сеть. Поставщик неизвестен — [AccountMask.any], а не отказ.
+  AccountMask maskOf(String providerId) => providerById(providerId)?.mask ?? AccountMask.any;
+
+  Map<String, dynamic> toJson() => {
+        'categories': [for (final c in categories) c.toJson()],
+        'providers': [for (final p in providers) p.toJson()],
+        'quickServices': [for (final q in quickServices) q.toJson()],
+        'methods': [for (final m in methods) m.toJson()],
+        'bank': [for (final f in bank) f.toJson()],
+      };
+
+  static Catalog fromJson(Map<String, dynamic> j) => Catalog(
+        categories: [for (final r in _rows(j['categories'])) PayCategory.fromJson(r)],
+        providers: [for (final r in _rows(j['providers'])) ProviderItem.fromJson(r)],
+        quickServices: [for (final r in _rows(j['quickServices'])) QuickService.fromJson(r)],
+        methods: [for (final r in _rows(j['methods'])) PayMethodItem.fromJson(r)],
+        bank: Field.listFrom(j['bank']),
+      );
+
+  static List<Map<String, dynamic>> _rows(Object? raw) => [
+        for (final r in (raw as List? ?? const []))
+          if (r is Map) r.cast<String, dynamic>(),
+      ];
+}
+
+/// Сравнение без регистра и «ё» — чтобы поиск по каталогу не зависел
+/// от того, как напечатали.
+String _fold(String v) => v.trim().toLowerCase().replaceAll('ё', 'е');
+
 /// Как давно обновлялись начисления по подключённому счёту.
+///
+/// ВНИМАНИЕ: значения не добавлять, не поправив switch'и по статусу в
+/// features/accounts/accounts_page.dart — они исчерпывающие, и новое
+/// значение ломает сборку. Поэтому операция в очереди живёт отдельным
+/// полем [ConnectedAccount.pendingOp], а не значениями статуса.
 enum AccountSyncStatus { ok, syncing, failed }
+
+/// Операция со счётом, которая ещё не дошла до поставщика: лежит в очереди
+/// (Outbox) и ждёт сети. Нужна, чтобы «подключаем» и «отключаем» были
+/// видимым состоянием строки, а не невидимым ожиданием.
+enum AccountOp { connect, disconnect }
+
+AccountOp? _opFrom(Object? raw) {
+  for (final o in AccountOp.values) {
+    if (o.name == raw) return o;
+  }
+  return null;
+}
 
 /// Найденный в реестре поставщика счёт — кандидат на подключение.
 @immutable
@@ -589,21 +910,41 @@ class ConnectedAccount {
     required this.holder,
     required this.address,
     required this.connectedAt,
+    this.dueDay = 25,
     this.status = AccountSyncStatus.ok,
+    this.pendingOp,
     this.syncedAt,
     this.lastError,
   });
 
   final String id, providerId, title, subtitle, cat, accountNo, objectId, holder, address;
   final DateTime connectedAt;
+
+  /// День месяца, до которого поставщик просит оплатить. Нужен, чтобы срок
+  /// у начисления не выдумывался экраном.
+  final int dueDay;
+
   final AccountSyncStatus status;
+
+  /// Операция в очереди: счёт подключается или отключается без сети.
+  /// null — со счётом ничего не ждёт отправки.
+  final AccountOp? pendingOp;
+
   final DateTime? syncedAt;
   final String? lastError;
 
+  bool get isPendingConnect => pendingOp == AccountOp.connect;
+  bool get isPendingDisconnect => pendingOp == AccountOp.disconnect;
+  bool get isPending => pendingOp != null;
+
   /// [clearError] — явно стереть прошлую ошибку (после удачного обновления).
+  /// [clearPendingOp] — операция дошла до поставщика, ожидание снимается.
   ConnectedAccount copyWith({
     String? objectId,
+    int? dueDay,
     AccountSyncStatus? status,
+    AccountOp? pendingOp,
+    bool clearPendingOp = false,
     DateTime? syncedAt,
     String? lastError,
     bool clearError = false,
@@ -619,7 +960,9 @@ class ConnectedAccount {
         holder: holder,
         address: address,
         connectedAt: connectedAt,
+        dueDay: dueDay ?? this.dueDay,
         status: status ?? this.status,
+        pendingOp: clearPendingOp ? null : (pendingOp ?? this.pendingOp),
         syncedAt: syncedAt ?? this.syncedAt,
         lastError: clearError ? null : (lastError ?? this.lastError),
       );
@@ -635,7 +978,9 @@ class ConnectedAccount {
         'holder': holder,
         'address': address,
         'connectedAt': connectedAt.toIso8601String(),
+        'dueDay': dueDay,
         'status': status.name,
+        'pendingOp': pendingOp?.name,
         'syncedAt': syncedAt?.toIso8601String(),
         'lastError': lastError,
       };
@@ -651,6 +996,8 @@ class ConnectedAccount {
         holder: j['holder'] as String? ?? '',
         address: j['address'] as String? ?? '',
         connectedAt: DateTime.tryParse(j['connectedAt'] as String? ?? '') ?? DateTime(2026),
+        dueDay: (j['dueDay'] as num?)?.toInt() ?? 25,
+        pendingOp: _opFrom(j['pendingOp']),
         status: AccountSyncStatus.values.firstWhere(
           (s) => s.name == j['status'],
           orElse: () => AccountSyncStatus.ok,

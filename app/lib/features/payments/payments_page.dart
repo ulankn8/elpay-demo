@@ -6,7 +6,6 @@ import '../../core/format.dart';
 import '../../core/l10n/s.dart';
 import '../../core/tokens.dart';
 import '../../core/widgets.dart';
-import '../../data/demo_data.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
 import 'method_picker.dart';
@@ -92,44 +91,49 @@ class PaymentsPage extends ConsumerWidget {
               ),
             ),
             SectionTitle(s.methodsTitle),
-            AppCard(
-              child: Column(
-                children: [
-                  for (final m in Demo.methods) ...[
-                    if (m.id != Demo.methods.first.id) const RowDivider(indent: 16),
-                    AppRow(
-                      leading: MethodBadge(
-                        item: m.isWallet
-                            ? PayMethodItem(
-                                id: m.id,
-                                title: m.title,
-                                subtitle: m.subtitle,
-                                badge: m.badge,
-                                isWallet: true,
-                                balance: wallet)
-                            : m,
+            // Способы оплаты приходят из каталога, а не из Demo: пока экран
+            // читал демо-данные напрямую, подмена apiProvider на него
+            // не влияла. Загрузка, ошибка и офлайн — одной триадой.
+            AsyncSection<Catalog>(
+              value: ref.watch(catalogProvider),
+              onRetry: () => ref.read(catalogProvider.notifier).refresh(),
+              isEmpty: (c) => c.methods.isEmpty,
+              empty: EmptyState(
+                icon: Icons.credit_card_off_rounded,
+                title: s.nothingFound,
+                lead: s.loadingData,
+              ),
+              data: (catalog) => AppCard(
+                child: Column(
+                  children: [
+                    for (final m in catalog.methods) ...[
+                      if (m.id != catalog.methods.first.id) const RowDivider(indent: 16),
+                      AppRow(
+                        leading: MethodBadge(item: withWalletBalance(m, wallet)),
+                        title: s.tr(m.title),
+                        subtitle: m.isWallet
+                            ? '${s.walletBalance} ${som(wallet)} ${s.som}'
+                            : s.tr(m.subtitle),
+                        // Было захардкоженное 'Основной' — в кыргызской
+                        // локали оставалось русским. Новой строки не
+                        // выдумываем: берём существующую.
+                        trailing:
+                            method == m.id ? AppChip(s.selected, tone: ChipTone.ok) : null,
+                        onTap: () {
+                          ref.read(payMethodProvider.notifier).select(m.id);
+                          showAppSnack(context, '${s.tr(m.title)} · ${s.payMethod}');
+                        },
                       ),
-                      title: s.tr(m.title),
-                      subtitle: m.isWallet
-                          ? '${s.walletBalance} ${som(wallet)} ${s.som}'
-                          : s.tr(m.subtitle),
-                      trailing: method == m.id
-                          ? const AppChip('Основной', tone: ChipTone.ok)
-                          : null,
-                      onTap: () {
-                        ref.read(payMethodProvider.notifier).select(m.id);
-                        showAppSnack(context, '${m.title} · ${s.payMethod}');
-                      },
+                    ],
+                    const RowDivider(indent: 16),
+                    AppRow(
+                      leading: CatTile('trash', Icons.add_rounded, soft: true, size: 44),
+                      title: s.addCard,
+                      subtitle: s.paymentsStub,
+                      onTap: () => showAppSnack(context, s.paymentsStub),
                     ),
                   ],
-                  const RowDivider(indent: 16),
-                  AppRow(
-                    leading: CatTile('trash', Icons.add_rounded, soft: true, size: 44),
-                    title: s.addCard,
-                    subtitle: s.paymentsStub,
-                    onTap: () => showAppSnack(context, s.paymentsStub),
-                  ),
-                ],
+                ),
               ),
             ),
             const SizedBox(height: 18),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'failure.dart';
+import 'l10n/failure_text.dart';
 import 'l10n/s.dart';
 import 'tokens.dart';
 
@@ -163,11 +165,15 @@ class AppChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[Icon(icon, size: 13, color: fg), const SizedBox(width: 4)],
-          Text(text,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  fontSize: 11.5, fontWeight: FontWeight.w600, color: fg, height: 1.2)),
+          // Flexible — чтобы длинная подпись сжималась многоточием,
+          // а не распирала строку жёлто-чёрной полосой.
+          Flexible(
+            child: Text(text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 11.5, fontWeight: FontWeight.w600, color: fg, height: 1.2)),
+          ),
         ],
       ),
     );
@@ -407,23 +413,18 @@ class ErrorView extends StatelessWidget {
   final VoidCallback? onRetry;
   final bool compact;
 
-  static String titleFor(BuildContext context, AppFailure f) {
-    final s = S.of(context);
-    return switch (f.kind) {
-      FailureKind.network => s.errorNetwork,
-      FailureKind.server => s.errorServer,
-      FailureKind.notFound => s.errorNotFound,
-      FailureKind.validation => s.errorValidation,
-      FailureKind.auth => s.errorAuth,
-      _ => s.errorUnknown,
-    };
-  }
+  /// Оставлено для экранов, которым нужен только заголовок (шторка кода,
+  /// снек). Сам текст живёт в core/l10n/failure_text.dart — там же, где
+  /// подписи и правило про кнопку «Повторить».
+  static String titleFor(BuildContext context, AppFailure f) =>
+      failureTitle(S.of(context), f);
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
     final c = context.c;
-    final title = titleFor(context, failure);
+    final title = failureTitle(s, failure);
+    final lead = failureLead(s, failure);
 
     if (compact) {
       return Container(
@@ -473,12 +474,10 @@ class ErrorView extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(title, textAlign: TextAlign.center, style: context.t.titleMedium),
-          const SizedBox(height: 6),
-          Text(
-            failure.isNetwork ? s.errorNetworkLead : s.errorTitle,
-            textAlign: TextAlign.center,
-            style: context.t.bodySmall,
-          ),
+          if (lead != null) ...[
+            const SizedBox(height: 6),
+            Text(lead, textAlign: TextAlign.center, style: context.t.bodySmall),
+          ],
           if (onRetry != null) ...[
             const SizedBox(height: 18),
             OutlinedButton.icon(
@@ -567,6 +566,262 @@ class LoadingRows extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Единая триада «загрузка → ошибка → данные» поверх AsyncValue.
+///
+/// До неё каждый экран писал свои восемь строк `when(...)`, и выходило
+/// по-разному: где скелетон, где пустота, где `Text('$e')`. Здесь одно
+/// правило на всё приложение:
+///
+/// * данных ещё нет и идёт загрузка → [skeleton] или [LoadingRows];
+/// * данных нет и есть ошибка → [ErrorView] с текстом из S и повтором;
+/// * данные есть → [data], а над ними [OfflineBanner], если они
+///   сохранённые ([stale]) или последнее обновление упало по сети;
+/// * данные есть, но пустые → [empty], если он задан.
+///
+/// Ошибка приводится к AppFailure через `failureOf`, поэтому сырое
+/// исключение до пользователя не доходит ни одним путём.
+///
+/// Возвращает блок, а не экран: ставится внутрь прокручиваемой колонки
+/// (ListView, SingleChildScrollView), как это уже сделано в accounts_page.
+class AsyncSection<T> extends StatelessWidget {
+  const AsyncSection({
+    super.key,
+    required this.value,
+    required this.data,
+    this.onRetry,
+    this.skeleton,
+    this.empty,
+    this.isEmpty,
+    this.stale = false,
+    this.compactError = false,
+    this.gap = 12,
+  });
+
+  final AsyncValue<T> value;
+
+  /// Что рисовать, когда данные есть.
+  final Widget Function(T data) data;
+
+  /// Нажатие «Повторить» — и в ErrorView, и в плашке офлайна.
+  final VoidCallback? onRetry;
+
+  /// Чем занять место на первой загрузке. По умолчанию — [LoadingRows].
+  final Widget? skeleton;
+
+  /// Что показать, если [isEmpty] сказал «пусто». null — рисуем [data].
+  final Widget? empty;
+  final bool Function(T value)? isEmpty;
+
+  /// Репозиторий отдал сохранённые данные (Cached.fromCache).
+  final bool stale;
+
+  /// Ошибка без данных рисуется плашкой, а не на весь экран.
+  final bool compactError;
+
+  /// Отступ между плашкой и содержимым.
+  final double gap;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = value;
+
+    if (!v.hasValue) {
+      if (v.hasError) {
+        return ErrorView(
+          failure: failureOf(v.error),
+          onRetry: onRetry,
+          compact: compactError,
+        );
+      }
+      return skeleton ?? const LoadingRows();
+    }
+
+    final loaded = v.requireValue;
+    final showEmpty = empty != null && (isEmpty?.call(loaded) ?? false);
+    final content = showEmpty ? empty! : data(loaded);
+
+    // Данные есть, но обновить их не удалось. Нет сети — это офлайн, и
+    // честная плашка «показываем сохранённое»; всё остальное — ошибка,
+    // и её нельзя выдавать за офлайн.
+    final failure = v.hasError ? failureOf(v.error) : null;
+    final Widget? banner = stale || (failure?.isNetwork ?? false)
+        ? OfflineBanner(onRetry: onRetry)
+        : failure == null
+            ? null
+            : ErrorView(failure: failure, onRetry: onRetry, compact: true);
+
+    if (banner == null) return content;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [banner, SizedBox(height: gap), content],
+    );
+  }
+}
+
+/// Липкая панель внизу экрана: «Итого» и главное действие.
+///
+/// Ровно та разметка, что уже стоит в object_page, bill_details_page и
+/// new_payment_page — вынесена без изменения вида, чтобы три копии
+/// перестали расходиться по отступам и цвету границы.
+class AppBottomBar extends StatelessWidget {
+  const AppBottomBar({
+    super.key,
+    required this.action,
+    this.label,
+    this.amount,
+    this.amountSize = 22,
+    this.note,
+  });
+
+  /// Кнопка (или Row из кнопок) — всегда во всю ширину панели.
+  final Widget action;
+
+  /// Подпись слева: «Итого», «Выбрано 2 из 5».
+  final String? label;
+
+  /// Уже отформатированная сумма — панель не знает про деньги и форматы.
+  final String? amount;
+  final double amountSize;
+
+  /// Строка между итогом и кнопкой: подсказка, предупреждение, чипы.
+  final Widget? note;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final hasTotal = label != null || amount != null;
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        Brand.gutter,
+        12,
+        Brand.gutter,
+        MediaQuery.of(context).padding.bottom + 14,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(top: BorderSide(color: c.line2)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (hasTotal) ...[
+            Row(
+              children: [
+                Expanded(child: Text(label ?? '', style: context.t.titleMedium)),
+                if (amount != null) Amount(amount!, size: amountSize),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (note != null) ...[note!, const SizedBox(height: 12)],
+          action,
+        ],
+      ),
+    );
+  }
+}
+
+/// Каркас шторки: клавиатура не закрывает поля, вырез не режет кнопку.
+///
+/// `viewInsets` + SafeArea + Column(min, stretch) + заголовок
+/// headlineSmall — это было скопировано примерно в двенадцати шторках,
+/// и в половине из них про viewInsets забыли, поэтому поле ввода
+/// уезжало под клавиатуру. Ставится в `builder` у showModalBottomSheet.
+class AppSheet extends StatelessWidget {
+  const AppSheet({
+    super.key,
+    required this.children,
+    this.title,
+    this.lead,
+    this.header,
+  });
+
+  /// Содержимое под заголовком. Длинный список оборачивают в
+  /// `Flexible(child: SingleChildScrollView(...))` — как в pay_sheet.
+  final List<Widget> children;
+
+  final String? title;
+  final String? lead;
+
+  /// Шапка над заголовком: иконка услуги, строка счёта.
+  final Widget? header;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(Brand.gutter, 6, Brand.gutter, 18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (header != null) ...[header!, const SizedBox(height: 18)],
+                if (title != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 2, bottom: 3),
+                    child: Text(title!, style: context.t.headlineSmall),
+                  ),
+                if (lead != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 2, bottom: 13),
+                    child: Text(lead!, style: context.t.bodySmall),
+                  ),
+                ...children,
+              ],
+            ),
+          ),
+        ),
+      );
+}
+
+/// Галочка-квадрат 26×26 из прототипа.
+///
+/// Material Checkbox выглядит иначе и не даёт нужного радиуса, поэтому
+/// в экранах жила своя копия — дважды, с разным цветом рамки.
+/// [onTap] == null делает галочку недоступной: именно это нужно
+/// заблокированному кандидату в мастере подключения.
+class AppCheckbox extends StatelessWidget {
+  const AppCheckbox({
+    super.key,
+    required this.on,
+    this.onTap,
+    this.size = 26,
+    this.radius = 8,
+    this.iconSize = 16,
+  });
+
+  final bool on;
+  final VoidCallback? onTap;
+  final double size, radius, iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    final enabled = onTap != null;
+    final border = on ? Brand.primary : (enabled ? c.muted2 : c.line2);
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: on ? Brand.primary : Colors.transparent,
+          border: Border.all(color: border, width: 1.6),
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        child: on
+            ? Icon(Icons.check_rounded, size: iconSize, color: Brand.onPrimary)
+            : null,
       ),
     );
   }

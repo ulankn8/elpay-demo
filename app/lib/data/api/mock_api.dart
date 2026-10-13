@@ -1,4 +1,7 @@
+import '../../core/cache/local_store.dart';
+import '../../core/clock.dart';
 import '../../core/failure.dart';
+import '../../core/ids.dart';
 import '../../core/logger.dart';
 import '../../core/net/connectivity.dart';
 import '../demo_data.dart';
@@ -10,44 +13,82 @@ import 'elpay_api.dart';
 ///
 /// Он же проверяет офлайн: если [connectivity] говорит «сети нет»,
 /// запрос падает с [AppFailure.network] — ровно как в бою.
+///
+/// СОСТОЯНИЕ ЛЕЖИТ В [LocalStore], А НЕ В ПАМЯТИ. Раньше подключённые счета
+/// жили в полях `_connected/_extraBills/_confirmed`, а кэш репозитория
+/// переживал перезапуск: после рестарта в списке были счета из кэша, которых
+/// «бэкенд» уже не знал, id расходились и отключение падало в notFound.
+/// Теперь демо-бэкенд пишет своё состояние в то же хранилище под своим
+/// ключом ([CacheKeys.mockServer]) — id стабильны, отключение работает,
+/// а оплаченное и автоплатёж переживают перезапуск.
+///
+/// Хранилище передаётся снаружи (`store: ref.watch(localStoreProvider)`).
+/// Без него берётся [MemoryLocalStore]: состояние живёт столько же, сколько
+/// сам объект, — прежнее поведение для вызовов, которые store ещё не передают.
 class MockElPayApi implements ElPayApi {
   MockElPayApi({
+    LocalStore? store,
     ConnectivityService? connectivity,
-    DateTime Function()? clock,
+    Clock? clock,
     this.latency = const Duration(milliseconds: 420),
-  })  : _net = connectivity ?? const AlwaysOnline(),
-        _clock = clock ?? DateTime.now;
+  })  : store = store ?? MemoryLocalStore(),
+        _net = connectivity ?? const AlwaysOnline(),
+        _clock = clock ?? systemClock;
+
+  /// Где демо-бэкенд держит своё состояние. Публично, чтобы тест перезапуска
+  /// мог построить второй экземпляр поверх ТОГО ЖЕ хранилища.
+  final LocalStore store;
 
   final ConnectivityService _net;
-  final DateTime Function() _clock;
+  final Clock _clock;
   final Duration latency;
 
-  /// Счета, подключённые в этой сессии поверх демо-набора.
-  final List<ConnectedAccount> _connected = [];
-  final List<Bill> _extraBills = [];
-  final Set<String> _confirmed = {};
-  bool _seeded = false;
+  static const _tag = 'mock-api';
 
   Future<void> _wait() async {
     await Future<void>.delayed(latency);
     if (!_net.isOnline) {
-      Log.w('mock-api', 'запрос отклонён: нет сети');
+      Log.w(_tag, 'запрос отклонён: нет сети');
       throw const AppFailure.network();
     }
   }
 
-  /// Подключённые счета для демо-набора начислений — чтобы список
-  /// «Мои счета» не был пустым при первом запуске.
-  void _seed() {
-    if (_seeded) return;
-    _seeded = true;
+  // ─────────────────────── состояние демо-бэкенда ───────────────────────
+
+  _ServerState _read() {
+    final saved = store.readMap(CacheKeys.mockServer);
+    if (saved == null) return _ServerState.empty();
+    try {
+      return _ServerState.fromJson(saved);
+    } catch (e, st) {
+      // Формат состояния изменился или запись побилась: начинаем заново,
+      // иначе демо-бэкенд не поднимется вообще.
+      Log.e(_tag, 'состояние не разобралось, начинаем с чистого', e, st);
+      return _ServerState.empty();
+    }
+  }
+
+  Future<void> _save(_ServerState state) =>
+      store.writeJson(CacheKeys.mockServer, state.toJson(), now: _clock());
+
+  /// Состояние, гарантированно засеянное демо-набором.
+  ///
+  /// Засев делается ОДИН раз за всё время жизни хранилища (отметка `seeded`),
+  /// а не один раз за время жизни объекта: иначе после перезапуска счета
+  /// завелись бы заново с новыми id.
+  Future<_ServerState> _seeded() async {
+    final state = _read();
+    if (state.seeded) return state;
+
     final now = _clock();
-    for (final b in Demo.bills(now)) {
+    final bills = Demo.bills(now);
+    for (final b in bills) {
       final reg = Registry.accounts
-          .where((r) => r.accountNo == b.account)
-          .map((r) => r)
+          .where((r) => AccountMask.keyOf(r.accountNo) == AccountMask.keyOf(b.account))
           .firstOrNull;
-      _connected.add(ConnectedAccount(
+      state.accounts.add(ConnectedAccount(
+        // id начисления и id счёта связаны договорённостью 'acc-<billId>':
+        // так demo_data задаёт Bill.accountId, и связь не теряется.
         id: 'acc-${b.id}',
         providerId: reg?.providerId ?? 'p-${b.cat}',
         title: b.title,
@@ -57,11 +98,22 @@ class MockElPayApi implements ElPayApi {
         objectId: b.objectId,
         holder: reg?.holder ?? 'Токтогулова А.',
         address: reg?.address ?? '',
-        connectedAt: now.subtract(Duration(days: 40 + _connected.length)),
+        connectedAt: now.subtract(Duration(days: 40 + state.accounts.length)),
+        dueDay: b.due.day,
         syncedAt: now.subtract(const Duration(hours: 3)),
       ));
     }
+    state.bills.addAll(bills);
+    state.seeded = true;
+    await _save(state);
+    Log.i(_tag, 'демо-набор засеян: счетов ${state.accounts.length}');
+    return state;
   }
+
+  /// Стереть состояние демо-бэкенда — выход из аккаунта и удаление профиля.
+  Future<void> reset() => store.remove(CacheKeys.mockServer);
+
+  // ─────────────────────────────── чтение ───────────────────────────────
 
   @override
   Future<List<PayObject>> objects() async {
@@ -70,35 +122,42 @@ class MockElPayApi implements ElPayApi {
   }
 
   @override
-  Future<List<Bill>> bills() async {
+  Future<List<Bill>> bills({String? objectId, String? cursor, int limit = 100}) async {
     await _wait();
-    return [...Demo.bills(_clock()), ..._extraBills];
+    final state = await _seeded();
+    // Курсор в демо не нужен: весь набор влезает в одну страницу. Параметр
+    // остаётся в контракте — боевой ответ будет постраничным.
+    final list = [
+      for (final b in state.bills)
+        if (objectId == null || b.objectId == objectId) b,
+    ];
+    return list.length <= limit ? list : list.sublist(0, limit);
   }
 
   @override
   Future<List<ConnectedAccount>> accounts() async {
     await _wait();
-    _seed();
-    return List.unmodifiable(_connected);
+    final state = await _seeded();
+    return List.unmodifiable(state.accounts);
   }
 
   @override
   Future<List<AccountCandidate>> search(AccountQuery query) async {
     await _wait();
-    _seed();
+    final state = await _seeded();
 
-    final byAddress = Registry.byAddress(query.city, query.street, query.house, query.flat);
     final found = query.isByAccount
         ? Registry.byAccount(query.accountNo, providerId: query.providerId)
-        // Поиск от значка услуги: адрес тот же, но показываем только одного поставщика.
+        // Поиск от значка услуги: адрес тот же, но показываем только одного
+        // поставщика. Фильтр по providerId здесь, а не у вызывающего.
         : [
-            for (final r in byAddress)
+            for (final r in Registry.byAddress(query.city, query.street, query.house, query.flat))
               if (query.providerId == null || r.providerId == query.providerId) r,
           ];
 
-    Log.i('mock-api', 'поиск ${query.method}: найдено ${found.length}');
+    Log.i(_tag, 'поиск ${query.method}: найдено ${found.length}');
 
-    final connectedNos = _connected.map((a) => a.accountNo).toSet();
+    final connected = {for (final a in state.accounts) _key(a.providerId, a.accountNo)};
     return [
       for (final r in found)
         AccountCandidate(
@@ -115,11 +174,32 @@ class MockElPayApi implements ElPayApi {
           dueDay: r.dueDay,
           calc: r.calc,
           // Счёт на другого человека подключаем только с подтверждением.
-          needsConfirm: !r.holder.startsWith('Токтогулова А.') && !_confirmed.contains(r.id),
-          alreadyConnected: connectedNos.contains(r.accountNo),
+          needsConfirm:
+              !r.holder.startsWith('Токтогулова А.') && !state.confirmed.contains(r.id),
+          alreadyConnected: connected.contains(_key(r.providerId, r.accountNo)),
         ),
     ];
   }
+
+  @override
+  Future<Catalog> catalog({required String locale}) async {
+    await _wait();
+    // Демо-каталог один на все языки: названия в нём русские, перевод в бою
+    // делает бэкенд. Локаль остаётся в контракте и в логе.
+    Log.d(_tag, 'каталог для локали $locale');
+    return Demo.catalog;
+  }
+
+  @override
+  Future<List<Payment>> history({DateTime? from, DateTime? to, String? cursor}) async {
+    await _wait();
+    return [
+      for (final p in Demo.history(_clock()))
+        if ((from == null || !p.date.isBefore(from)) && (to == null || !p.date.isAfter(to))) p,
+    ];
+  }
+
+  // ─────────────────────────────── запись ───────────────────────────────
 
   @override
   Future<AccountCandidate> confirm({required String candidateId, required String code}) async {
@@ -129,19 +209,34 @@ class MockElPayApi implements ElPayApi {
     if (code.trim() != reg.confirmCode) {
       throw const AppFailure.validation('код не подошёл', field: 'code');
     }
-    _confirmed.add(candidateId);
+    final state = await _seeded();
+    state.confirmed.add(candidateId);
+    await _save(state);
+
     final list = await search(AccountQuery.byAccount(reg.accountNo, providerId: reg.providerId));
     return list.firstWhere((c) => c.id == candidateId);
   }
 
   @override
-  Future<ConnectResult> connect({required String candidateId, required String objectId}) async {
+  Future<ConnectResult> connect({
+    required String candidateId,
+    required String objectId,
+    required IdempotencyKey key,
+  }) async {
     await _wait();
-    _seed();
+    final state = await _seeded();
+
+    // Повтор с тем же ключом (кнопка «ещё раз» или отправка из Outbox)
+    // возвращает ТОТ ЖЕ результат, а не создаёт второй счёт.
+    final already = state.resultOf(key);
+    if (already != null) {
+      Log.i(_tag, 'повтор по ключу ${key.value}: отдаём прежний результат');
+      return already;
+    }
 
     final reg = Registry.byId(candidateId);
     if (reg == null) throw const AppFailure.notFound('счёт не найден');
-    if (_connected.any((a) => a.accountNo == reg.accountNo)) {
+    if (state.accounts.any((a) => _key(a.providerId, a.accountNo) == _key(reg.providerId, reg.accountNo))) {
       throw const AppFailure.validation('счёт уже подключён');
     }
 
@@ -158,20 +253,31 @@ class MockElPayApi implements ElPayApi {
       holder: reg.holder,
       address: reg.address,
       connectedAt: now,
+      dueDay: reg.dueDay,
       syncedAt: now,
     );
-    _connected.add(account);
+    state.accounts.add(account);
 
     Bill? bill;
+    // Начисление создаётся ТОЛЬКО если оно выставлено. Счёт без начисления —
+    // нормальное состояние, а Bill на 0 сом попадает «к оплате» и роняет
+    // разбивку на главной делением на нулевой итог.
     if (reg.amount > 0) {
       bill = Bill(
         id: 'bill-${reg.id}-${now.microsecondsSinceEpoch}',
+        // Начисление знает СВОЙ счёт по id: у разных поставщиков номера
+        // совпадают, и отключение одного снесло бы начисления другого.
+        accountId: account.id,
         title: account.title,
         subtitle: account.subtitle,
         cat: account.cat,
         amount: reg.amount,
         objectId: objectId,
         period: reg.period,
+        // Тот же расчёт, что в ConnectRules.dueDateOf: предпросмотр обещает
+        // пользователю эту дату, и она обязана совпасть с начислением.
+        // periodAt не заполняем: у записи реестра нет даты начала периода,
+        // а выдумывать её ради локализованной подписи нельзя.
         due: DateTime(now.year, now.month, reg.dueDay),
         account: reg.accountNo,
         calc: reg.calc,
@@ -182,44 +288,180 @@ class MockElPayApi implements ElPayApi {
           Field('Назначение', '${provider?.subtitle ?? ''}, ${reg.period}'),
         ],
       );
-      _extraBills.add(bill);
+      state.bills.add(bill);
     }
-    Log.i('mock-api', 'подключён счёт ${reg.accountNo}');
+
+    state.remember(key, accountId: account.id, billId: bill?.id);
+    await _save(state);
+    Log.i(_tag, 'подключён счёт ${reg.accountNo}');
     return ConnectResult(account: account, bill: bill);
   }
 
   @override
-  Future<void> disconnect(String accountId) async {
+  Future<void> disconnect(String accountId, {required IdempotencyKey key}) async {
     await _wait();
-    final account = _connected.where((a) => a.id == accountId).firstOrNull;
+    final state = await _seeded();
+
+    // Тот же ключ — операция уже выполнена. Повтор из очереди не должен
+    // падать в notFound только потому, что счёта уже нет.
+    if (state.isDone(key)) {
+      Log.i(_tag, 'повтор отключения по ключу ${key.value}: уже сделано');
+      return;
+    }
+
+    final account = state.accounts.where((a) => a.id == accountId).firstOrNull;
     if (account == null) throw const AppFailure.notFound('счёт не подключён');
-    _connected.removeWhere((a) => a.id == accountId);
-    _extraBills.removeWhere((b) => b.account == account.accountNo);
-    Log.i('mock-api', 'отключён счёт ${account.accountNo}');
+
+    state.accounts.removeWhere((a) => a.id == accountId);
+    // Начисления убираем по accountId; строка номера — только для старых
+    // записей, у которых привязки ещё нет.
+    state.bills.removeWhere((b) => b.accountId.isEmpty
+        ? AccountMask.keyOf(b.account) == AccountMask.keyOf(account.accountNo)
+        : b.accountId == account.id);
+    state.remember(key, accountId: accountId);
+    await _save(state);
+    Log.i(_tag, 'отключён счёт ${account.accountNo}');
   }
 
   @override
-  Future<SyncResult> syncCharges() async {
+  Future<ConnectedAccount> move({
+    required String accountId,
+    required String objectId,
+  }) async {
     await _wait();
-    _seed();
+    final state = await _seeded();
+    final index = state.accounts.indexWhere((a) => a.id == accountId);
+    if (index < 0) throw const AppFailure.notFound('счёт не подключён');
+
+    final moved = state.accounts[index].copyWith(objectId: objectId);
+    state.accounts[index] = moved;
+    for (var i = 0; i < state.bills.length; i++) {
+      final b = state.bills[i];
+      if (b.accountId != accountId) continue;
+      // У Bill нет copyWith(objectId) — модели правит другая лана, поэтому
+      // объект меняется через JSON-копию. Для демо-бэкенда этого достаточно.
+      state.bills[i] = Bill.fromJson({...b.toJson(), 'objectId': objectId});
+    }
+    await _save(state);
+    Log.i(_tag, 'счёт ${moved.accountNo} перенесён на объект $objectId');
+    return moved;
+  }
+
+  @override
+  Future<SyncResult> syncCharges({List<String> accountIds = const []}) async {
+    await _wait();
+    final state = await _seeded();
     final now = _clock();
-    final synced = [
-      for (final a in _connected)
-        a.copyWith(status: AccountSyncStatus.ok, syncedAt: now, clearError: true),
-    ];
-    _connected
-      ..clear()
-      ..addAll(synced);
+
+    final known = {for (final a in state.accounts) a.id};
+    // Названы счета, которых бэкенд не знает, — это частичный отказ,
+    // а не общая ошибка: остальные обновляются как обычно.
+    final failed = <String, String>{
+      for (final id in accountIds)
+        if (!known.contains(id)) id: 'notFound',
+    };
+    final targets = accountIds.isEmpty ? known : accountIds.toSet();
+
+    for (var i = 0; i < state.accounts.length; i++) {
+      final a = state.accounts[i];
+      if (!targets.contains(a.id)) continue;
+      state.accounts[i] =
+          a.copyWith(status: AccountSyncStatus.ok, syncedAt: now, clearError: true);
+    }
+    await _save(state);
+
     return SyncResult(
-      bills: [...Demo.bills(now), ..._extraBills],
-      accounts: List.unmodifiable(synced),
+      bills: List.unmodifiable(state.bills),
+      accounts: List.unmodifiable(state.accounts),
       syncedAt: now,
+      failed: failed,
     );
   }
 
-  @override
-  Future<List<Payment>> history() async {
-    await _wait();
-    return Demo.history(_clock());
+  /// Ключ сравнения счёта: поставщик плюс нормализованный номер.
+  /// Только номера мало — у разных поставщиков они совпадают.
+  static String _key(String providerId, String accountNo) =>
+      '$providerId|${AccountMask.keyOf(accountNo)}';
+}
+
+/// Состояние демо-бэкенда: то, что в бою лежит в базе поставщика.
+///
+/// Лежит в [LocalStore] под [CacheKeys.mockServer] — отдельно от кэша
+/// репозиториев, чтобы «бэкенд» и «клиент» не читали одну и ту же запись.
+class _ServerState {
+  _ServerState({
+    required this.accounts,
+    required this.bills,
+    required this.confirmed,
+    required this.done,
+    required this.seeded,
+  });
+
+  _ServerState.empty()
+      : accounts = [],
+        bills = [],
+        confirmed = {},
+        done = {},
+        seeded = false;
+
+  final List<ConnectedAccount> accounts;
+  final List<Bill> bills;
+
+  /// Кандидаты, владение которыми подтверждено кодом.
+  final Set<String> confirmed;
+
+  /// Выполненные операции: ключ идемпотентности → что получилось.
+  /// По нему повтор возвращает прежний результат, а не делает второй счёт.
+  final Map<String, Map<String, dynamic>> done;
+
+  /// Демо-набор уже засеян. Отметка живёт в хранилище, а не в объекте.
+  bool seeded;
+
+  bool isDone(IdempotencyKey key) => done.containsKey(key.value);
+
+  void remember(IdempotencyKey key, {required String accountId, String? billId}) =>
+      done[key.value] = {'accountId': accountId, 'billId': ?billId};
+
+  /// Прежний результат подключения по ключу — или null, если ключ новый
+  /// либо счёт из прошлого ответа уже отключили.
+  ConnectResult? resultOf(IdempotencyKey key) {
+    final saved = done[key.value];
+    if (saved == null) return null;
+    final accountId = '${saved['accountId']}';
+    final account = accounts.where((a) => a.id == accountId).firstOrNull;
+    if (account == null) return null;
+    final billId = saved['billId'];
+    return ConnectResult(
+      account: account,
+      bill: billId == null ? null : bills.where((b) => b.id == billId).firstOrNull,
+    );
   }
+
+  Map<String, dynamic> toJson() => {
+        'accounts': [for (final a in accounts) a.toJson()],
+        'bills': [for (final b in bills) b.toJson()],
+        'confirmed': confirmed.toList(),
+        'done': done,
+        'seeded': seeded,
+      };
+
+  static _ServerState fromJson(Map<String, dynamic> j) => _ServerState(
+        accounts: [for (final r in _rows(j['accounts'])) ConnectedAccount.fromJson(r)],
+        bills: [for (final r in _rows(j['bills'])) Bill.fromJson(r)],
+        confirmed: {
+          for (final c in (j['confirmed'] as List? ?? const [])) '$c',
+        },
+        done: {
+          for (final e in ((j['done'] as Map?)?.cast<String, dynamic>() ??
+                  const <String, dynamic>{})
+              .entries)
+            e.key: (e.value as Map?)?.cast<String, dynamic>() ?? const {},
+        },
+        seeded: j['seeded'] as bool? ?? false,
+      );
+
+  static List<Map<String, dynamic>> _rows(Object? raw) => [
+        for (final r in (raw as List? ?? const []))
+          if (r is Map) r.cast<String, dynamic>(),
+      ];
 }

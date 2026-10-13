@@ -4,16 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/format.dart';
 import '../../core/l10n/s.dart';
 import '../../core/tokens.dart';
-import '../../data/demo_data.dart';
+import '../../core/widgets.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
 
-/// Способ оплаты по id — с актуальным балансом кошелька.
-PayMethodItem methodById(WidgetRef ref, String id) {
-  final item = Demo.methods.firstWhere(
-    (m) => m.id == id,
-    orElse: () => Demo.methods.first,
-  );
+/// Способ оплаты с подставленным остатком кошелька.
+///
+/// Остаток кошелька живёт не в каталоге, а в состоянии, поэтому единственное
+/// место, где он попадает в [PayMethodItem], — здесь. Раньше эти шесть
+/// строк были скопированы в три экрана.
+PayMethodItem withWalletBalance(PayMethodItem item, double balance) {
   if (!item.isWallet) return item;
   return PayMethodItem(
     id: item.id,
@@ -21,9 +21,33 @@ PayMethodItem methodById(WidgetRef ref, String id) {
     subtitle: item.subtitle,
     badge: item.badge,
     isWallet: true,
-    balance: ref.read(walletProvider),
+    balance: balance,
   );
 }
+
+/// Способ оплаты по id — с актуальным балансом кошелька.
+///
+/// Каталог читается через `ref.watch`, а остаток кошелька больше не берётся
+/// через `ref.read`: иначе показанный баланс не обновлялся, пока экран сам
+/// не перестроится (так было в event_page). Вызывать только из `build`.
+PayMethodItem methodById(WidgetRef ref, String id) {
+  final methods = ref.watch(catalogNowProvider).methods;
+  final item = methods.isEmpty
+      ? _unknownMethod(id)
+      : methods.firstWhere((m) => m.id == id, orElse: () => methods.first);
+  return withWalletBalance(item, ref.watch(walletProvider));
+}
+
+/// Каталога ещё нет: холодный старт без кэша или источник упал на первом
+/// запуске. Способ оплаты не выдумываем — отдаём тот же id с пустым
+/// названием, а [MethodTile] подписывает такую плитку строкой s.payMethod.
+PayMethodItem _unknownMethod(String id) => PayMethodItem(
+      id: id,
+      title: '',
+      subtitle: '',
+      badge: '—',
+      isWallet: id == 'wallet',
+    );
 
 /// Шторка выбора способа оплаты — одна на все экраны оплаты.
 Future<void> openMethodPicker(BuildContext context, WidgetRef ref) {
@@ -37,6 +61,7 @@ Future<void> openMethodPicker(BuildContext context, WidgetRef ref) {
         builder: (ctx, ref2, _) {
           final selected = ref2.watch(payMethodProvider);
           final wallet = ref2.watch(walletProvider);
+          final methods = ref2.watch(catalogNowProvider).methods;
           return ListView(
             shrinkWrap: true,
             padding: const EdgeInsets.fromLTRB(Brand.gutter, 4, Brand.gutter, 16),
@@ -45,19 +70,19 @@ Future<void> openMethodPicker(BuildContext context, WidgetRef ref) {
                 padding: const EdgeInsets.only(bottom: 12, left: 2),
                 child: Text(s.payMethod, style: context.t.headlineSmall),
               ),
-              for (final m in Demo.methods)
+              if (methods.isEmpty)
+                // Каталог ещё не доехал: пустая шторка без объяснения
+                // выглядит как поломка, поэтому говорим прямо.
+                EmptyState(
+                  icon: Icons.credit_card_off_rounded,
+                  title: s.nothingFound,
+                  lead: s.loadingData,
+                ),
+              for (final m in methods)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: MethodTile(
-                    item: m.isWallet
-                        ? PayMethodItem(
-                            id: m.id,
-                            title: m.title,
-                            subtitle: m.subtitle,
-                            badge: m.badge,
-                            isWallet: true,
-                            balance: wallet)
-                        : m,
+                    item: withWalletBalance(m, wallet),
                     selected: selected == m.id,
                     onTap: () {
                       ref2.read(payMethodProvider.notifier).select(m.id);
@@ -110,7 +135,10 @@ class MethodTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(s.tr(item.title), style: context.t.titleMedium),
+                  Text(item.title.isEmpty ? s.payMethod : s.tr(item.title),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.t.titleMedium),
                   Text(
                     item.isWallet
                         ? '${s.walletBalance} ${som(item.balance ?? 0)} ${s.som}'

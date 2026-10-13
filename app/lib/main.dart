@@ -13,6 +13,22 @@ import 'state/providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Перехват падений. Своей отправки у нас нет (Sentry и Crashlytics
+  // не подключены), но точка интеграции теперь ОДНА: до этого ошибки
+  // в обработчиках и в дереве виджетов уходили в никуда.
+  final flutterOnError = FlutterError.onError;
+  FlutterError.onError = (details) {
+    Log.e('ошибка', details.library ?? 'flutter', details.exception, details.stack);
+    flutterOnError?.call(details);
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    Log.e('ошибка', 'необработанное исключение', error, stack);
+    // true — приложение продолжает работать: падать из-за ошибки в фоновой
+    // задаче нельзя, а видно её теперь в логе.
+    return true;
+  };
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -23,7 +39,7 @@ Future<void> main() async {
     SemanticsBinding.instance.ensureSemantics();
   }
   final prefs = await AppPrefs.open();
-  final store = await LocalStore.open();
+  final store = await PrefsLocalStore.open();
   Log.i('старт', AppConfig.current.isDemo
       ? 'демо-режим: данные из встроенного реестра'
       : 'боевой режим: ${AppConfig.current.apiBaseUrl}');

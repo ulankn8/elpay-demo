@@ -1,34 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/s.dart';
 import '../../core/tokens.dart';
 import '../../core/widgets.dart';
-import '../../data/demo_data.dart';
 import '../../data/models.dart';
+import '../../state/providers.dart';
+import '../accounts/connect_args.dart';
 import '../bills/bill_row.dart';
 import 'new_payment_page.dart' show NewPaymentArgs;
 
 /// Круглые значки услуг: быстрый вход в оплату с главной.
-class ServiceIconsRow extends StatelessWidget {
+///
+/// Значки приходят из каталога (`catalogNowProvider`), а не из `Demo.*`:
+/// каталог читается синхронно, поэтому лента осталась обычным рядом
+/// без переписывания на async.
+class ServiceIconsRow extends ConsumerWidget {
   const ServiceIconsRow({super.key});
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        height: 92,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
-          itemCount: Demo.quickServices.length + 1,
-          separatorBuilder: (_, _) => const SizedBox(width: 14),
-          itemBuilder: (context, i) => i == Demo.quickServices.length
-              ? _AllServices(onTap: () => context.push('/new-payment'))
-              : ServiceIcon(
-                  service: Demo.quickServices[i],
-                  onTap: () => openServiceSheet(context, Demo.quickServices[i]),
-                ),
-        ),
-      );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final services = ref.watch(catalogNowProvider).quickServices;
+    return SizedBox(
+      height: 92,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
+        itemCount: services.length + 1,
+        separatorBuilder: (_, _) => const SizedBox(width: 14),
+        itemBuilder: (context, i) => i == services.length
+            ? _AllServices(onTap: () => context.push('/new-payment'))
+            : ServiceIcon(
+                service: services[i],
+                onTap: () => openServiceSheet(context, services[i]),
+              ),
+      ),
+    );
+  }
 }
 
 /// Последний значок ленты — вход в полный список услуг.
@@ -123,38 +132,37 @@ class ServiceIcon extends StatelessWidget {
 /// Тап по значку услуги: подключить счёт или оплатить разово.
 Future<void> openServiceSheet(BuildContext context, QuickService service) {
   final s = S.of(context);
-  final provider = Demo.providerById(service.providerId);
   return showModalBottomSheet<void>(
     context: context,
     useRootNavigator: true,
     useSafeArea: true,
-    builder: (ctx) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(Brand.gutter, 6, Brand.gutter, 18),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                CatTile(service.cat, catIcon(service.cat), size: 48, radius: 14),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(s.catName(service.cat), style: context.t.headlineSmall),
-                      if (provider != null)
-                        Text('${s.tr(provider.title)} · ${s.tr(provider.subtitle)}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: context.t.bodySmall),
-                    ],
-                  ),
+    builder: (ctx) => Consumer(
+      // Шторке нужен каталог, а не ref экрана: ref экрана мог бы пережить
+      // сам экран, пока шторка открыта.
+      builder: (_, ref, _) {
+        // Поставщик услуги — из каталога, а не из Demo.providerById.
+        final provider = ref.watch(catalogNowProvider).providerById(service.providerId);
+        return AppSheet(
+          header: Row(
+            children: [
+              CatTile(service.cat, catIcon(service.cat), size: 48, radius: 14),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(s.catName(service.cat), style: context.t.headlineSmall),
+                    if (provider != null)
+                      Text('${s.tr(provider.title)} · ${s.tr(provider.subtitle)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.t.bodySmall),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 18),
+              ),
+            ],
+          ),
+          children: [
             BigChoice(
               cat: 'paid',
               icon: Icons.bookmark_added_outlined,
@@ -162,7 +170,13 @@ Future<void> openServiceSheet(BuildContext context, QuickService service) {
               lead: s.connectAccountLead,
               onTap: () {
                 Navigator.pop(ctx);
-                context.push('/connect', extra: service.providerId);
+                // Единственный вход в подключение: ссылка собирается
+                // ConnectArgs, а не склеивается строкой, поэтому названия
+                // параметров не расходятся с тем, что читает маршрут.
+                context.push(ConnectArgs(
+                  providerId: service.providerId,
+                  source: ConnectArgs.sourceService,
+                ).location);
               },
             ),
             const SizedBox(height: 10),
@@ -178,8 +192,8 @@ Future<void> openServiceSheet(BuildContext context, QuickService service) {
               },
             ),
           ],
-        ),
-      ),
+        );
+      },
     ),
   );
 }
@@ -191,41 +205,32 @@ Future<void> openNewPaymentSheet(BuildContext context) {
     context: context,
     useRootNavigator: true,
     useSafeArea: true,
-    builder: (ctx) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(Brand.gutter, 6, Brand.gutter, 18),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16, left: 2),
-              child: Text(s.newPayment, style: context.t.headlineSmall),
-            ),
-            BigChoice(
-              cat: 'power',
-              icon: Icons.receipt_long_outlined,
-              title: s.byRequisites,
-              lead: s.byRequisitesLead,
-              onTap: () {
-                Navigator.pop(ctx);
-                context.push('/new-payment');
-              },
-            ),
-            const SizedBox(height: 10),
-            BigChoice(
-              cat: 'market',
-              icon: Icons.qr_code_scanner_rounded,
-              title: s.qrPay,
-              lead: s.byQrLead,
-              onTap: () {
-                Navigator.pop(ctx);
-                context.push('/qr');
-              },
-            ),
-          ],
+    builder: (ctx) => AppSheet(
+      title: s.newPayment,
+      children: [
+        const SizedBox(height: 10),
+        BigChoice(
+          cat: 'power',
+          icon: Icons.receipt_long_outlined,
+          title: s.byRequisites,
+          lead: s.byRequisitesLead,
+          onTap: () {
+            Navigator.pop(ctx);
+            context.push('/new-payment');
+          },
         ),
-      ),
+        const SizedBox(height: 10),
+        BigChoice(
+          cat: 'market',
+          icon: Icons.qr_code_scanner_rounded,
+          title: s.qrPay,
+          lead: s.byQrLead,
+          onTap: () {
+            Navigator.pop(ctx);
+            context.push('/qr');
+          },
+        ),
+      ],
     ),
   );
 }
