@@ -437,6 +437,33 @@ abstract class S {
   String get demoOfflineLead;
   String get demoDataSource;
   String get demoDataMock;
+
+  // Подключение счетов: предпросмотр, перенос, ошибки и пустые экраны
+  String connectedPartly(int n, int all);
+  String get connectPartlyLead;
+  String connectFailedFor(String title);
+  String get previewAction;
+  String get previewTitle;
+  String get previewLead;
+  String get accountNoInvalid;
+  String accountNoFormat(String hint);
+  String get accountClosed;
+  String get noObjectsTitle;
+  String get noObjectsLead;
+  String get createObjectAction;
+  String get providerSearchHint;
+  String get pendingConnect;
+  String get pendingDisconnect;
+  String get moveToObject;
+  String get movedOk;
+  String disconnectUnpaid(String sum);
+  String get disconnectLastForObject;
+  String get syncHint;
+  String get retryOnlyFailed;
+  String get pageNotFound;
+  String get pageNotFoundLead;
+  String get payPending;
+  String get walletNotEnough;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
@@ -896,6 +923,33 @@ class SRu implements S {
   @override String get demoOfflineLead => 'Показать, как приложение работает офлайн';
   @override String get demoDataSource => 'Источник данных';
   @override String get demoDataMock => 'Встроенный демо-реестр';
+
+  // Подключение счетов: предпросмотр, перенос, ошибки и пустые экраны
+  @override String connectedPartly(int n, int all) => 'Подключено $n из $all';
+  @override String get connectPartlyLead => 'Остальные не удалось подключить — посмотрите причину и повторите';
+  @override String connectFailedFor(String title) => 'Не удалось: $title';
+  @override String get previewAction => 'Посмотреть начисления';
+  @override String get previewTitle => 'Что будет приходить';
+  @override String get previewLead => 'Эти начисления появятся в приложении после подключения';
+  @override String get accountNoInvalid => 'Проверьте номер лицевого счёта';
+  @override String accountNoFormat(String hint) => 'Формат: $hint';
+  @override String get accountClosed => 'Счёт закрыт у поставщика';
+  @override String get noObjectsTitle => 'Сначала добавьте объект';
+  @override String get noObjectsLead => 'Счёт подключается к объекту — дому, квартире или офису';
+  @override String get createObjectAction => 'Создать объект';
+  @override String get providerSearchHint => 'Название или услуга';
+  @override String get pendingConnect => 'Подключим, когда появится сеть';
+  @override String get pendingDisconnect => 'Отключим, когда появится сеть';
+  @override String get moveToObject => 'Перенести на другой объект';
+  @override String get movedOk => 'Счёт перенесён';
+  @override String disconnectUnpaid(String sum) => 'По счёту осталось $sum сом неоплаченных начислений';
+  @override String get disconnectLastForObject => 'Это последний счёт объекта — после отключения он останется пустым';
+  @override String get syncHint => 'Начисления давно не обновлялись';
+  @override String get retryOnlyFailed => 'Повторить для неудачных';
+  @override String get pageNotFound => 'Страница не найдена';
+  @override String get pageNotFoundLead => 'Похоже, ссылка устарела. Вернитесь на главную';
+  @override String get payPending => 'Платёж принят, подтверждаем';
+  @override String get walletNotEnough => 'На кошельке недостаточно средств';
 }
 
 class SKy implements S {
@@ -1344,6 +1398,33 @@ class SKy implements S {
   @override String get demoOfflineLead => 'Колдонмо офлайн кантип иштээрин көрсөтүү';
   @override String get demoDataSource => 'Маалымат булагы';
   @override String get demoDataMock => 'Ичине салынган демо-реестр';
+
+  // Подключение счетов: предпросмотр, перенос, ошибки и пустые экраны
+  @override String connectedPartly(int n, int all) => '$all эсептин $n туташтырылды';
+  @override String get connectPartlyLead => 'Калгандары туташтырылган жок — себебин карап, кайталаңыз';
+  @override String connectFailedFor(String title) => 'Болгон жок: $title';
+  @override String get previewAction => 'Эсептөөлөрдү кароо';
+  @override String get previewTitle => 'Эмне келе турганы';
+  @override String get previewLead => 'Бул эсептөөлөр туташтыргандан кийин колдонмодо чыгат';
+  @override String get accountNoInvalid => 'Жеке эсептин номерин текшериңиз';
+  @override String accountNoFormat(String hint) => 'Форматы: $hint';
+  @override String get accountClosed => 'Эсеп жеткирүүчүдө жабык';
+  @override String get noObjectsTitle => 'Адегенде объект кошуңуз';
+  @override String get noObjectsLead => 'Эсеп объектке — үйгө, батирге же кеңсеге туташат';
+  @override String get createObjectAction => 'Объект түзүү';
+  @override String get providerSearchHint => 'Аталышы же кызматы';
+  @override String get pendingConnect => 'Байланыш пайда болгондо туташтырабыз';
+  @override String get pendingDisconnect => 'Байланыш пайда болгондо өчүрөбүз';
+  @override String get moveToObject => 'Башка объектке которуу';
+  @override String get movedOk => 'Эсеп которулду';
+  @override String disconnectUnpaid(String sum) => 'Эсепте $sum сом төлөнбөгөн эсептөө калды';
+  @override String get disconnectLastForObject => 'Бул объекттин акыркы эсеби — өчүргөндөн кийин ал бош калат';
+  @override String get syncHint => 'Эсептөөлөр көптөн бери жаңыртылган жок';
+  @override String get retryOnlyFailed => 'Ийгиликсиздер үчүн кайталоо';
+  @override String get pageNotFound => 'Барак табылган жок';
+  @override String get pageNotFoundLead => 'Шилтеме эскирген окшойт. Башкы бетке кайтыңыз';
+  @override String get payPending => 'Төлөм кабыл алынды, ырастап жатабыз';
+  @override String get walletNotEnough => 'Капчыкта каражат жетишсиз';
 }
 
 String plural3(int n, String one, String few, String many) {

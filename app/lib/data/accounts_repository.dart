@@ -53,6 +53,9 @@ class DefaultAccountsRepository implements AccountsRepository {
 
   static const _tag = 'accounts';
 
+  /// Насколько кэш счетов считается свежим.
+  static const ttl = Duration(minutes: 15);
+
   @override
   List<ConnectedAccount> cachedAccounts() =>
       (store.readList(CacheKeys.accounts) ?? const []).map(ConnectedAccount.fromJson).toList();
@@ -63,8 +66,9 @@ class DefaultAccountsRepository implements AccountsRepository {
   @override
   Future<Result<List<ConnectedAccount>>> accounts({bool refresh = false}) async {
     final cached = cachedAccounts();
-    if (!refresh && cached.isNotEmpty) {
-      // Отдаём кэш сразу, обновление пойдёт отдельным вызовом.
+    final stale = store.isStale(CacheKeys.accounts, ttl, now: _clock());
+    if (!refresh && cached.isNotEmpty && !stale) {
+      // Кэш свежий — отдаём сразу, в сеть не ходим.
       return Ok(cached);
     }
     final result = await guard(() => api.accounts());
@@ -154,14 +158,14 @@ class DefaultAccountsRepository implements AccountsRepository {
         await _write(value.accounts);
         return Ok(value);
       },
-      (failure) {
+      (failure) async {
         analytics.track(AnalyticsEvent.syncFailed(failure.kind.name));
         // Помечаем счета как «не обновились» — статус виден в списке.
         final marked = [
           for (final a in cachedAccounts())
             a.copyWith(status: AccountSyncStatus.failed, lastError: failure.message),
         ];
-        if (marked.isNotEmpty) _write(marked);
+        if (marked.isNotEmpty) await _write(marked);
         return Fail<SyncResult>(failure);
       },
     );

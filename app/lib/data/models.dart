@@ -600,11 +600,13 @@ class ConnectedAccount {
   final DateTime? syncedAt;
   final String? lastError;
 
+  /// [clearError] — явно стереть прошлую ошибку (после удачного обновления).
   ConnectedAccount copyWith({
     String? objectId,
     AccountSyncStatus? status,
     DateTime? syncedAt,
     String? lastError,
+    bool clearError = false,
   }) =>
       ConnectedAccount(
         id: id,
@@ -619,7 +621,7 @@ class ConnectedAccount {
         connectedAt: connectedAt,
         status: status ?? this.status,
         syncedAt: syncedAt ?? this.syncedAt,
-        lastError: lastError,
+        lastError: clearError ? null : (lastError ?? this.lastError),
       );
 
   Map<String, dynamic> toJson() => {
@@ -672,8 +674,8 @@ class AccountQuery {
     required this.street,
     required this.house,
     this.flat = '',
-  })  : accountNo = '',
-        providerId = null;
+    this.providerId,
+  }) : accountNo = '';
 
   final String accountNo;
   final String? providerId;

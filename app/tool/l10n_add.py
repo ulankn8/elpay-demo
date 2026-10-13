@@ -18,6 +18,18 @@ def lit(v):
     return v if v.startswith(("'", '"', '(', 'switch')) else "'" + v.replace("\\", "\\\\").replace("'", r"\'") + "'"
 
 
+def name_of(sig):
+    """Имя члена: 'String get payTitle' -> payTitle, 'String nFound(int n)' -> nFound.
+
+    Наивное sig.split()[-1] ломалось на сигнатурах с параметрами ('n)'),
+    из-за чего строки с аргументами добавлялись повторно.
+    """
+    m = re.match(r'^\s*[\w<>,\s?]+?\s+(?:get\s+)?([A-Za-z_]\w*)\s*(?:\(|$)', sig.strip())
+    if not m:
+        raise ValueError('не разобрал сигнатуру: ' + sig)
+    return m.group(1)
+
+
 def add(items, section=''):
     s = io.open(P, encoding='utf-8').read()
 
@@ -26,8 +38,18 @@ def add(items, section=''):
         j = s.index('\n}\n', i)
         return j + 1
 
-    absent = [(sig, ru, ky) for sig, ru, ky in items
-              if not re.search(r'\b' + re.escape(sig.split()[-1].split('(')[0]) + r'\b', s)]
+    # Ищем только внутри abstract class S, иначе совпадение в строке данных
+    # молча съедает новую строку.
+    head_start = s.index('abstract class S {')
+    declared = s[head_start:close_of('abstract class S {')]
+    absent, dupes = [], []
+    for sig, ru, ky in items:
+        if re.search(r'\b' + re.escape(name_of(sig)) + r'\b', declared):
+            dupes.append(name_of(sig))
+        else:
+            absent.append((sig, ru, ky))
+    if dupes:
+        print('уже есть, пропускаю:', ', '.join(dupes))
     if not absent:
         print('нечего добавлять')
         return

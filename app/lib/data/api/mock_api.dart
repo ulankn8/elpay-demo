@@ -87,9 +87,14 @@ class MockElPayApi implements ElPayApi {
     await _wait();
     _seed();
 
+    final byAddress = Registry.byAddress(query.city, query.street, query.house, query.flat);
     final found = query.isByAccount
         ? Registry.byAccount(query.accountNo, providerId: query.providerId)
-        : Registry.byAddress(query.city, query.street, query.house, query.flat);
+        // Поиск от значка услуги: адрес тот же, но показываем только одного поставщика.
+        : [
+            for (final r in byAddress)
+              if (query.providerId == null || r.providerId == query.providerId) r,
+          ];
 
     Log.i('mock-api', 'поиск ${query.method}: найдено ${found.length}');
 
@@ -199,7 +204,8 @@ class MockElPayApi implements ElPayApi {
     _seed();
     final now = _clock();
     final synced = [
-      for (final a in _connected) a.copyWith(status: AccountSyncStatus.ok, syncedAt: now),
+      for (final a in _connected)
+        a.copyWith(status: AccountSyncStatus.ok, syncedAt: now, clearError: true),
     ];
     _connected
       ..clear()
