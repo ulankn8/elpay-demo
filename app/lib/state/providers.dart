@@ -3,7 +3,19 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/analytics.dart';
+import '../core/app_config.dart';
+import '../core/cache/local_store.dart';
+import '../core/failure.dart';
+import '../core/net/connectivity.dart';
+import '../core/net/outbox.dart';
 import '../core/prefs.dart';
+import '../core/result.dart';
+import '../data/accounts_repository.dart';
+import '../data/api/api_client.dart';
+import '../data/api/elpay_api.dart';
+import '../data/api/http_api.dart';
+import '../data/api/mock_api.dart';
 import '../data/auth_repository.dart';
 import '../data/demo_data.dart';
 import '../data/bills_repository.dart';
@@ -14,9 +26,55 @@ import '../data/stories_repository.dart';
 /// Заполняется в main() — SharedPreferences читается один раз при старте.
 final prefsProvider = Provider<AppPrefs>((ref) => throw UnimplementedError());
 
+/// Локальный кэш: тоже создаётся в main() поверх тех же SharedPreferences.
+final localStoreProvider = Provider<LocalStore>((ref) => throw UnimplementedError());
+
+/// Настройки сборки: демо или боевой API, включены ли платежи.
+final configProvider = Provider<AppConfig>((ref) => AppConfig.current);
+
+/// Состояние сети. В демо переключается вручную — так показывают офлайн.
+final connectivityProvider = Provider<ConnectivityService>((ref) {
+  final service = ManualConnectivity();
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+/// Поток «есть сеть / нет сети» для плашки офлайна.
+final isOnlineProvider = StreamProvider<bool>((ref) {
+  final net = ref.watch(connectivityProvider);
+  return net.changes;
+});
+
+final analyticsProvider = Provider<Analytics>((ref) => const DebugAnalytics());
+
+final outboxProvider = Provider<Outbox>((ref) => Outbox(ref.watch(localStoreProvider)));
+
+/// Бэкенд: демо-реализация или HTTP — переключается одним флагом сборки.
+final apiProvider = Provider<ElPayApi>((ref) {
+  final config = ref.watch(configProvider);
+  if (config.useMockData) {
+    return MockElPayApi(connectivity: ref.watch(connectivityProvider));
+  }
+  final client = ApiClient(config: config);
+  ref.onDispose(client.close);
+  return HttpElPayApi(client);
+});
+
 final authRepoProvider = Provider<AuthRepository>((ref) => MockAuthRepository());
-final billsRepoProvider = Provider<BillsRepository>((ref) => MockBillsRepository());
 final paymentsRepoProvider = Provider<PaymentsRepository>((ref) => StubPaymentsRepository());
+
+final billsRepoProvider = Provider<BillsRepository>((ref) => DefaultBillsRepository(
+      api: ref.watch(apiProvider),
+      store: ref.watch(localStoreProvider),
+    ));
+
+final accountsRepoProvider = Provider<AccountsRepository>((ref) => DefaultAccountsRepository(
+      api: ref.watch(apiProvider),
+      store: ref.watch(localStoreProvider),
+      connectivity: ref.watch(connectivityProvider),
+      outbox: ref.watch(outboxProvider),
+      analytics: ref.watch(analyticsProvider),
+    ));
 
 // ───────────────────────── настройки ─────────────────────────
 
@@ -91,22 +149,79 @@ final sessionProvider = NotifierProvider<SessionNotifier, Session?>(SessionNotif
 
 @immutable
 class BillsState {
-  const BillsState({required this.objects, required this.bills});
+  const BillsState({
+    required this.objects,
+    required this.bills,
+    this.syncedAt,
+    this.fromCache = false,
+    this.failure,
+  });
+
   final List<PayObject> objects;
   final List<Bill> bills;
+  final DateTime? syncedAt;
+
+  /// Данные из кэша: сеть не ответила, но показать есть что.
+  final bool fromCache;
+
+  /// Последняя ошибка загрузки — для плашки над списком.
+  final AppFailure? failure;
 
   List<Bill> byObject(String id) => bills.where((b) => b.objectId == id).toList();
   List<Bill> get unpaid => bills.where((b) => !b.paid).toList();
   double get dueTotal => unpaid.fold(0.0, (s, b) => s + b.amount);
+
+  BillsState copyWith({
+    List<PayObject>? objects,
+    List<Bill>? bills,
+    DateTime? syncedAt,
+    bool? fromCache,
+    AppFailure? failure,
+  }) =>
+      BillsState(
+        objects: objects ?? this.objects,
+        bills: bills ?? this.bills,
+        syncedAt: syncedAt ?? this.syncedAt,
+        fromCache: fromCache ?? this.fromCache,
+        failure: failure,
+      );
 }
 
 class BillsNotifier extends AsyncNotifier<BillsState> {
   @override
   Future<BillsState> build() async {
     final repo = ref.read(billsRepoProvider);
-    final objects = await repo.objects();
-    final bills = await repo.bills();
-    return BillsState(objects: objects, bills: bills);
+    // Сохранённое показываем сразу, не дожидаясь сети.
+    final cached = repo.cached();
+    if (cached.objects.isNotEmpty) {
+      state = AsyncData(_toState(cached));
+    }
+    final result = await repo.load();
+    return result.fold(_toState, (failure) {
+      if (cached.objects.isNotEmpty) {
+        return _toState(cached).copyWith(failure: failure);
+      }
+      throw failure;
+    });
+  }
+
+  BillsState _toState(BillsSnapshot s) => BillsState(
+        objects: s.objects,
+        bills: s.bills,
+        syncedAt: s.syncedAt,
+        fromCache: s.fromCache,
+      );
+
+  /// Потянули вниз: идём в сеть, ошибку показываем плашкой, данные не теряем.
+  Future<void> refresh() async {
+    final repo = ref.read(billsRepoProvider);
+    final current = state.value;
+    final result = await repo.load(refresh: true);
+    state = AsyncData(result.fold(
+      _toState,
+      (failure) => (current ?? const BillsState(objects: [], bills: []))
+          .copyWith(failure: failure, fromCache: true),
+    ));
   }
 
   void markPaid(Iterable<String> ids) {
@@ -408,3 +523,200 @@ class StoriesNotifier extends AsyncNotifier<List<StoryItem>> {
 
 final storiesProvider =
     AsyncNotifierProvider<StoriesNotifier, List<StoryItem>>(StoriesNotifier.new);
+
+// ───────────────────────── подключённые счета ─────────────────────────
+
+/// Список подключённых лицевых счетов. Сначала из кэша, потом из сети.
+class AccountsNotifier extends AsyncNotifier<List<ConnectedAccount>> {
+  @override
+  Future<List<ConnectedAccount>> build() async {
+    final repo = ref.read(accountsRepoProvider);
+    final cached = repo.cachedAccounts();
+    if (cached.isNotEmpty) state = AsyncData(cached);
+    final result = await repo.accounts();
+    return result.fold((list) => list, (failure) {
+      if (cached.isNotEmpty) return cached;
+      throw failure;
+    });
+  }
+
+  /// Обновить начисления по всем счетам.
+  Future<Result<SyncResult>> sync() async {
+    final repo = ref.read(accountsRepoProvider);
+    state = AsyncData([
+      for (final a in state.value ?? const <ConnectedAccount>[])
+        a.copyWith(status: AccountSyncStatus.syncing),
+    ]);
+    final result = await repo.sync();
+    result.fold(
+      (value) {
+        state = AsyncData(value.accounts);
+        // Начисления изменились — перечитываем их из источника, а не из кэша.
+        ref.read(billsProvider.notifier).refresh();
+      },
+      (failure) => state = AsyncData([
+        for (final a in state.value ?? const <ConnectedAccount>[])
+          a.copyWith(status: AccountSyncStatus.failed, lastError: failure.message),
+      ]),
+    );
+    return result;
+  }
+
+  Future<Result<void>> disconnect(String accountId) async {
+    final result = await ref.read(accountsRepoProvider).disconnect(accountId);
+    if (result.isOk) {
+      state = AsyncData([
+        for (final a in state.value ?? const <ConnectedAccount>[])
+          if (a.id != accountId) a,
+      ]);
+      ref.read(billsProvider.notifier).refresh();
+    }
+    return result;
+  }
+
+  void add(ConnectedAccount account) =>
+      state = AsyncData([...?state.value, account]);
+}
+
+final accountsProvider =
+    AsyncNotifierProvider<AccountsNotifier, List<ConnectedAccount>>(AccountsNotifier.new);
+
+// ───────────────────────── мастер подключения ─────────────────────────
+
+/// Шаг мастера: сначала форма поиска, потом найденные счета.
+enum ConnectStep { form, results, done }
+
+@immutable
+class ConnectState {
+  const ConnectState({
+    this.step = ConnectStep.form,
+    this.byAddress = false,
+    this.searching = false,
+    this.connecting = false,
+    this.found = const [],
+    this.selected = const {},
+    this.connected = const [],
+    this.failure,
+  });
+
+  final ConnectStep step;
+
+  /// Выбран поиск по адресу, а не по лицевому счёту.
+  final bool byAddress;
+  final bool searching, connecting;
+  final List<AccountCandidate> found;
+  final Set<String> selected;
+  final List<ConnectedAccount> connected;
+  final AppFailure? failure;
+
+  List<AccountCandidate> get selectable =>
+      found.where((c) => !c.alreadyConnected).toList();
+
+  double get selectedSum => found
+      .where((c) => selected.contains(c.id))
+      .fold(0.0, (sum, c) => sum + c.amount);
+
+  ConnectState copyWith({
+    ConnectStep? step,
+    bool? byAddress,
+    bool? searching,
+    bool? connecting,
+    List<AccountCandidate>? found,
+    Set<String>? selected,
+    List<ConnectedAccount>? connected,
+    AppFailure? failure,
+  }) =>
+      ConnectState(
+        step: step ?? this.step,
+        byAddress: byAddress ?? this.byAddress,
+        searching: searching ?? this.searching,
+        connecting: connecting ?? this.connecting,
+        found: found ?? this.found,
+        selected: selected ?? this.selected,
+        connected: connected ?? this.connected,
+        failure: failure,
+      );
+}
+
+/// Состояние мастера подключения счёта: поиск → выбор → подключение.
+class ConnectNotifier extends Notifier<ConnectState> {
+  @override
+  ConnectState build() => const ConnectState();
+
+  void setMode({required bool byAddress}) =>
+      state = const ConnectState().copyWith(byAddress: byAddress);
+
+  void reset() => state = const ConnectState();
+
+  void toggle(String candidateId) {
+    final next = {...state.selected};
+    next.contains(candidateId) ? next.remove(candidateId) : next.add(candidateId);
+    state = state.copyWith(selected: next);
+  }
+
+  void selectAll() => state = state.copyWith(
+        selected: {for (final c in state.selectable) c.id},
+      );
+
+  void selectNone() => state = state.copyWith(selected: const {});
+
+  Future<void> search(AccountQuery query) async {
+    state = state.copyWith(searching: true, failure: null);
+    final result = await ref.read(accountsRepoProvider).search(query);
+    state = result.fold(
+      (list) => state.copyWith(
+        searching: false,
+        step: ConnectStep.results,
+        found: list,
+        selected: {for (final c in list.where((c) => !c.alreadyConnected)) c.id},
+      ),
+      (failure) => state.copyWith(searching: false, failure: failure),
+    );
+  }
+
+  /// Подтверждение владения счётом кодом из квитанции.
+  Future<Result<AccountCandidate>> confirm(String candidateId, String code) async {
+    final result = await ref.read(accountsRepoProvider)
+        .confirm(candidateId: candidateId, code: code);
+    result.fold(
+      (updated) => state = state.copyWith(
+        found: [
+          for (final c in state.found) c.id == updated.id ? updated : c,
+        ],
+      ),
+      (_) {},
+    );
+    return result;
+  }
+
+  /// Подключает выбранные счета к объекту. Возвращает, сколько подключилось.
+  Future<int> connectSelected(String objectId) async {
+    final repo = ref.read(accountsRepoProvider);
+    final chosen = state.found.where((c) => state.selected.contains(c.id)).toList();
+    if (chosen.isEmpty) return 0;
+
+    state = state.copyWith(connecting: true, failure: null);
+    final connected = <ConnectedAccount>[];
+    AppFailure? failure;
+
+    for (final candidate in chosen) {
+      final result = await repo.connect(candidateId: candidate.id, objectId: objectId);
+      result.fold((value) => connected.add(value.account), (f) => failure = f);
+    }
+
+    if (connected.isNotEmpty) {
+      ref.invalidate(accountsProvider);
+      // Появились новые начисления — обновляем ленту счетов из источника.
+      await ref.read(billsProvider.notifier).refresh();
+    }
+    state = state.copyWith(
+      connecting: false,
+      connected: connected,
+      step: connected.isEmpty ? ConnectStep.results : ConnectStep.done,
+      failure: connected.isEmpty ? failure : null,
+    );
+    return connected.length;
+  }
+}
+
+final connectProvider = NotifierProvider<ConnectNotifier, ConnectState>(ConnectNotifier.new);

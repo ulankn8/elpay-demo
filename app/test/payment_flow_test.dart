@@ -1,3 +1,4 @@
+import 'package:elpay/core/cache/local_store.dart';
 import 'package:elpay/core/prefs.dart';
 import 'package:elpay/data/models.dart';
 import 'package:elpay/state/providers.dart';
@@ -8,7 +9,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<ProviderContainer> makeContainer() async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await AppPrefs.open();
-  return ProviderContainer(overrides: [prefsProvider.overrideWithValue(prefs)]);
+  final store = await LocalStore.open();
+  return ProviderContainer(overrides: [
+    prefsProvider.overrideWithValue(prefs),
+    localStoreProvider.overrideWithValue(store),
+  ]);
 }
 
 void main() {

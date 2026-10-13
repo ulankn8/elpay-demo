@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'failure.dart';
+import 'l10n/s.dart';
 import 'tokens.dart';
 
 /// Круглая иконка услуги: цветной градиент из брендбука.
@@ -394,4 +396,178 @@ Future<bool?> confirmDialog(BuildContext context, String question, String action
       ],
     ),
   );
+}
+
+/// Экран ошибки с понятной причиной и кнопкой «Повторить».
+/// Текст берётся по типу ошибки, а не из технического сообщения.
+class ErrorView extends StatelessWidget {
+  const ErrorView({super.key, required this.failure, this.onRetry, this.compact = false});
+
+  final AppFailure failure;
+  final VoidCallback? onRetry;
+  final bool compact;
+
+  static String titleFor(BuildContext context, AppFailure f) {
+    final s = S.of(context);
+    return switch (f.kind) {
+      FailureKind.network => s.errorNetwork,
+      FailureKind.server => s.errorServer,
+      FailureKind.notFound => s.errorNotFound,
+      FailureKind.validation => s.errorValidation,
+      FailureKind.auth => s.errorAuth,
+      _ => s.errorUnknown,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    final c = context.c;
+    final title = titleFor(context, failure);
+
+    if (compact) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: c.chipBadBg,
+          borderRadius: BorderRadius.circular(Brand.radiusRow),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline_rounded, size: 18, color: c.chipBadFg),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(title,
+                  style: TextStyle(
+                      fontSize: 13.5, fontWeight: FontWeight.w600, color: c.chipBadFg)),
+            ),
+            if (onRetry != null)
+              TextButton(
+                onPressed: onRetry,
+                style: TextButton.styleFrom(
+                  foregroundColor: c.chipBadFg,
+                  minimumSize: const Size(0, 32),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                ),
+                child: Text(s.retryAction),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(color: c.chipBadBg, shape: BoxShape.circle),
+            child: Icon(
+              failure.isNetwork ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+              color: c.chipBadFg,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(title, textAlign: TextAlign.center, style: context.t.titleMedium),
+          const SizedBox(height: 6),
+          Text(
+            failure.isNetwork ? s.errorNetworkLead : s.errorTitle,
+            textAlign: TextAlign.center,
+            style: context.t.bodySmall,
+          ),
+          if (onRetry != null) ...[
+            const SizedBox(height: 18),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text(s.retryAction),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Плашка «нет сети» — показываем над данными из кэша.
+class OfflineBanner extends StatelessWidget {
+  const OfflineBanner({super.key, this.onRetry});
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    final c = context.c;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: c.chipWarnBg,
+        borderRadius: BorderRadius.circular(Brand.radiusRow),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.cloud_off_rounded, size: 17, color: c.chipWarnFg),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(s.offlineBanner,
+                style: TextStyle(
+                    fontSize: 12.5, fontWeight: FontWeight.w600, color: c.chipWarnFg)),
+          ),
+          if (onRetry != null)
+            GestureDetector(
+              onTap: onRetry,
+              child: Icon(Icons.refresh_rounded, size: 18, color: c.chipWarnFg),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Скелет списка на время первой загрузки — вместо пустого экрана.
+class LoadingRows extends StatelessWidget {
+  const LoadingRows({super.key, this.count = 3});
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    return AppCard(
+      child: Column(
+        children: [
+          for (var i = 0; i < count; i++) ...[
+            if (i > 0) const RowDivider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                        color: c.soft2, borderRadius: BorderRadius.circular(12)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(height: 12, width: 140, color: c.soft2),
+                        const SizedBox(height: 8),
+                        Container(height: 10, width: 90, color: c.soft2),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }

@@ -26,7 +26,8 @@ import 'features/payments/new_payment_page.dart';
 import 'features/payments/payments_page.dart';
 import 'features/payments/qr_page.dart';
 import 'features/payments/success_page.dart';
-import 'features/profile/accounts_page.dart';
+import 'features/accounts/accounts_page.dart';
+import 'features/accounts/connect_page.dart';
 import 'features/profile/addresses_page.dart';
 import 'features/profile/family_page.dart';
 import 'features/profile/notifications_page.dart';
@@ -95,6 +96,10 @@ GoRouter buildRouter(Ref ref) {
       GoRoute(path: '/personal', builder: (_, _) => const PersonalPage()),
       GoRoute(path: '/objects', builder: (_, _) => const ObjectsPage()),
       GoRoute(path: '/accounts', builder: (_, _) => const AccountsPage()),
+      GoRoute(
+        path: '/connect',
+        builder: (_, state) => ConnectAccountPage(providerId: state.extra as String?),
+      ),
       GoRoute(path: '/addresses', builder: (_, _) => const AddressesPage()),
       GoRoute(path: '/family', builder: (_, _) => const FamilyPage()),
       GoRoute(path: '/security', builder: (_, _) => const SecurityPage()),

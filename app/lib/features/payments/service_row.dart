@@ -162,8 +162,7 @@ Future<void> openServiceSheet(BuildContext context, QuickService service) {
               lead: s.connectAccountLead,
               onTap: () {
                 Navigator.pop(ctx);
-                context.push('/new-payment',
-                    extra: NewPaymentArgs(providerId: service.providerId, connect: true));
+                context.push('/connect', extra: service.providerId);
               },
             ),
             const SizedBox(height: 10),

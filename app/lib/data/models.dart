@@ -75,6 +75,22 @@ class PayObject {
     this.address = '',
   });
   final String id, name, icon, cat, address;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'icon': icon,
+        'cat': cat,
+        'address': address,
+      };
+
+  static PayObject fromJson(Map<String, dynamic> j) => PayObject(
+        id: j['id'] as String,
+        name: j['name'] as String? ?? '',
+        icon: j['icon'] as String? ?? 'house',
+        cat: j['cat'] as String? ?? 'water',
+        address: j['address'] as String? ?? '',
+      );
 }
 
 /// Строка расшифровки или реквизитов: подпись — значение.
@@ -82,6 +98,16 @@ class PayObject {
 class Field {
   const Field(this.label, this.value);
   final String label, value;
+
+  Map<String, dynamic> toJson() => {'label': label, 'value': value};
+
+  static Field fromJson(Map<String, dynamic> j) =>
+      Field('${j['label'] ?? ''}', '${j['value'] ?? ''}');
+
+  static List<Field> listFrom(Object? raw) => [
+        for (final f in (raw as List? ?? const []))
+          if (f is Map) Field.fromJson(f.cast<String, dynamic>()),
+      ];
 }
 
 @immutable
@@ -122,6 +148,38 @@ class Bill {
         requisites: requisites,
         paid: paid ?? this.paid,
         autopay: autopay ?? this.autopay,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'subtitle': subtitle,
+        'cat': cat,
+        'amount': amount,
+        'objectId': objectId,
+        'period': period,
+        'due': due.toIso8601String(),
+        'account': account,
+        'calc': [for (final f in calc) f.toJson()],
+        'requisites': [for (final f in requisites) f.toJson()],
+        'paid': paid,
+        'autopay': autopay,
+      };
+
+  static Bill fromJson(Map<String, dynamic> j) => Bill(
+        id: j['id'] as String,
+        title: j['title'] as String? ?? '',
+        subtitle: j['subtitle'] as String? ?? '',
+        cat: j['cat'] as String? ?? 'city',
+        amount: (j['amount'] as num?)?.toDouble() ?? 0,
+        objectId: j['objectId'] as String? ?? '',
+        period: j['period'] as String? ?? '',
+        due: DateTime.tryParse(j['due'] as String? ?? '') ?? DateTime(2026),
+        account: j['account'] as String? ?? '',
+        calc: Field.listFrom(j['calc']),
+        requisites: Field.listFrom(j['requisites']),
+        paid: j['paid'] as bool? ?? false,
+        autopay: j['autopay'] as bool? ?? false,
       );
 
   /// Новый номер лицевого счёта и объект — при правке в профиле.
@@ -225,6 +283,37 @@ class Payment {
   final double amount;
   final DateTime date;
   final PayStatus status;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'cat': cat,
+        'amount': amount,
+        'date': date.toIso8601String(),
+        'methodId': methodId,
+        'receiptNo': receiptNo,
+        'objectId': objectId,
+        'account': account,
+        'period': period,
+        'status': status.name,
+      };
+
+  static Payment fromJson(Map<String, dynamic> j) => Payment(
+        id: j['id'] as String,
+        title: j['title'] as String? ?? '',
+        cat: j['cat'] as String? ?? 'city',
+        amount: (j['amount'] as num?)?.toDouble() ?? 0,
+        date: DateTime.tryParse(j['date'] as String? ?? '') ?? DateTime(2026),
+        methodId: j['methodId'] as String? ?? '',
+        receiptNo: j['receiptNo'] as String? ?? '',
+        objectId: j['objectId'] as String? ?? '',
+        account: j['account'] as String? ?? '',
+        period: j['period'] as String? ?? '',
+        status: PayStatus.values.firstWhere(
+          (s) => s.name == j['status'],
+          orElse: () => PayStatus.success,
+        ),
+      );
 }
 
 /// Участник семейного доступа.
@@ -395,4 +484,201 @@ class QuickService {
     required this.providerId,
   });
   final String cat, label, providerId;
+}
+
+/// Как давно обновлялись начисления по подключённому счёту.
+enum AccountSyncStatus { ok, syncing, failed }
+
+/// Найденный в реестре поставщика счёт — кандидат на подключение.
+@immutable
+class AccountCandidate {
+  const AccountCandidate({
+    required this.id,
+    required this.providerId,
+    required this.providerTitle,
+    required this.serviceTitle,
+    required this.cat,
+    required this.accountNo,
+    required this.holder,
+    required this.address,
+    required this.amount,
+    required this.period,
+    required this.dueDay,
+    this.calc = const [],
+    this.needsConfirm = false,
+    this.alreadyConnected = false,
+  });
+
+  final String id, providerId, providerTitle, serviceTitle, cat, accountNo, holder, address, period;
+  final double amount;
+  final int dueDay;
+  final List<Field> calc;
+
+  /// Счёт оформлен не на этого пользователя — нужен код подтверждения.
+  final bool needsConfirm;
+
+  /// Такой счёт уже подключён к ЭлPay.
+  final bool alreadyConnected;
+
+  AccountCandidate copyWith({bool? alreadyConnected, bool? needsConfirm}) => AccountCandidate(
+        id: id,
+        providerId: providerId,
+        providerTitle: providerTitle,
+        serviceTitle: serviceTitle,
+        cat: cat,
+        accountNo: accountNo,
+        holder: holder,
+        address: address,
+        amount: amount,
+        period: period,
+        dueDay: dueDay,
+        calc: calc,
+        needsConfirm: needsConfirm ?? this.needsConfirm,
+        alreadyConnected: alreadyConnected ?? this.alreadyConnected,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'providerId': providerId,
+        'providerTitle': providerTitle,
+        'serviceTitle': serviceTitle,
+        'cat': cat,
+        'accountNo': accountNo,
+        'holder': holder,
+        'address': address,
+        'amount': amount,
+        'period': period,
+        'dueDay': dueDay,
+        'calc': [for (final f in calc) {'label': f.label, 'value': f.value}],
+        'needsConfirm': needsConfirm,
+        'alreadyConnected': alreadyConnected,
+      };
+
+  static AccountCandidate fromJson(Map<String, dynamic> j) => AccountCandidate(
+        id: j['id'] as String,
+        providerId: j['providerId'] as String,
+        providerTitle: j['providerTitle'] as String? ?? '',
+        serviceTitle: j['serviceTitle'] as String? ?? '',
+        cat: j['cat'] as String? ?? 'city',
+        accountNo: j['accountNo'] as String? ?? '',
+        holder: j['holder'] as String? ?? '',
+        address: j['address'] as String? ?? '',
+        amount: (j['amount'] as num?)?.toDouble() ?? 0,
+        period: j['period'] as String? ?? '',
+        dueDay: (j['dueDay'] as num?)?.toInt() ?? 25,
+        calc: [
+          for (final f in (j['calc'] as List? ?? const []))
+            if (f is Map) Field('${f['label']}', '${f['value']}'),
+        ],
+        needsConfirm: j['needsConfirm'] as bool? ?? false,
+        alreadyConnected: j['alreadyConnected'] as bool? ?? false,
+      );
+}
+
+/// Подключённый к ЭлPay лицевой счёт: по нему приходят начисления.
+@immutable
+class ConnectedAccount {
+  const ConnectedAccount({
+    required this.id,
+    required this.providerId,
+    required this.title,
+    required this.subtitle,
+    required this.cat,
+    required this.accountNo,
+    required this.objectId,
+    required this.holder,
+    required this.address,
+    required this.connectedAt,
+    this.status = AccountSyncStatus.ok,
+    this.syncedAt,
+    this.lastError,
+  });
+
+  final String id, providerId, title, subtitle, cat, accountNo, objectId, holder, address;
+  final DateTime connectedAt;
+  final AccountSyncStatus status;
+  final DateTime? syncedAt;
+  final String? lastError;
+
+  ConnectedAccount copyWith({
+    String? objectId,
+    AccountSyncStatus? status,
+    DateTime? syncedAt,
+    String? lastError,
+  }) =>
+      ConnectedAccount(
+        id: id,
+        providerId: providerId,
+        title: title,
+        subtitle: subtitle,
+        cat: cat,
+        accountNo: accountNo,
+        objectId: objectId ?? this.objectId,
+        holder: holder,
+        address: address,
+        connectedAt: connectedAt,
+        status: status ?? this.status,
+        syncedAt: syncedAt ?? this.syncedAt,
+        lastError: lastError,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'providerId': providerId,
+        'title': title,
+        'subtitle': subtitle,
+        'cat': cat,
+        'accountNo': accountNo,
+        'objectId': objectId,
+        'holder': holder,
+        'address': address,
+        'connectedAt': connectedAt.toIso8601String(),
+        'status': status.name,
+        'syncedAt': syncedAt?.toIso8601String(),
+        'lastError': lastError,
+      };
+
+  static ConnectedAccount fromJson(Map<String, dynamic> j) => ConnectedAccount(
+        id: j['id'] as String,
+        providerId: j['providerId'] as String? ?? '',
+        title: j['title'] as String? ?? '',
+        subtitle: j['subtitle'] as String? ?? '',
+        cat: j['cat'] as String? ?? 'city',
+        accountNo: j['accountNo'] as String? ?? '',
+        objectId: j['objectId'] as String? ?? '',
+        holder: j['holder'] as String? ?? '',
+        address: j['address'] as String? ?? '',
+        connectedAt: DateTime.tryParse(j['connectedAt'] as String? ?? '') ?? DateTime(2026),
+        status: AccountSyncStatus.values.firstWhere(
+          (s) => s.name == j['status'],
+          orElse: () => AccountSyncStatus.ok,
+        ),
+        syncedAt: DateTime.tryParse(j['syncedAt'] as String? ?? ''),
+        lastError: j['lastError'] as String?,
+      );
+}
+
+/// Запрос на поиск счёта: либо по номеру, либо по адресу.
+@immutable
+class AccountQuery {
+  const AccountQuery.byAccount(this.accountNo, {this.providerId})
+      : city = '',
+        street = '',
+        house = '',
+        flat = '';
+
+  const AccountQuery.byAddress({
+    required this.city,
+    required this.street,
+    required this.house,
+    this.flat = '',
+  })  : accountNo = '',
+        providerId = null;
+
+  final String accountNo;
+  final String? providerId;
+  final String city, street, house, flat;
+
+  bool get isByAccount => accountNo.isNotEmpty;
+  String get method => isByAccount ? 'account' : 'address';
 }

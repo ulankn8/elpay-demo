@@ -375,6 +375,68 @@ abstract class S {
   String get svcGas;
   String get svcMobile;
   String get svcTax;
+
+  // Подключение счетов, синхронизация, ошибки и офлайн
+  String get connectTitle;
+  String get connectLead;
+  String get findByAccount;
+  String get findByAccountLead;
+  String get findByAddress;
+  String get findByAddressLead;
+  String get searchAccountHint;
+  String get cityLabel2;
+  String get streetLabel;
+  String get houseLabel;
+  String get flatLabel;
+  String get searchAction;
+  String get searching;
+  String foundAccounts(int n);
+  String get foundNothing;
+  String get foundNothingLead;
+  String get alreadyConnected;
+  String get connectSelected;
+  String get connectOne;
+  String get accountHolder;
+  String get lastCharge;
+  String get noCharges;
+  String get checkingAccount;
+  String get confirmOwnership;
+  String get confirmOwnershipLead;
+  String get connectedOk;
+  String connectedCount(int n);
+  String get disconnectAccount;
+  String get disconnectConfirm;
+  String get disconnected;
+  String get syncOk;
+  String get syncPending;
+  String get syncFailed;
+  String syncedAt(String when);
+  String get refreshAction;
+  String get pullToRefresh;
+  String get errorTitle;
+  String get errorNetwork;
+  String get errorNetworkLead;
+  String get errorServer;
+  String get errorNotFound;
+  String get errorValidation;
+  String get errorAuth;
+  String get errorUnknown;
+  String get retryAction;
+  String get offlineBanner;
+  String get offlineQueued;
+  String get loadingData;
+
+  // Подключение счёта: итоги
+  String get chargedTotal;
+  String get connectAnother;
+  String get backToAccounts;
+
+  // Демо-раздел профиля
+  String get demoSection;
+  String get demoOffline;
+  String get demoOfflineLead;
+  String get demoDataSource;
+  String get demoDataMock;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
@@ -772,6 +834,68 @@ class SRu implements S {
   @override String get svcGas => 'Газ';
   @override String get svcMobile => 'Связь';
   @override String get svcTax => 'Налоги';
+
+  // Подключение счетов, синхронизация, ошибки и офлайн
+  @override String get connectTitle => 'Подключение счёта';
+  @override String get connectLead => 'Найдём ваши начисления по лицевому счёту или по адресу';
+  @override String get findByAccount => 'По лицевому счёту';
+  @override String get findByAccountLead => 'Номер есть на бумажной квитанции';
+  @override String get findByAddress => 'По адресу';
+  @override String get findByAddressLead => 'Покажем все счета по вашему дому и квартире';
+  @override String get searchAccountHint => 'Например, 31-00562';
+  @override String get cityLabel2 => 'Город';
+  @override String get streetLabel => 'Улица';
+  @override String get houseLabel => 'Дом';
+  @override String get flatLabel => 'Квартира';
+  @override String get searchAction => 'Найти';
+  @override String get searching => 'Ищем счета…';
+  @override String foundAccounts(int n) => 'Нашли $n ${plural(n, 'счёт', 'счёта', 'счетов')}';
+  @override String get foundNothing => 'По этим данным счетов не нашлось';
+  @override String get foundNothingLead => 'Проверьте номер или адрес. Если счёта нет в системе — добавьте его вручную по реквизитам.';
+  @override String get alreadyConnected => 'Уже подключён';
+  @override String get connectSelected => 'Подключить выбранные';
+  @override String get connectOne => 'Подключить счёт';
+  @override String get accountHolder => 'Владелец счёта';
+  @override String get lastCharge => 'Последнее начисление';
+  @override String get noCharges => 'Начислений пока нет';
+  @override String get checkingAccount => 'Проверяем счёт…';
+  @override String get confirmOwnership => 'Подтвердите, что счёт ваш';
+  @override String get confirmOwnershipLead => 'Введите последние четыре цифры суммы из прошлой квитанции или код из SMS';
+  @override String get connectedOk => 'Счёт подключён';
+  @override String connectedCount(int n) => 'Подключили $n ${plural(n, 'счёт', 'счёта', 'счетов')}';
+  @override String get disconnectAccount => 'Отключить счёт';
+  @override String get disconnectConfirm => 'Отключить счёт от ЭлPay? История платежей останется.';
+  @override String get disconnected => 'Счёт отключён';
+  @override String get syncOk => 'Начисления актуальны';
+  @override String get syncPending => 'Обновляем начисления…';
+  @override String get syncFailed => 'Не удалось обновить';
+  @override String syncedAt(String when) => 'Обновлено $when';
+  @override String get refreshAction => 'Обновить';
+  @override String get pullToRefresh => 'Потяните вниз, чтобы обновить';
+  @override String get errorTitle => 'Что-то пошло не так';
+  @override String get errorNetwork => 'Нет связи с сервером';
+  @override String get errorNetworkLead => 'Проверьте интернет и попробуйте ещё раз. Данные ниже — из последней загрузки.';
+  @override String get errorServer => 'Сервер не ответил';
+  @override String get errorNotFound => 'Ничего не найдено';
+  @override String get errorValidation => 'Проверьте введённые данные';
+  @override String get errorAuth => 'Нужно войти заново';
+  @override String get errorUnknown => 'Неизвестная ошибка';
+  @override String get retryAction => 'Повторить';
+  @override String get offlineBanner => 'Нет сети — показываем сохранённые данные';
+  @override String get offlineQueued => 'Отправим, когда появится сеть';
+  @override String get loadingData => 'Загружаем…';
+
+  // Подключение счёта: итоги
+  @override String get chargedTotal => 'Начислено по выбранным';
+  @override String get connectAnother => 'Подключить ещё счёт';
+  @override String get backToAccounts => 'К моим счетам';
+
+  // Демо-раздел профиля
+  @override String get demoSection => 'Для демонстрации';
+  @override String get demoOffline => 'Режим без сети';
+  @override String get demoOfflineLead => 'Показать, как приложение работает офлайн';
+  @override String get demoDataSource => 'Источник данных';
+  @override String get demoDataMock => 'Встроенный демо-реестр';
 }
 
 class SKy implements S {
@@ -1158,6 +1282,68 @@ class SKy implements S {
   @override String get svcGas => 'Газ';
   @override String get svcMobile => 'Байланыш';
   @override String get svcTax => 'Салыктар';
+
+  // Подключение счетов, синхронизация, ошибки и офлайн
+  @override String get connectTitle => 'Эсепти туташтыруу';
+  @override String get connectLead => 'Жеке эсеп же дарек боюнча эсептөөлөрүңүздү табабыз';
+  @override String get findByAccount => 'Жеке эсеп боюнча';
+  @override String get findByAccountLead => 'Номер кагаз квитанцияда бар';
+  @override String get findByAddress => 'Дарек боюнча';
+  @override String get findByAddressLead => 'Үйүңүз жана батириңиз боюнча бардык эсептерди көрсөтөбүз';
+  @override String get searchAccountHint => 'Мисалы, 31-00562';
+  @override String get cityLabel2 => 'Шаар';
+  @override String get streetLabel => 'Көчө';
+  @override String get houseLabel => 'Үй';
+  @override String get flatLabel => 'Батир';
+  @override String get searchAction => 'Табуу';
+  @override String get searching => 'Эсептерди издеп жатабыз…';
+  @override String foundAccounts(int n) => '$n эсеп табылды';
+  @override String get foundNothing => 'Бул маалыматтар боюнча эсеп табылган жок';
+  @override String get foundNothingLead => 'Номерди же даректи текшериңиз. Системада эсеп жок болсо — реквизиттер боюнча кол менен кошуңуз.';
+  @override String get alreadyConnected => 'Мурунтан туташкан';
+  @override String get connectSelected => 'Тандалгандарды туташтыруу';
+  @override String get connectOne => 'Эсепти туташтыруу';
+  @override String get accountHolder => 'Эсептин ээси';
+  @override String get lastCharge => 'Акыркы эсептөө';
+  @override String get noCharges => 'Азырынча эсептөө жок';
+  @override String get checkingAccount => 'Эсепти текшерип жатабыз…';
+  @override String get confirmOwnership => 'Эсеп сиздики экенин ырастаңыз';
+  @override String get confirmOwnershipLead => 'Өткөн квитанциядагы сумманын акыркы төрт санын же SMS кодун жазыңыз';
+  @override String get connectedOk => 'Эсеп туташтырылды';
+  @override String connectedCount(int n) => '$n эсеп туташтырылды';
+  @override String get disconnectAccount => 'Эсепти ажыратуу';
+  @override String get disconnectConfirm => 'Эсепти ЭлPayдан ажыратабызбы? Төлөмдөр тарыхы калат.';
+  @override String get disconnected => 'Эсеп ажыратылды';
+  @override String get syncOk => 'Эсептөөлөр жаңы';
+  @override String get syncPending => 'Эсептөөлөрдү жаңылап жатабыз…';
+  @override String get syncFailed => 'Жаңылоо ишке ашкан жок';
+  @override String syncedAt(String when) => '$when жаңыланды';
+  @override String get refreshAction => 'Жаңылоо';
+  @override String get pullToRefresh => 'Жаңылоо үчүн ылдый тартыңыз';
+  @override String get errorTitle => 'Бир нерсе туура эмес кетти';
+  @override String get errorNetwork => 'Сервер менен байланыш жок';
+  @override String get errorNetworkLead => 'Интернетти текшерип, кайра аракет кылыңыз. Төмөндөгү маалыматтар — акыркы жүктөөдөн.';
+  @override String get errorServer => 'Сервер жооп берген жок';
+  @override String get errorNotFound => 'Эч нерсе табылган жок';
+  @override String get errorValidation => 'Киргизилген маалыматтарды текшериңиз';
+  @override String get errorAuth => 'Кайра кирүү керек';
+  @override String get errorUnknown => 'Белгисиз ката';
+  @override String get retryAction => 'Кайталоо';
+  @override String get offlineBanner => 'Тармак жок — сакталган маалыматтар көрсөтүлүүдө';
+  @override String get offlineQueued => 'Тармак пайда болгондо жөнөтөбүз';
+  @override String get loadingData => 'Жүктөлүүдө…';
+
+  // Подключение счёта: итоги
+  @override String get chargedTotal => 'Тандалгандар боюнча эсептелди';
+  @override String get connectAnother => 'Дагы эсеп туташтыруу';
+  @override String get backToAccounts => 'Менин эсептериме';
+
+  // Демо-раздел профиля
+  @override String get demoSection => 'Көрсөтүү үчүн';
+  @override String get demoOffline => 'Тармаксыз режим';
+  @override String get demoOfflineLead => 'Колдонмо офлайн кантип иштээрин көрсөтүү';
+  @override String get demoDataSource => 'Маалымат булагы';
+  @override String get demoDataMock => 'Ичине салынган демо-реестр';
 }
 
 String plural3(int n, String one, String few, String many) {

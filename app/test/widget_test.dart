@@ -1,4 +1,5 @@
 import 'package:elpay/app.dart';
+import 'package:elpay/core/cache/local_store.dart';
 import 'package:elpay/core/prefs.dart';
 import 'package:elpay/state/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,10 +10,14 @@ void main() {
   testWidgets('Первый запуск показывает приветствие и вход', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await AppPrefs.open();
+    final store = await LocalStore.open();
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [prefsProvider.overrideWithValue(prefs)],
+        overrides: [
+          prefsProvider.overrideWithValue(prefs),
+          localStoreProvider.overrideWithValue(store),
+        ],
         child: const ElPayApp(),
       ),
     );

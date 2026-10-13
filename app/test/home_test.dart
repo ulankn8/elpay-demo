@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:elpay/app.dart';
+import 'package:elpay/core/cache/local_store.dart';
 import 'package:elpay/core/prefs.dart';
 import 'package:elpay/data/models.dart';
 import 'package:elpay/state/providers.dart';
@@ -16,6 +17,15 @@ const _session = Session(
   method: AuthMethod.phone,
   address: 'ул. Курманжан Датка, 212',
 );
+
+/// Мок-API отвечает с задержкой и несколькими шагами подряд:
+/// прокручиваем таймеры, пока экран не получит данные.
+Future<void> _loadData(WidgetTester tester) async {
+  for (var i = 0; i < 6; i++) {
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+  await tester.pumpAndSettle();
+}
 
 /// Экран телефона: иначе в тесте виден только верх списка.
 void _phoneSurface(WidgetTester tester) {
@@ -33,14 +43,18 @@ void main() {
       'flutter.onboarded': true,
     });
     final prefs = await AppPrefs.open();
+    final store = await LocalStore.open();
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [prefsProvider.overrideWithValue(prefs)],
+        overrides: [
+          prefsProvider.overrideWithValue(prefs),
+          localStoreProvider.overrideWithValue(store),
+        ],
         child: const ElPayApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    await _loadData(tester);
 
     expect(find.textContaining('Салам'), findsOneWidget);
     // сторисы: первая карточка ленты
@@ -63,17 +77,21 @@ void main() {
       'flutter.onboarded': true,
     });
     final prefs = await AppPrefs.open();
+    final store = await LocalStore.open();
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [prefsProvider.overrideWithValue(prefs)],
+        overrides: [
+          prefsProvider.overrideWithValue(prefs),
+          localStoreProvider.overrideWithValue(store),
+        ],
         child: const ElPayApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    await _loadData(tester);
 
     await tester.tap(find.text('Платежи'));
-    await tester.pumpAndSettle();
+    await _loadData(tester);
 
     expect(find.text('Кошелёк ЭлPay'), findsWidgets);
     expect(find.text('История платежей'), findsWidgets);

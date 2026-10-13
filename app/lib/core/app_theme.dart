@@ -132,6 +132,31 @@ class AppTheme {
         showDragHandle: true,
         dragHandleColor: colors.line,
       ),
+      // Чипы выбора (город, объект, фильтр) — в фирменных цветах,
+      // а не в стандартных серо-синих Material.
+      chipTheme: ChipThemeData(
+        backgroundColor: Colors.transparent,
+        selectedColor: brightness == Brightness.dark
+            ? Brand.primary.withValues(alpha: .18)
+            : Brand.light2,
+        checkmarkColor: Brand.p700,
+        side: BorderSide(color: colors.line, width: 1.2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+        labelStyle: TextStyle(
+          fontFamily: _font,
+          fontSize: 13.5,
+          fontWeight: FontWeight.w600,
+          color: ink,
+        ),
+        secondaryLabelStyle: TextStyle(
+          fontFamily: _font,
+          fontSize: 13.5,
+          fontWeight: FontWeight.w700,
+          color: brightness == Brightness.dark ? Brand.dP700 : Brand.p700,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        showCheckmark: false,
+      ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: brightness == Brightness.light ? Brand.ink : const Color(0xFF0B1114),
         contentTextStyle: const TextStyle(

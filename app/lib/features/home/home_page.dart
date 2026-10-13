@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/failure.dart';
 import '../../core/l10n/s.dart';
 import '../../core/tokens.dart';
 import '../../core/widgets.dart';
@@ -23,12 +24,12 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: billsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('$e')),
-          data: (state) => ListView(
+        child: RefreshIndicator(
+          onRefresh: () => ref.read(billsProvider.notifier).refresh(),
+          child: ListView(
             padding: const EdgeInsets.only(bottom: 24),
             children: [
+              // Шапка и сторисы видны всегда — даже пока грузятся начисления.
               Padding(
                 padding: const EdgeInsets.fromLTRB(Brand.gutter, 4, Brand.gutter, 12),
                 child: _Header(
@@ -38,19 +39,47 @@ class HomePage extends ConsumerWidget {
               ),
               const StoriesStrip(),
               const SizedBox(height: 18),
-              if (state.objects.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
-                  child: AppCard(
-                    child: EmptyState(
-                      icon: Icons.home_outlined,
-                      title: s.nothingYet,
-                      lead: s.objectsLead,
+              ...billsAsync.when(
+                loading: () => [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: Brand.gutter),
+                    child: LoadingRows(count: 3),
+                  ),
+                ],
+                error: (e, _) => [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
+                    child: ErrorView(
+                      failure: e is AppFailure ? e : const AppFailure(FailureKind.unknown),
+                      onRetry: () => ref.invalidate(billsProvider),
                     ),
                   ),
-                )
-              else
-                _ObjectCarousel(state: state),
+                ],
+                data: (state) => [
+                  if (state.failure != null || state.fromCache) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
+                      child: OfflineBanner(
+                        onRetry: () => ref.read(billsProvider.notifier).refresh(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (state.objects.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
+                      child: AppCard(
+                        child: EmptyState(
+                          icon: Icons.home_outlined,
+                          title: s.nothingYet,
+                          lead: s.objectsLead,
+                        ),
+                      ),
+                    )
+                  else
+                    _ObjectCarousel(state: state),
+                ],
+              ),
               const SizedBox(height: 18),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/s.dart';
+import '../../core/net/connectivity.dart';
 import '../../core/tokens.dart';
 import '../../core/widgets.dart';
 import '../../state/providers.dart';
@@ -19,6 +20,11 @@ class ProfilePage extends ConsumerWidget {
     final sec = ref.watch(securityProvider);
     final state = ref.watch(billsProvider).value;
     final family = ref.watch(familyProvider);
+    final accounts = ref.watch(accountsProvider);
+    final config = ref.watch(configProvider);
+    // Состояние сети: демо-переключатель ниже показывает офлайн-режим.
+    ref.watch(isOnlineProvider);
+    final online = ref.watch(connectivityProvider).isOnline;
     final addresses = ref.watch(addressesProvider);
 
     return Scaffold(
@@ -87,7 +93,11 @@ class ProfilePage extends ConsumerWidget {
                   AppRow(
                     leading: CatTile('power', Icons.receipt_long_outlined, soft: true),
                     title: s.accountsTitle,
-                    subtitle: s.billsCount(state?.bills.length ?? 0),
+                    subtitle: accounts.when(
+                      data: (list) => s.billsCount(list.length),
+                      loading: () => s.loadingData,
+                      error: (_, _) => s.accountsLead,
+                    ),
                     chevron: true,
                     onTap: () => context.push('/accounts'),
                   ),
@@ -176,6 +186,32 @@ class ProfilePage extends ConsumerWidget {
                     leading: CatTile('tax', Icons.info_outline_rounded, soft: true),
                     title: s.version,
                     subtitle: 'ЭлPay 0.2 · ${s.byElbagar}',
+                  ),
+                ],
+              ),
+            ),
+            SectionTitle(s.demoSection),
+            AppCard(
+              child: Column(
+                children: [
+                  AppRow(
+                    leading: CatTile('net', Icons.wifi_rounded, soft: true),
+                    title: s.demoOffline,
+                    subtitle: s.demoOfflineLead,
+                    trailing: Switch(
+                      value: !online,
+                      onChanged: (v) {
+                        final net = ref.read(connectivityProvider);
+                        if (net is ManualConnectivity) net.setOnline(!v);
+                        showAppSnack(context, v ? s.offlineBanner : s.syncOk);
+                      },
+                    ),
+                  ),
+                  const RowDivider(),
+                  AppRow(
+                    leading: CatTile('tax', Icons.cloud_outlined, soft: true),
+                    title: s.demoDataSource,
+                    subtitle: config.isDemo ? s.demoDataMock : config.apiBaseUrl,
                   ),
                 ],
               ),
