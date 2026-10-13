@@ -98,6 +98,7 @@ void main() {
     // зелёными просто потому, что файлов не нашлось.
     expect(dartFiles('lib/core'), isNotEmpty);
     expect(dartFiles('lib/data'), isNotEmpty);
+    expect(dartFiles('lib/state'), isNotEmpty);
     expect(dartFiles('lib/features'), isNotEmpty);
   });
 
@@ -111,8 +112,38 @@ void main() {
   });
 
   test('lib/data не импортирует features и state', () {
-    // Слой данных не знает, кто его читает: ни экрана, ни Riverpod.
+    // Слой данных не знает, кто его читает: ни экрана, ни слоя состояния.
     expect(offenders('lib/data', ['lib/features/', 'lib/state/']), isEmpty);
+  });
+
+  test('lib/data не знает ни про виджеты, ни про контейнер', () {
+    // Второе обещание того же правила — и до этого теста его проверял
+    // только один файл (connect_rules.dart). Запрет по каталогам
+    // «lib/features/, lib/state/» package:-импорт не ловит: репозиторий
+    // мог взять material.dart и Riverpod напрямую, и слой данных тихо
+    // перестал бы быть переносимым и подменяемым.
+    //
+    // package:flutter/foundation.dart (@immutable) разрешён осознанно:
+    // это аннотации, а не интерфейс.
+    expect(
+      offenders('lib/data', const [
+        'package:flutter/material.dart',
+        'package:flutter/widgets.dart',
+        'package:flutter/cupertino.dart',
+        'package:flutter_riverpod',
+        'package:riverpod',
+      ]),
+      isEmpty,
+      reason: 'репозиторий не знает ни про экран, ни про провайдеры',
+    );
+  });
+
+  test('lib/state не импортирует features', () {
+    // Третья стрелка направления core ← data ← state ← features: состояние
+    // не знает, какой экран его читает, иначе получается круг слоёв,
+    // который Dart пропускает молча. До этого теста правила для lib/state
+    // не было вовсе — кроме точечной проверки demo_data по четырём файлам.
+    expect(offenders('lib/state', ['lib/features/']), isEmpty);
   });
 
   test('Правила подключения не знают про виджеты и Riverpod', () {

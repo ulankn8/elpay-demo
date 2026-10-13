@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../core/cache/local_store.dart';
 import '../core/clock.dart';
+import '../core/failure.dart';
 import '../core/logger.dart';
 import '../core/result.dart';
 
@@ -64,7 +65,10 @@ class Cached<T> {
 ///   * кэш свежий (TTL не истёк) — `Ok(Cached.fresh)`, в сеть не идём;
 ///   * источник ответил — `Ok(Cached.fresh)`, кэш перезаписан;
 ///   * источник упал, кэш есть — `Ok(Cached.stale)`, экран рисует офлайн;
-///   * источник упал, кэша нет — `Fail(failure)`, экран рисует ошибку.
+///   * источник упал, кэша нет — `Fail(failure)`, экран рисует ошибку;
+///   * источник ответил 401/403 — `Fail(failure)` ВСЕГДА, даже с кэшем:
+///     «нужно войти заново» обязано дойти до экрана, а не спрятаться
+///     под плашкой офлайна.
 ///
 /// Зависит только от контракта [LocalStore], а не от SharedPreferences,
 /// поэтому тесты политики обходятся `MemoryLocalStore` без биндинга
@@ -207,7 +211,11 @@ class CachePolicy<T> {
         await write(value, now: at);
         return Ok(Cached<T>.fresh(value, at));
       case Fail<T>(:final failure):
-        if (cache != null) {
+        // Отказ, который требует действия пользователя, кэшем не прикрыть:
+        // 401/403 означают «войди заново», а под сохранёнными данными экран
+        // нарисовал бы плашку офлайна, и войти не предложил бы никто.
+        // Остальные отказы по-прежнему откатываются на сохранённое.
+        if (cache != null && failure.kind != FailureKind.auth) {
           // Данные есть, свежих нет — это не ошибка экрана, а офлайн.
           Log.w(_tag, '$key: источник молчит (${failure.message}), отдаём сохранённое');
           return Ok(Cached<T>.stale(cache, updatedAt()));

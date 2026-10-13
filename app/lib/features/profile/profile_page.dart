@@ -280,7 +280,6 @@ class ProfilePage extends ConsumerWidget {
     final ok = await confirmDialog(context, s.deleteAccountLead, s.deleteAccount);
     if (ok != true) return;
     // Онбординг снимается до выхода: сам выход чистит хранилища целиком.
-    await ref.read(prefsProvider).setOnboarded(false);
     await ref.read(_signOutProvider)();
     if (!context.mounted) return;
     showAppSnack(context, s.deleteAccountDone);

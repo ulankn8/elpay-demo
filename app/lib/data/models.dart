@@ -598,6 +598,30 @@ class TicketItem {
   final int seats;
   final bool used;
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'eventId': eventId,
+        'title': title,
+        'place': place,
+        'date': date.toIso8601String(),
+        'price': price,
+        'code': code,
+        'seats': seats,
+        'used': used,
+      };
+
+  static TicketItem fromJson(Map<String, dynamic> j) => TicketItem(
+        id: j['id'] as String,
+        eventId: j['eventId'] as String? ?? '',
+        title: j['title'] as String? ?? '',
+        place: j['place'] as String? ?? '',
+        date: DateTime.tryParse(j['date'] as String? ?? '') ?? DateTime(2026),
+        price: (j['price'] as num?)?.toDouble() ?? 0,
+        code: j['code'] as String? ?? '',
+        seats: (j['seats'] as num?)?.toInt() ?? 1,
+        used: j['used'] as bool? ?? false,
+      );
+
   TicketItem copyWith({bool? used}) => TicketItem(
         id: id,
         eventId: eventId,
@@ -746,17 +770,22 @@ class Catalog {
 
   /// Поиск поставщика по названию, услуге и номеру-образцу. Пустой запрос —
   /// весь список, чтобы шторка выбора не начиналась с пустого экрана.
-  List<ProviderItem> searchProviders(String query, {String? categoryId}) {
+  /// [tr] — перевод строки данных на язык экрана. Без него поиск шёл по
+  /// русским ключам, которых на кыргызском пользователю никто не показывал:
+  /// набрав увиденное слово, он не находил ничего.
+  List<ProviderItem> searchProviders(
+    String query, {
+    String? categoryId,
+    String Function(String)? tr,
+  }) {
     final pool = categoryId == null ? providers : byCategory(categoryId);
     final q = _fold(query);
     if (q.isEmpty) return pool;
+    bool hit(String raw) =>
+        _fold(raw).contains(q) || (tr != null && _fold(tr(raw)).contains(q));
     return [
       for (final p in pool)
-        if (_fold(p.title).contains(q) ||
-            _fold(p.subtitle).contains(q) ||
-            _fold(p.accountLabel).contains(q) ||
-            _fold(p.accountHint).contains(q))
-          p,
+        if (hit(p.title) || hit(p.subtitle) || hit(p.accountLabel) || hit(p.accountHint)) p,
     ];
   }
 

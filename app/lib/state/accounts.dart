@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -116,6 +118,8 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
         syncedAt: data.updatedAt,
       ),
       (failure) {
+        // 401/403 повтором не лечится: нужен новый вход.
+        unawaited(handleAuthFailure(ref, failure));
         if (cached.isEmpty) throw failure;
         return AccountsState(
           accounts: cached,
@@ -131,14 +135,51 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
   Future<void> refresh() async {
     final current = state.value ?? AccountsState.empty;
     final result = await _repo.load(refresh: true);
+    // Состояние перечитываем ПОСЛЕ запроса: за время полёта пользователь
+    // мог отключить или подключить счёт, и снимок `current` об этом
+    // не знает — записав его, мы вернули бы отключённый счёт в список.
+    final latest = state.value ?? current;
     state = AsyncData(result.fold(
       (data) => AccountsState(
-        accounts: data.value,
+        accounts: _applySource(data.value, before: current, latest: latest),
         fromCache: data.fromCache,
         syncedAt: data.updatedAt,
       ),
-      (failure) => current.copyWith(failure: failure, fromCache: true),
+      (failure) => latest.copyWith(failure: failure, fromCache: true),
     ));
+  }
+
+  /// Накладывает ответ источника на СВЕЖЕЕ состояние, а не на снимок,
+  /// снятый до запроса.
+  ///
+  /// Из ответа вычитается то, что пользователь убрал в полёте (иначе
+  /// отключённый счёт возвращается в список), и дописывается то, что
+  /// в полёте появилось (счёт, подключённый параллельно, иначе исчезает
+  /// с экрана, оставаясь на сервере). [keepMissing] — счета, которых
+  /// в ответе нет, но удалять их нельзя: адресный sync отвечает только
+  /// про названные счета, остальные он просто не упоминает.
+  List<ConnectedAccount> _applySource(
+    List<ConnectedAccount> source, {
+    required AccountsState before,
+    required AccountsState latest,
+    bool Function(String id)? keepMissing,
+  }) {
+    final had = {for (final a in before.accounts) a.id};
+    final alive = {for (final a in latest.accounts) a.id};
+    final fromSource = {for (final a in source) a.id: a};
+    // Порядок строк берём с экрана: он у пользователя перед глазами.
+    return [
+      for (final a in latest.accounts)
+        if (fromSource[a.id] case final fresh?)
+          fresh
+        else if (!had.contains(a.id) || (keepMissing?.call(a.id) ?? false))
+          a,
+      // Счёт, которого на экране не было: источник прислал его впервые
+      // (подключили с другого устройства). Отключённый в полёте сюда
+      // не попадает — он был в [before].
+      for (final a in source)
+        if (!alive.contains(a.id) && !had.contains(a.id)) a,
+    ];
   }
 
   /// «Обновить начисления»: затронутым счетам сразу ставится syncing,
@@ -161,10 +202,25 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
     ));
 
     final result = await _repo.sync(accountIds: accountIds);
+    // Снимок `current` устарел: в демо запрос идёт 420 мс на счёт, на боевом
+    // источнике — до минуты (3 попытки по 20 с), и меню строки на экране
+    // всё это время активно. Поэтому дальше работаем со свежим состоянием.
+    final latest = state.value ?? current;
+    // Пометки ставим только тем счетам, которые в запрос реально попали:
+    // счёт, подключённый в полёте, в нём не участвовал.
+    final requested = {for (final a in current.accounts) a.id};
+    bool synced(ConnectedAccount a) => touched(a) && requested.contains(a.id);
+
     return result.fold(
       (value) {
-        _set(current.copyWith(
-          accounts: value.accounts,
+        _set(latest.copyWith(
+          accounts: _applySource(
+            value.accounts,
+            before: current,
+            latest: latest,
+            // Адресный повтор отвечает только про названные счета.
+            keepMissing: (id) => targets.isNotEmpty && !targets.contains(id),
+          ),
           syncedAt: value.syncedAt,
           syncing: false,
           fromCache: false,
@@ -176,12 +232,12 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
       },
       (failure) {
         Log.w(_tag, 'начисления не обновились: ${failure.message}');
-        _set(current.copyWith(
+        _set(latest.copyWith(
           syncing: false,
           failure: failure,
           accounts: [
-            for (final a in current.accounts)
-              if (touched(a))
+            for (final a in latest.accounts)
+              if (synced(a))
                 a.copyWith(status: AccountSyncStatus.failed, lastError: failure.message)
               else
                 a,
@@ -219,8 +275,18 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
     ));
 
     final result = await _repo.disconnect(accountId);
+    final latest = state.value ?? current;
     return result.fold(
       (_) {
+        // Параллельный sync мог вернуть строку в список своим снимком —
+        // убираем её ещё раз по СВЕЖЕМУ состоянию, иначе отключённый счёт
+        // остаётся на экране и повторное «Отключить» падает в notFound.
+        if (latest.byId(accountId) != null) {
+          _set(latest.copyWith(accounts: [
+            for (final a in latest.accounts)
+              if (a.id != accountId) a,
+          ]));
+        }
         // Начисления отключённого счёта уходят по accountId, а не по номеру.
         ref.read(billsProvider.notifier).dropByAccount(accountId);
         ref.read(billsProvider.notifier).refresh();
@@ -231,8 +297,8 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
         // помечает её «отключаем» и держит в кэше, при отказе оставляет
         // как была. Берём его версию, а не придумываем свою.
         final saved = _repo.cachedAccounts();
-        _set(current.copyWith(
-          accounts: saved.isEmpty ? current.accounts : saved,
+        _set(latest.copyWith(
+          accounts: saved.isEmpty ? latest.accounts : saved,
           failure: failure,
         ));
         return Fail<void>(failure);
@@ -245,11 +311,14 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
   Future<Result<ConnectedAccount>> moveToObject(String accountId, String objectId) async {
     final current = state.value ?? AccountsState.empty;
     final result = await _repo.move(accountId: accountId, objectId: objectId);
+    // За время переноса список мог измениться: пишем в свежее состояние,
+    // иначе снимок вернёт отключённый в полёте счёт.
+    final latest = state.value ?? current;
     return result.fold(
       (moved) {
-        _set(current.copyWith(
+        _set(latest.copyWith(
           accounts: [
-            for (final a in current.accounts) a.id == moved.id ? moved : a,
+            for (final a in latest.accounts) a.id == moved.id ? moved : a,
           ],
           clearFailure: true,
         ));
@@ -258,7 +327,7 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
         return Ok(moved);
       },
       (failure) {
-        _set(current.copyWith(failure: failure));
+        _set(latest.copyWith(failure: failure));
         return Fail<ConnectedAccount>(failure);
       },
     );

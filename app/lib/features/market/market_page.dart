@@ -70,7 +70,12 @@ class _EventCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            height: 104,
+            // minHeight, а не фиксированные 104: двухстрочное название
+            // («Футбол: «Алай» — «Абдыш-Ата»») с множителем строки из темы
+            // требует 79 px при 72 доступных — Column переполнялся на 7 px,
+            // а при крупном системном шрифте текст вылезал на белое тело
+            // карточки. Однострочные карточки остаются теми же 104 px.
+            constraints: const BoxConstraints(minHeight: 104),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: colors,

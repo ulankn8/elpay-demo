@@ -242,7 +242,10 @@ class _StoryPage extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 13.5, fontWeight: FontWeight.w700, color: Colors.white)),
                 const SizedBox(width: 8),
-                Text(story.ago,
+                // ago и ctaLabel — такие же демо-данные, как author рядом:
+                // без s.tr() в одной строке шапки оказывались кыргызский
+                // автор и русское «2 ч назад».
+                Text(s.tr(story.ago),
                     style: TextStyle(
                         fontSize: 12, color: Colors.white.withValues(alpha: .7))),
                 const Spacer(),
@@ -315,7 +318,7 @@ class _StoryPage extends StatelessWidget {
                         Navigator.of(context).maybePop();
                         if (route != null) context.push(route);
                       },
-                      child: Text(frame.ctaLabel!),
+                      child: Text(s.tr(frame.ctaLabel!)),
                     ),
                   ),
                 const SizedBox(height: 12),

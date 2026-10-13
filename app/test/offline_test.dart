@@ -164,8 +164,9 @@ void main() {
       );
 
       expect(again.isOk, isTrue);
-      // Сверяемся с источником: кэш правится известным дефектом
-      // _patchCache (он отмечен скипом в test/accounts_test.dart).
+      // Сверяемся с источником через refresh: true; дедупликация самого
+      // кэша проверяется в test/accounts_test.dart, тестом «повтор по тому
+      // же ключу не удваивает счёт в кэше».
       final all = (await env.accounts.accounts(refresh: true)).valueOrNull!;
       expect(all.where((a) => a.accountNo == '55-20841'), hasLength(1));
     });
@@ -205,6 +206,46 @@ void main() {
         (await restarted.accounts.disconnect(gas.single.id)).isOk,
         isTrue,
       );
+    });
+  });
+
+  // Рядом с офлайн-веткой того же жеста: ветка Ok у
+  // AccountsNotifier.disconnect не исполнялась ни одним тестом вообще
+  // (покрыты были только отказ через нотифаер и успех на уровне
+  // репозитория), и приложение могло перестать убирать начисления
+  // отключённого счёта при зелёном прогоне.
+  group('Отключение при живой сети', () {
+    test('Онлайн-отключение убирает начисления отключённого счёта', () async {
+      final env = makeEnv();
+      addTearDown(env.dispose);
+      final container = await env.container();
+      final accounts = await container.read(accountsProvider.future);
+      final bills = await container.read(billsProvider.future);
+
+      final victim = accounts.accounts.firstWhere(
+        (a) => bills.byAccount(a.id).any((b) => !b.paid),
+      );
+      final mine = bills
+          .byAccount(victim.id)
+          .where((b) => !b.paid)
+          .fold<double>(0, (sum, b) => sum + b.amount);
+      final dueBefore = bills.dueTotal;
+
+      final result = await container.read(accountsProvider.notifier).disconnect(victim.id);
+
+      expect(result.isOk, isTrue);
+      // Начисления уходят СРАЗУ, не дожидаясь перечитывания из источника:
+      // иначе пользователь видит долг по счёту, которого больше нет, —
+      // и в ленте «к оплате», и на карточке объекта.
+      final right = container.read(billsProvider).value!;
+      expect(right.byAccount(victim.id), isEmpty);
+
+      await settleProviders();
+
+      final after = container.read(billsProvider).value!;
+      expect(container.read(accountsProvider).value!.byId(victim.id), isNull);
+      expect(after.byAccount(victim.id), isEmpty, reason: 'и не вернулись с обновлением');
+      expect(after.dueTotal, closeTo(dueBefore - mine, 0.001));
     });
   });
 

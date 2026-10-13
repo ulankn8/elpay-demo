@@ -1,3 +1,4 @@
+import 'package:elpay/core/cache/local_store.dart';
 import 'package:elpay/core/clock.dart';
 import 'package:elpay/core/failure.dart';
 import 'package:elpay/core/ids.dart';
@@ -146,8 +147,8 @@ void main() {
       // Тот же ключ — тот же результат, а не «счёт уже подключён» и не дубль.
       expect(repeat.isOk, isTrue);
       expect(repeat.valueOrNull!.account.id, first.valueOrNull!.account.id);
-      // Сверяемся с источником, а не с кэшем: кэш правится отдельным
-      // дефектом, он проверяется следующим тестом.
+      // Сверяемся с источником, а не с кэшем: кэш правится отдельно,
+      // и это проверяет следующий тест.
       final all = (await env.accounts.accounts(refresh: true)).valueOrNull!;
       expect(all.where((a) => a.accountNo == '55-20841'), hasLength(1));
     });
@@ -211,6 +212,29 @@ void main() {
       expect(sent, 1);
       expect(env.outbox.isEmpty, isTrue);
       expect(env.accounts.cachedAccounts().any((a) => a.accountNo == '55-20841'), isTrue);
+    });
+
+    test('подключение при пустом кэше не прячет прежние счета', () async {
+      final env = makeEnv();
+      addTearDown(env.dispose);
+      // Список счетов ни разу не загружали: записи кэша нет вообще. Так
+      // бывает при подключении со значка услуги на главной.
+      expect(env.store.keys, isNot(contains(CacheKeys.accounts)));
+      final onServer = (await env.api.accounts()).length;
+
+      await env.accounts.connect(candidateId: 'reg-gas-1', objectId: 'o1');
+
+      // load() БЕЗ refresh — ровно так перечитывает AccountsNotifier.build()
+      // после ref.invalidate(accountsProvider).
+      final loaded = await env.accounts.load();
+
+      expect(
+        loaded.valueOrNull!.value,
+        hasLength(onServer + 1),
+        reason: 'правка кэша без полного списка обязана быть устаревшей, '
+            'иначе список из одного счёта 15 минут считается свежим '
+            'и прежние счета исчезают с экрана',
+      );
     });
   });
 
@@ -292,6 +316,101 @@ void main() {
         env.accounts.cachedAccounts().firstWhere((a) => a.id == first.id).objectId,
         'o2',
       );
+    });
+  });
+
+  // Главный путь записи фичи: именно connectPlan зовёт ConnectNotifier
+  // после нажатия «Подключить». Группа ниже гоняет его КОПИЮ из
+  // test/support, а боевой метод до этих двух тестов не исполнялся
+  // в прогоне ни разу: его можно было сломать целиком, и все тесты
+  // оставались зелёными.
+  group('Пакетное подключение на боевом репозитории', () {
+    const rules = ConnectRules();
+
+    /// Три кандидата из демо-реестра, готовых к подключению.
+    ///
+    /// Два счёта оформлены на других людей, поэтому сначала проходим код
+    /// подтверждения — иначе правила их не отдадут, и план соберётся
+    /// из одного счёта вместо трёх.
+    Future<List<AccountCandidate>> readyThree(TestEnv env) async {
+      final gas = (await env.accounts.search(const AccountQuery.byAccount('55-20841')))
+          .valueOrNull!
+          .single;
+      final trash =
+          (await env.accounts.confirm(candidateId: 'reg-trash-2', code: '4815')).valueOrNull!;
+      final power =
+          (await env.accounts.confirm(candidateId: 'reg-power-3', code: '4815')).valueOrNull!;
+      return [gas, trash, power];
+    }
+
+    Future<ConnectPlan> planOf(TestEnv env) async {
+      final found = await readyThree(env);
+      final views = rules.classify(found: found, connected: const []);
+      expect(views.every((v) => v.ready), isTrue, reason: 'план собирается из готовых');
+      return rules
+          .plan(
+            views: views,
+            selected: {for (final v in views) v.id},
+            objectId: homeObject.id,
+            objects: const [homeObject],
+            ids: env.ids,
+          )
+          .valueOrNull!;
+    }
+
+    test('Три счёта подключаются одним планом, начисления приходят с ними', () async {
+      final env = makeEnv();
+      addTearDown(env.dispose);
+      final plan = await planOf(env);
+
+      final batch = await env.accounts.connectPlan(plan);
+
+      expect(batch.total, 3);
+      expect(batch.isSuccess, isTrue);
+      expect(batch.connected, hasLength(3));
+      expect(batch.failed, isEmpty);
+      expect(batch.queued, isEmpty);
+      // Итог экрана строится по этим полям: пустой batch выглядел бы как
+      // «ничего не произошло» — ни перехода, ни ошибки.
+      expect(
+        batch.connected.map((a) => a.accountNo).toSet(),
+        {'55-20841', '04-990218', '7710-7788'},
+      );
+      expect(batch.connected.every((a) => a.objectId == homeObject.id), isTrue);
+      // Начисления дописываются в ленту, чтобы счёт появился на главной
+      // без полного перезапроса.
+      expect(batch.charges.map((b) => b.amount).toSet(), {420, 90, 410});
+      expect(
+        batch.charges.every((b) => batch.connected.any((a) => a.id == b.accountId)),
+        isTrue,
+        reason: 'начисление знает свой счёт по id',
+      );
+      // Кэш пополнен всеми тремя: экран после invalidate покажет их же.
+      expect(
+        env.accounts.cachedAccounts().map((a) => a.accountNo),
+        containsAll(['55-20841', '04-990218', '7710-7788']),
+      );
+    });
+
+    test('Без сети план целиком уходит в очередь, а не в отказ', () async {
+      final env = makeEnv();
+      addTearDown(env.dispose);
+      final plan = await planOf(env);
+      env.offline();
+
+      final batch = await env.accounts.connectPlan(plan);
+
+      expect(batch.queued, hasLength(3));
+      // Очередь — это не отказ: подключим, когда появится сеть.
+      expect(batch.failed, isEmpty);
+      expect(batch.connected, isEmpty);
+      expect(env.outbox.length, 3);
+      // Ключи идемпотентности ушли в очередь те же, что в плане: повтор
+      // не подключит счёт дважды.
+      for (final view in plan.items) {
+        final item = env.outbox.items.firstWhere((i) => i.id == 'connect-${view.id}');
+        expect(IdempotencyKey.tryFromJson(item.payload['key']), plan.keyOf(view.id));
+      }
     });
   });
 

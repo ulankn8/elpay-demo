@@ -1,5 +1,4 @@
 import '../../core/ids.dart';
-import '../../core/logger.dart';
 import '../models.dart';
 import 'api_client.dart';
 import 'elpay_api.dart';
@@ -14,13 +13,12 @@ import 'elpay_api.dart';
 /// Включается одной строкой в providers.dart:
 /// `apiProvider → HttpElPayApi(ApiClient())`.
 ///
-/// ЧЕГО НЕ ХВАТАЕТ КЛИЕНТУ (правка `api/api_client.dart`, другой автор):
-/// метода PATCH и своих заголовков у запроса. Из-за этого ключ
-/// идемпотентности пока уходит ПОЛЕМ ТЕЛА `idempotencyKey`, а не заголовком
-/// `Idempotency-Key`, а перенос счёта отправляется POST'ом. Контракт для
-/// бэкенда в комментариях описан целевой — расхождение снимается добавлением
-/// `ApiClient.postJson(..., headers:)`, `deleteJson(..., headers:)` и
-/// `patchJson`, и тогда правятся только три строки ниже.
+/// ЧЕГО НЕ ХВАТАЕТ КЛИЕНТУ (правка `api/api_client.dart`): метода PATCH —
+/// поэтому перенос счёта отправляется POST'ом, а не `PATCH /accounts/{id}`.
+/// Ключ идемпотентности уходит заголовком `Idempotency-Key`, как и описано
+/// в контракте; у подключения он дополнительно дублируется полем тела
+/// `idempotencyKey` — на случай, если бэкенд успели написать по прежнему
+/// коду. Поле можно убрать одной строкой, когда сервер читает заголовок.
 class HttpElPayApi implements ElPayApi {
   HttpElPayApi(this._client);
 
@@ -35,6 +33,19 @@ class HttpElPayApi implements ElPayApi {
         if (o is Map<String, dynamic>) PayObject.fromJson(o),
     ];
   }
+
+  /// `POST /objects` — создание и правка объекта одним путём: id задаёт клиент
+  /// (локально созданный объект должен быть виден сразу), сервер его принимает.
+  @override
+  Future<PayObject> saveObject(PayObject object) async {
+    final body = await _client.postJson('/objects', body: object.toJson());
+    return PayObject.fromJson(body);
+  }
+
+  /// `DELETE /objects/{id}`
+  @override
+  Future<void> deleteObject(String objectId) =>
+      _client.deleteJson('/objects/$objectId');
 
   /// `GET /bills?objectId=&cursor=&limit=`
   @override
@@ -100,12 +111,17 @@ class HttpElPayApi implements ElPayApi {
     required String objectId,
     required IdempotencyKey key,
   }) async {
-    final json = await _client.postJson('/accounts/connect', body: {
-      'candidateId': candidateId,
-      'objectId': objectId,
-      // До появления своих заголовков в ApiClient ключ идёт телом.
-      'idempotencyKey': key.value,
-    });
+    final json = await _client.postJson(
+      '/accounts/connect',
+      headers: {ApiClient.idempotencyHeader: key.value},
+      body: {
+        'candidateId': candidateId,
+        'objectId': objectId,
+        // Дубль ключа телом — совместимость с бэкендом, написанным до
+        // появления заголовка. Канал решения один: заголовок.
+        'idempotencyKey': key.value,
+      },
+    );
     final bill = json['bill'];
     return ConnectResult(
       account: ConnectedAccount.fromJson((json['account'] as Map).cast<String, dynamic>()),
@@ -117,11 +133,12 @@ class HttpElPayApi implements ElPayApi {
   /// `DELETE /accounts/{id}` + заголовок `Idempotency-Key: <key>`.
   @override
   Future<void> disconnect(String accountId, {required IdempotencyKey key}) async {
-    // У DELETE тела нет, а своих заголовков ApiClient пока не умеет: ключ
-    // не доезжает. Пишем его в лог, чтобы потеря была видна при разборе,
-    // а не превратилась в «иногда счёт отключается дважды».
-    Log.w('api', 'DELETE /accounts/$accountId без Idempotency-Key ${key.value}');
-    await _client.deleteJson('/accounts/$accountId');
+    // У DELETE тела нет, поэтому ключ уходит только заголовком — и именно
+    // он разрешает ApiClient повторить запрос при потерянном ответе.
+    await _client.deleteJson(
+      '/accounts/$accountId',
+      headers: {ApiClient.idempotencyHeader: key.value},
+    );
   }
 
   /// `PATCH /accounts/{id} {objectId}`. Пока ApiClient не умеет PATCH,

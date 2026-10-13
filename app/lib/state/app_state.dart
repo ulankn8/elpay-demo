@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ProviderOrFamily объявлен в misc.dart, а не в основном экспорте пакета.
 import 'package:flutter_riverpod/misc.dart';
 
+import '../core/cache/local_store.dart';
+import '../core/failure.dart';
 import '../core/logger.dart';
 import '../data/demo_data.dart';
 import '../data/models.dart';
@@ -107,12 +109,42 @@ final walletProvider = NotifierProvider<WalletNotifier, double>(WalletNotifier.n
 
 // ───────────────────────── история платежей ─────────────────────────
 
+/// История платежей. Хранится локально: квитанция открывается ТОЛЬКО
+/// отсюда (`/receipt` зовут history_page и reports_page), поэтому без
+/// записи в хранилище начисление оставалось «оплачено», а квитанции
+/// по нему после перезапуска не было нигде.
 class HistoryNotifier extends Notifier<List<Payment>> {
+  static const _tag = 'history';
+
   @override
-  List<Payment> build() => Demo.history(ref.read(clockProvider)());
+  List<Payment> build() {
+    final saved = ref.read(localStoreProvider).readList(CacheKeys.history);
+    if (saved == null || saved.isEmpty) return _demo();
+    try {
+      return [for (final row in saved) Payment.fromJson(row)];
+    } catch (e, st) {
+      // Битую запись не роняем на пользователя: показываем демо-набор,
+      // как при первом запуске.
+      Log.e(_tag, 'битая история платежей, читаем демо-набор', e, st);
+      return _demo();
+    }
+  }
+
+  List<Payment> _demo() => Demo.history(ref.read(clockProvider)());
 
   void add(Iterable<Payment> items) {
     state = [...items, ...state]..sort((a, b) => b.date.compareTo(a.date));
+    _save();
+  }
+
+  /// Записываем БЕЗ await: экраны оплаты зовут [add] синхронно, а список
+  /// уже на экране — ждать хранилище им незачем.
+  void _save() {
+    ref.read(localStoreProvider).writeJson(
+      CacheKeys.history,
+      [for (final p in state) p.toJson()],
+      now: ref.read(clockProvider)(),
+    );
   }
 }
 
@@ -234,11 +266,28 @@ class AddressItem {
 ///
 /// БАГ, который здесь закрыт: `build()` делал `ref.watch(sessionProvider)`,
 /// поэтому любая правка профиля пересоздавала нотифаер и стирала всё
-/// добавленное. Теперь сессия читается через `ref.read`, а перезагрузка —
-/// только по явному вызову [reload].
+/// добавленное. Теперь сессия читается через `ref.read`, а список целиком
+/// пересобирает только явный [reload].
+///
+/// Правка профиля при этом НЕ теряется: на сессию подписка есть, но она
+/// обновляет ровно строку «Дом» ([_syncHome]). До этого новый адрес из
+/// /personal не доходил до экрана «Адреса уведомлений» вообще — [reload]
+/// не звал никто, а звать его оттуда нельзя: он стирает добавленное.
 class AddressesNotifier extends Notifier<List<AddressItem>> {
   @override
-  List<AddressItem> build() => _fromSession();
+  List<AddressItem> build() {
+    ref.listen(sessionProvider, (_, _) => _syncHome());
+    return _fromSession();
+  }
+
+  /// Подтянуть из профиля ТОЛЬКО адрес «Дом»: остальные строки
+  /// пользовательские, профиль про них ничего не знает.
+  void _syncHome() {
+    final home = _fromSession().first;
+    state = [
+      for (final a in state) a.id == home.id ? home : a,
+    ];
+  }
 
   List<AddressItem> _fromSession() {
     final session = ref.read(sessionProvider);
@@ -296,18 +345,44 @@ final unreadNoticesProvider = Provider<int>((ref) {
 final eventsProvider =
     Provider<List<EventItem>>((ref) => Demo.events(ref.watch(clockProvider)()));
 
+/// Ключ кэша билетов. В [CacheKeys] его нет: core правит другая лана,
+/// и тащить общий файл за одной строкой дороже, чем держать ключ рядом
+/// с владельцем (так же сделано в DefaultCatalogRepository).
+/// Купленные билеты. Как и история, живут в хранилище: иначе билет,
+/// за который заплатили, исчезал при следующем запуске.
 class TicketsNotifier extends Notifier<List<TicketItem>> {
-  @override
-  List<TicketItem> build() => const [];
+  static const _tag = 'tickets';
 
-  void add(TicketItem t) => state = [t, ...state];
+  @override
+  List<TicketItem> build() {
+    final saved = ref.read(localStoreProvider).readList(CacheKeys.tickets);
+    if (saved == null) return const [];
+    try {
+      return [for (final row in saved) TicketItem.fromJson(row)];
+    } catch (e, st) {
+      Log.e(_tag, 'битый список билетов, начинаем с пустого', e, st);
+      return const [];
+    }
+  }
+
+  void add(TicketItem t) => _save([t, ...state]);
   void markUsed(String id) =>
-      state = [for (final t in state) t.id == id ? t.copyWith(used: true) : t];
-  void remove(String id) => state = [
+      _save([for (final t in state) t.id == id ? t.copyWith(used: true) : t]);
+  void remove(String id) => _save([
         for (final t in state)
           if (t.id != id) t,
-      ];
+      ]);
+
+  void _save(List<TicketItem> value) {
+    state = value;
+    ref.read(localStoreProvider).writeJson(
+      CacheKeys.tickets,
+      [for (final t in value) t.toJson()],
+      now: ref.read(clockProvider)(),
+    );
+  }
 }
+
 
 final ticketsProvider =
     NotifierProvider<TicketsNotifier, List<TicketItem>>(TicketsNotifier.new);
@@ -353,6 +428,7 @@ final resetOnSignOut = <ProviderOrFamily>[
   noticesProvider,
   addressesProvider,
   securityProvider,
+  notifyProvider,
   storiesProvider,
   payMethodProvider,
 ];
@@ -362,10 +438,27 @@ final resetOnSignOut = <ProviderOrFamily>[
 /// У AppPrefs и LocalStore разные префиксы ключей, и чистка одной сессии
 /// оставляла на устройстве счета, историю, кошелёк и билеты предыдущего
 /// пользователя — следующий вход показывал чужие данные.
+/// Источник ответил «вы не вошли» (401/403): токен протух или отозван.
+///
+/// Чинить это повтором нельзя — нужен новый вход. Сбрасываем сессию, и
+/// `redirect` роутера (app.dart) сам уводит на /welcome. Возвращает true,
+/// если ошибка была именно про вход: вызывающий тогда не показывает
+/// обычную плашку «повторить».
+Future<bool> handleAuthFailure(Ref ref, AppFailure? failure) async {
+  if (failure?.kind != FailureKind.auth) return false;
+  Log.w('auth', 'источник не признал вход: ${failure!.message} — выходим');
+  await signOutEverywhere(ref);
+  return true;
+}
+
 Future<void> signOutEverywhere(Ref ref) async {
   final prefs = ref.read(prefsProvider);
   await prefs.setSession(null);
   await prefs.setPin(null);
+  // Онбординг тоже принадлежит пользователю: без сброса следующий вход
+  // проскакивает /setup (otp_page и redirect в app.dart смотрят
+  // prefs.onboarded), а город и адрес задать уже негде.
+  await prefs.setOnboarded(false);
 
   // Кэш данных и очередь отложенных операций: иначе чужое подключение
   // уйдёт на сервер уже под новым пользователем.

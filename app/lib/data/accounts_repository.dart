@@ -370,16 +370,28 @@ class DefaultAccountsRepository implements AccountsRepository {
     }
 
     final result = await guard(() => api.disconnect(accountId, key: attempt));
-    if (result.isOk) {
-      await _patchCache((current) => [
-            for (final a in current)
-              if (a.id != accountId) a,
-          ]);
-      if (account != null) {
-        analytics.track(AnalyticsEvent.accountDisconnected(account.providerId));
-      }
+
+    // notFound — тоже «счёта больше нет»: ответ на первую попытку мог
+    // потеряться, и повтор (клиентский, из очереди или рукой пользователя)
+    // находит счёт уже отключённым. Демо-бэкенд эту терпимость заложил
+    // через ключ идемпотентности (mock_api.dart: «повтор отключения не
+    // должен падать в notFound»), на HTTP-пути её не было — пользователь
+    // видел «не найдено» у счёта, который сервер успешно отключил, и строка
+    // возвращалась в список.
+    final gone = result.isOk || result.failureOrNull?.kind == FailureKind.notFound;
+    if (!gone) return result;
+
+    if (result.isFail) {
+      Log.w(_tag, 'счёт $accountId у источника уже отключён, считаем успехом');
     }
-    return result;
+    await _patchCache((current) => [
+          for (final a in current)
+            if (a.id != accountId) a,
+        ]);
+    if (account != null) {
+      analytics.track(AnalyticsEvent.accountDisconnected(account.providerId));
+    }
+    return const Ok<void>(null);
   }
 
   @override
@@ -424,14 +436,30 @@ class DefaultAccountsRepository implements AccountsRepository {
             else
               a,
         ];
-        await _cache.write(marked, now: _clock());
+        // Спрашивали про названные счета — по ним и правим кэш. Контракт
+        // не обещает, что в ответе придёт ПОЛНЫЙ список (бэкенд вправе
+        // вернуть только названные), а запись замещала ключ целиком: у
+        // пользователя с тремя счетами в кэше оставался один, и свежая
+        // отметка держала эту потерю до истечения TTL.
+        final merged = _mergedWithCache(marked, scoped: accountIds.isNotEmpty);
+        if (merged.isEmpty) {
+          // Пустой список — это «поле accounts в ответе отсутствует», а не
+          // «счетов больше нет»: список счетов меняет load(), а не
+          // обновление начислений. Тот же предохранитель стоит ниже,
+          // в ветке отказа.
+          Log.w(_tag, 'обновление не вернуло счета: кэш оставляем как есть');
+        } else {
+          await _cache.write(merged, now: _clock());
+        }
         if (value.hasFailures) {
           Log.w(_tag, 'обновились не все счета: ${value.failedIds.join(', ')}');
           analytics.track(AnalyticsEvent.syncFailed('partial'));
         }
         return Ok(SyncResult(
           bills: value.bills,
-          accounts: marked,
+          // Наружу уходит тот же список, что лёг в кэш: иначе экран
+          // обрежется по ответу, даже если кэш остался полным.
+          accounts: merged.isEmpty ? cachedAccounts() : merged,
           syncedAt: value.syncedAt,
           failed: value.failed,
         ));
@@ -441,14 +469,49 @@ class DefaultAccountsRepository implements AccountsRepository {
         // Помечаем счета как «не обновились» — статус виден в списке.
         // Запись ОБЯЗАТЕЛЬНО с await: без него пометка может не успеть
         // лечь в хранилище до возврата, и экран перечитает прежнее.
+        //
+        // Пометка идёт ровно по тем счетам, о которых спрашивали: обновление
+        // одного счёта с карточки не должно рисовать «не обновилось» у
+        // остальных пяти, разводить кэш с состоянием нотифаера (он помечает
+        // только затронутый) и отправлять их все в «повторить упавшие».
+        final targets = accountIds.toSet();
         final marked = [
           for (final a in cachedAccounts())
-            a.copyWith(status: AccountSyncStatus.failed, lastError: failure.message),
+            if (targets.isEmpty || targets.contains(a.id))
+              a.copyWith(status: AccountSyncStatus.failed, lastError: failure.message)
+            else
+              a,
         ];
-        if (marked.isNotEmpty) await _cache.write(marked, now: _clock());
+        if (marked.isNotEmpty) {
+          // Отказ не делает данные свежими: отметку времени оставляем
+          // прежней. Иначе провалившееся обновление «омолаживало» ключ,
+          // следующий load() считал кэш свежим, не шёл в источник и отдавал
+          // протухший список как актуальный — без плашки «показываем
+          // сохранённое» и с подписью «обновлено» от времени провала.
+          await _cache.write(marked, now: _cache.updatedAt() ?? _clock().subtract(ttl * 2));
+        }
         return Fail<SyncResult>(failure);
       },
     );
+  }
+
+  /// Ответ обновления, наложенный на кэш.
+  ///
+  /// [scoped] = true (спрашивали про названные счета) — слияние по id:
+  /// пришедшие счета заменяют свои записи, остальные остаются как были.
+  /// false (спрашивали про все) — ответ и есть полный список.
+  List<ConnectedAccount> _mergedWithCache(
+    List<ConnectedAccount> fresh, {
+    required bool scoped,
+  }) {
+    if (!scoped) return fresh;
+    final byId = {for (final a in fresh) a.id: a};
+    return [
+      for (final a in cachedAccounts()) byId.remove(a.id) ?? a,
+      // Счёт, о котором кэш ещё не знает (подключён с другого устройства),
+      // не теряем.
+      ...byId.values,
+    ];
   }
 
   @override

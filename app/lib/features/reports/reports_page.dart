@@ -332,13 +332,20 @@ class _TotalCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
+          // Wrap, а не Row: «5 платежей» и чип «−5% · меньше, чем месяцем
+          // раньше» в строку не влезают (313 px внутри карточки против 335
+          // нужных) — Row переполнялся на 22 px, а при системном крупном
+          // шрифте хвост подписи уезжал за экран. Теперь при нехватке места
+          // чип переходит на вторую строку, и обе подписи читаются целиком.
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 10,
+            runSpacing: 6,
             children: [
               Text(s.paymentsCount(count),
                   style: TextStyle(
                       fontSize: 13, color: Colors.white.withValues(alpha: .65))),
-              if (hasPrev && diff.abs() >= 1) ...[
-                const SizedBox(width: 10),
+              if (hasPrev && diff.abs() >= 1)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
@@ -354,7 +361,6 @@ class _TotalCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              ],
             ],
           ),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/format.dart';
 import '../../core/l10n/s.dart';
 import '../../core/tokens.dart';
 
@@ -110,10 +111,19 @@ class _WelcomeArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = [
-      ('power', Icons.bolt_rounded, 'Электросеть', 'до 25 марта', '564,44 сом'),
-      ('water', Icons.water_drop_outlined, 'Водоканал', 'до 20 марта', '205 сом'),
-      ('kid', Icons.child_care_rounded, 'Садик «Балапан»', 'до 10 марта', '3 500 сом'),
+    final s = S.of(context);
+    // Картинка собрана из тех же строк, что и живой список счетов:
+    // названия услуг и объект — через s.tr() (демо-данные), срок —
+    // s.shortDueText, как в bill_row, суммы — som() + s.som. Литералы
+    // здесь оставляли первый экран продукта полностью русским в
+    // кыргызской локали: ни s.tr(), ни словарь до них не доставали.
+    final items = [
+      ('power', Icons.bolt_rounded, s.tr('Электросеть'),
+          s.shortDueText(DateTime(2026, 3, 25)), '${som(564.44)} ${s.som}'),
+      ('water', Icons.water_drop_outlined, s.tr('Водоканал'),
+          s.shortDueText(DateTime(2026, 3, 20)), '${som(205)} ${s.som}'),
+      ('kid', Icons.child_care_rounded, s.tr('Садик «Балапан»'),
+          s.shortDueText(DateTime(2026, 3, 10)), '${som(3500)} ${s.som}'),
     ];
     final c = context.c;
     return Container(
@@ -148,7 +158,10 @@ class _WelcomeArt extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Дом · ул. Курманжан Датка, 212',
+                    // Имя объекта переводится, адрес — нет: ровно так же
+                    // устроен живой экран объекта (object_page: s.tr(name)
+                    // и address как есть).
+                    '${s.tr('Дом')} · ул. Курманжан Датка, 212',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -159,7 +172,10 @@ class _WelcomeArt extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Март',
+                  // В кыргызском название месяца заимствованное и совпадает
+                  // с русским (_kyMonths), поэтому ключ осознанно падает
+                  // сам в себя — пары в словаре не нужно.
+                  s.tr('Март'),
                   style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
@@ -193,7 +209,7 @@ class _WelcomeArt extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'К оплате · 4 счёта',
+                        '${s.toPay} · ${s.billsCount(4)}',
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
@@ -201,12 +217,12 @@ class _WelcomeArt extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 3),
-                      const FittedBox(
+                      FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          '4 449,44 сом',
-                          style: TextStyle(
+                          '${som(4449.44)} ${s.som}',
+                          style: const TextStyle(
                             fontSize: 23,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -227,9 +243,9 @@ class _WelcomeArt extends StatelessWidget {
                     color: Brand.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Оплатить всё',
-                    style: TextStyle(
+                  child: Text(
+                    s.payAll,
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: Brand.onPrimary,

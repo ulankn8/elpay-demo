@@ -33,11 +33,22 @@ class _ObjectPageState extends ConsumerState<ObjectPage> {
   /// уже пришли. Раньше `_selected ??= _initial(bills)` срабатывал на
   /// первой сборке, когда репозиторий ещё читал кэш и список был пуст:
   /// после загрузки все галочки оставались снятыми.
+  ///
+  /// Исчезнувшие начисления из набора вычищаются: после оплаты одного счёта
+  /// он уходит из списка (фильтр `!b.paid`), а его id оставался выбранным —
+  /// заголовок показывал «Выбрано 4 из 3», и галочка «выбрать все» гасла,
+  /// хотя выбрано было действительно всё.
   Set<String> _selection(List<Bill> bills) {
     final current = _selected;
-    if (current != null) return current;
-    if (bills.isEmpty) return const <String>{};
-    return _selected = _initial(bills);
+    if (current == null) {
+      if (bills.isEmpty) return const <String>{};
+      return _selected = _initial(bills);
+    }
+    final ids = bills.map((b) => b.id).toSet();
+    if (current.any((id) => !ids.contains(id))) {
+      return _selected = current.intersection(ids);
+    }
+    return current;
   }
 
   void _toggle(String id) => setState(() {

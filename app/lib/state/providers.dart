@@ -124,8 +124,29 @@ final accountsRepoProvider = Provider<AccountsRepository>((ref) => DefaultAccoun
       clock: ref.watch(clockProvider),
     ));
 
-final catalogRepoProvider = Provider<CatalogRepository>((ref) => DefaultCatalogRepository(
-      api: ref.watch(apiProvider),
-      store: ref.watch(localStoreProvider),
-      clock: ref.watch(clockProvider),
-    ));
+/// Каталог платежей.
+///
+/// БОЕВОЙ ИСТОЧНИК ВИДЕН ЗДЕСЬ, а не только в значении по умолчанию:
+/// пока каталог брался из демо-набора, `GET /catalog` в сборке
+/// `USE_MOCK=false` не вызывался никогда — поставщики, маски лицевых
+/// счетов и способы оплаты оставались демонстрационными поверх живого
+/// бэкенда, а маска демо-поставщика отбивала правильный номер ДО сети.
+/// В демо источник не подменяем: его выбирает apiProvider, и
+/// `MockElPayApi` отдаёт тот же `Demo.catalog`.
+final catalogRepoProvider = Provider<CatalogRepository>((ref) {
+  final api = ref.watch(apiProvider);
+  // Язык каталога: названия услуг приходят с сервера переведёнными,
+  // поэтому берём выбранный язык, а не константу 'ru'. Читается один раз
+  // при создании — каталог живёт 12 часов, и дёргать его на каждое
+  // переключение языка незачем.
+  final locale = ref.watch(prefsProvider).locale;
+  return DefaultCatalogRepository(
+    api: api,
+    store: ref.watch(localStoreProvider),
+    clock: ref.watch(clockProvider),
+    locale: locale,
+    source: ref.watch(configProvider).useMockData
+        ? null
+        : () => api.catalog(locale: locale),
+  );
+});

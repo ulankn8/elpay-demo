@@ -63,6 +63,14 @@ class ProbeElPayApi implements ElPayApi {
       });
 
   @override
+  Future<PayObject> saveObject(PayObject object) =>
+      _call('saveObject', () => inner.saveObject(object));
+
+  @override
+  Future<void> deleteObject(String objectId) =>
+      _call('deleteObject', () => inner.deleteObject(objectId));
+
+  @override
   Future<List<Bill>> bills({String? objectId, String? cursor, int limit = 100}) =>
       _call('bills', () => inner.bills(objectId: objectId, cursor: cursor, limit: limit));
 

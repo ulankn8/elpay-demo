@@ -271,10 +271,17 @@ class _NewPaymentPageState extends ConsumerState<NewPaymentPage> {
             ],
           ),
         ),
-        AppBottomBar(
-          label: s.toPayShort,
-          amount: _sum > 0 ? som(_sum) : '—',
-          action: FilledButton(onPressed: _pay, child: Text(s.cont)),
+        // Итог слушает само поле суммы: иначе «К оплате» прямо над кнопкой
+        // оплаты показывает сумму, с которой экран открыли (из QR — 205),
+        // или «—» при ручном вводе, и обновляется только по «Продолжить».
+        // Слушателем перестраивается одна панель, а не весь список формы.
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _amount,
+          builder: (_, _, _) => AppBottomBar(
+            label: s.toPayShort,
+            amount: _sum > 0 ? som(_sum) : '—',
+            action: FilledButton(onPressed: _pay, child: Text(s.cont)),
+          ),
         ),
       ],
     );

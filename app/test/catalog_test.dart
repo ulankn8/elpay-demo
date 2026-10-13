@@ -2,6 +2,7 @@ import 'package:elpay/core/cache/local_store.dart';
 import 'package:elpay/core/failure.dart';
 import 'package:elpay/data/catalog_repository.dart';
 import 'package:elpay/state/providers.dart';
+import 'package:elpay/core/l10n/s.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/env.dart';
@@ -103,6 +104,15 @@ void main() {
       // Пустой запрос — весь список: шторка не начинается с пустого экрана.
       expect(catalog.searchProviders(''), hasLength(catalog.providers.length));
       expect(catalog.searchProviders('такого поставщика нет'), isEmpty);
+
+      // Кыргызский: пользователь видит перевод и ищет по нему. Без tr
+      // поиск сравнивал запрос с русским ключом и не находил ничего.
+      final ky = SKy();
+      expect(
+        catalog.searchProviders('суу', tr: ky.tr).map((p) => p.id),
+        contains('p-water'),
+        reason: 'поиск должен идти по тому, что на экране',
+      );
     });
 
     test('Поиск по номеру-образцу находит поставщика', () {

@@ -65,7 +65,7 @@ class _ProviderPickerState extends ConsumerState<_ProviderPicker> {
   Widget build(BuildContext context) {
     final s = S.of(context);
     final catalog = ref.watch(catalogNowProvider);
-    final found = catalog.searchProviders(_query.text, categoryId: widget.categoryId);
+    final found = catalog.searchProviders(_query.text, categoryId: widget.categoryId, tr: s.tr);
 
     return AppSheet(
       title: s.chooseProvider,

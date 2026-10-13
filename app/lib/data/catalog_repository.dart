@@ -3,7 +3,6 @@ import '../core/clock.dart';
 import '../core/logger.dart';
 import '../core/result.dart';
 import 'api/elpay_api.dart';
-import 'demo_data.dart';
 import 'models.dart';
 
 // Тип каталога объявлен в моделях (иначе demo_data и репозиторий импортировали
@@ -40,13 +39,19 @@ class DefaultCatalogRepository implements CatalogRepository {
     this.ttl = const Duration(hours: 12),
     this.locale = 'ru',
     Future<Catalog> Function()? source,
-  })  : _clock = clock ?? systemClock,
-        _source = source ?? _demoCatalog;
+  }) : _clock = clock ?? systemClock {
+    // Присваивание в теле, а не в списке инициализации: там `api` и `locale`
+    // ещё не проинициализированы. Раньше из-за этого источником по умолчанию
+    // стоял демо-набор, и в боевой сборке `GET /catalog` не вызывался
+    // НИКОГДА — поставщики, маски лицевых счетов и способы оплаты оставались
+    // демонстрационными поверх живого бэкенда, а обещанная «подмена одной
+    // строкой в apiProvider» каталога не касалась.
+    _source = source ?? () => api.catalog(locale: locale);
+  }
 
-  /// Источник данных. В контракте [ElPayApi] метода `catalog(locale:)` ещё
-  /// нет (его добавляет лана C), поэтому пока каталог берётся из демо-набора,
-  /// а подмена остаётся одной строкой в конструкторе:
-  /// `_source = () => api.catalog(locale: locale)`.
+  /// Источник данных: [ElPayApi.catalog] — в бою `GET /catalog?locale=`,
+  /// в демо тот же `Demo.catalog` из [MockElPayApi]. Параметр `source`
+  /// конструктора остаётся швом для тестов.
   final ElPayApi api;
 
   final LocalStore store;
@@ -58,15 +63,13 @@ class DefaultCatalogRepository implements CatalogRepository {
   final String locale;
 
   final Clock _clock;
-  final Future<Catalog> Function() _source;
+  late final Future<Catalog> Function() _source;
 
   static const _tag = 'catalog';
 
   /// Ключ кэша. В `CacheKeys` его нет: core правит другая лана, и тащить
   /// общий файл за одной строкой дороже, чем держать ключ рядом с владельцем.
   static const cacheKey = 'catalog';
-
-  static Future<Catalog> _demoCatalog() async => Demo.catalog;
 
   @override
   Catalog cached() {

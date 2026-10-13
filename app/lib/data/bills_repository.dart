@@ -52,8 +52,16 @@ class BillsSnapshot {
 /// переписывается здесь своими восемью строками про TTL.
 ///
 /// Запись тоже идёт через репозиторий: до этого «оплачено» и автоплатёж
-/// жили локальными присваиваниями в нотифаере и не переживали перезапуск,
-/// потому что write-методов у репозитория не было вообще.
+/// жили локальными присваиваниями в нотифаере и терялись при первой же
+/// пересборке состояния.
+///
+/// ЧЕСТНОЕ ОГРАНИЧЕНИЕ. В контракте [ElPayApi] нет ни «отметить
+/// оплаченным», ни автоплатежа, поэтому [markPaid] и [setAutopay] пишут
+/// ТОЛЬКО в локальный кэш: до источника и до другого устройства эти флаги
+/// не доезжают. Чтобы ответ источника (у него paid/autopay всегда false)
+/// их не стирал, локальные флаги переносятся на свежий список — см.
+/// `_fetchBills` и [merge]. Это лечение симптома: как только у контракта
+/// появятся методы записи, перенос уходит, а кэш снова станет просто кэшем.
 abstract class BillsRepository {
   /// Сохранённый снимок без обращения к сети (может быть пустым).
   BillsSnapshot cached();
@@ -178,7 +186,7 @@ class DefaultBillsRepository implements BillsRepository {
     }
 
     final Cached<List<Bill>> bills;
-    switch (await _billsCache.load(refresh: refresh, now: now, fetch: api.bills)) {
+    switch (await _billsCache.load(refresh: refresh, now: now, fetch: _fetchBills)) {
       case Ok(:final value):
         bills = value;
       case Fail(:final failure):
@@ -278,12 +286,18 @@ class DefaultBillsRepository implements BillsRepository {
     if (object.name.trim().isEmpty) {
       return const Fail(AppFailure.validation('у объекта нет названия', field: 'name'));
     }
+    // Пишем в источник, а не только в кэш: иначе первое же обновление
+    // списка возвращало бы удалённый объект и теряло созданный.
+    final saved = await guard(() => api.saveObject(object));
+    if (saved case Fail(:final failure)) return Fail(failure);
+    final stored = saved.valueOrNull ?? object;
+
     final objects = _objectsCache.read() ?? const <PayObject>[];
-    final i = objects.indexWhere((o) => o.id == object.id);
-    final next = i < 0 ? [...objects, object] : ([...objects]..[i] = object);
+    final i = objects.indexWhere((o) => o.id == stored.id);
+    final next = i < 0 ? [...objects, stored] : ([...objects]..[i] = stored);
     await _writeObjects(next);
-    Log.i(_tag, i < 0 ? 'объект добавлен: ${object.id}' : 'объект обновлён: ${object.id}');
-    return Ok(object);
+    Log.i(_tag, i < 0 ? 'объект добавлен: ${stored.id}' : 'объект обновлён: ${stored.id}');
+    return Ok(stored);
   }
 
   @override
@@ -294,6 +308,12 @@ class DefaultBillsRepository implements BillsRepository {
     final objects = _objectsCache.read() ?? const <PayObject>[];
     if (!objects.any((o) => o.id == objectId)) {
       return Fail(AppFailure.notFound('объект $objectId не найден'));
+    }
+    // Удаление идёт в источник: кэша мало — после обновления списка объект
+    // вернулся бы. notFound считаем успехом: объекта и так нет.
+    final gone = await guard(() => api.deleteObject(objectId));
+    if (gone case Fail(:final failure) when failure.kind != FailureKind.notFound) {
+      return Fail(failure);
     }
     await _writeObjects([for (final o in objects) if (o.id != objectId) o]);
 
@@ -315,7 +335,10 @@ class DefaultBillsRepository implements BillsRepository {
     if (bills.isEmpty) return Ok(current);
     final byId = <String, Bill>{for (final b in current) b.id: b};
     for (final b in bills) {
-      byId[b.id] = b;
+      // Начисление, пришедшее заново после подключения счёта или частичной
+      // синхронизации, не должно терять «оплачено» и автоплатёж: источник
+      // их не хранит и прислал бы false.
+      byId[b.id] = _withLocalFlags(b, byId[b.id]);
     }
     final next = byId.values.toList();
     await _writeBills(next);
@@ -336,6 +359,31 @@ class DefaultBillsRepository implements BillsRepository {
     Log.i(_tag, 'убрано начислений отключённого счёта: ${bills.length - next.length}');
     return Ok(next);
   }
+
+  /// Начисления источника с локальными флагами «оплачено» и «автоплатёж».
+  ///
+  /// Источник их не хранит (методов записи в [ElPayApi] нет), поэтому без
+  /// переноса первый же поход в сеть — pull-to-refresh, истечение TTL,
+  /// подключение счёта — возвращал оплаченное начисление в «к оплате», и
+  /// его можно было оплатить второй раз. [CachePolicy] пишет в кэш то,
+  /// что вернёт этот метод, то есть уже слитый список.
+  Future<List<Bill>> _fetchBills() async {
+    final fresh = await api.bills();
+    final local = _billsCache.read();
+    if (local == null || local.isEmpty) return fresh;
+    final was = {for (final b in local) b.id: b};
+    return [for (final b in fresh) _withLocalFlags(b, was[b.id])];
+  }
+
+  /// Перенос локальных флагов на начисление из источника.
+  ///
+  /// `paid` складывается по «или»: оплату мог подтвердить и источник.
+  /// `autopay` берётся локальный целиком — хранит его только клиент, и
+  /// пришедший false означает «источник про тумблер не знает», а не
+  /// «пользователь его выключил».
+  Bill _withLocalFlags(Bill fresh, Bill? local) => local == null
+      ? fresh
+      : fresh.copyWith(paid: fresh.paid || local.paid, autopay: local.autopay);
 
   /// Локальная правка — не синхронизация: отметку времени не двигаем.
   /// Иначе протухший кэш «омолодится» от нажатия тумблера, и приложение

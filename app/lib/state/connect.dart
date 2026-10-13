@@ -505,6 +505,11 @@ class ConnectNotifier extends Notifier<ConnectState> {
               if (!outcome.connected.any((a) => _isSameCandidate(a, id))) id,
           },
         );
+        // Операция легла в очередь: список счетов при этом не менялся
+        // (строки в офлайне не появляется), сеть тоже, а pendingOpsProvider
+        // пересчитывается только по ним — подпись «ждёт отправки»
+        // оставалась нулевой сразу после «подключим, когда появится сеть».
+        if (outcome.queued.isNotEmpty) ref.invalidate(pendingOpsProvider);
         return outcome;
     }
   }

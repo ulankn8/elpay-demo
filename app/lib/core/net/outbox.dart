@@ -98,8 +98,23 @@ class Outbox {
         if (retried.attempts < _maxAttempts) left.add(retried);
       }
     }
-    await _save(left);
-    Log.i('outbox', 'отправлено $done, осталось ${left.length}');
+    // Перезаписывать ключ СНИМКОМ нельзя: пока шла отправка (запрос в
+    // полёте — это сотни миллисекунд, а с повторами и секунды), офлайн-ветки
+    // репозитория могли положить в очередь новые операции. Снимок их не
+    // знает, и операция исчезала молча: пользователю сказали «отправим,
+    // когда появится сеть», а в очереди пусто.
+    //
+    // Дедупликация по id обязательна: когда сеть пропадает посреди
+    // разгрузки, отправка сама кладёт тот же элемент заново (id
+    // детерминированы — 'connect-<id>' / 'disconnect-<id>'), и без фильтра
+    // он вернулся бы дублем к своему же повтору из [left].
+    final processed = {for (final i in queue) i.id};
+    final added = [
+      for (final i in items)
+        if (!processed.contains(i.id)) i,
+    ];
+    await _save([...left, ...added]);
+    Log.i('outbox', 'отправлено $done, осталось ${left.length + added.length}');
     return done;
   }
 

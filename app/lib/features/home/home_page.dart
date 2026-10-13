@@ -56,7 +56,23 @@ class HomePage extends ConsumerWidget {
                 data: (state) => Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (state.failure != null || state.fromCache) ...[
+                    // Вид ошибки разводится так же, как в AsyncSection: нет
+                    // сети — честная плашка «показываем сохранённое», всё
+                    // остальное (500, битый кэш, notFound) — своя причина из
+                    // failure_text. Проверка kind стоит ПЕРВОЙ: refresh()
+                    // выставляет fromCache вместе с failure, и порядок
+                    // наоборот снова выдавал бы ошибку сервера за офлайн.
+                    if (state.failure case final f? when !f.isNetwork) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
+                        child: ErrorView(
+                          failure: f,
+                          compact: true,
+                          onRetry: () => ref.read(billsProvider.notifier).refresh(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ] else if (state.failure != null || state.fromCache) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: Brand.gutter),
                         child: OfflineBanner(

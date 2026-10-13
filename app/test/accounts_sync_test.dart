@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:elpay/core/cache/local_store.dart';
 import 'package:elpay/core/clock.dart';
 import 'package:elpay/core/failure.dart';
@@ -34,8 +36,8 @@ void main() {
     MovableClock clock,
     ManualConnectivity net,
     Duration ttl,
-  }) stand({Duration ttl = const Duration(minutes: 15)}) {
-    final store = MemoryLocalStore();
+  }) stand({Duration ttl = const Duration(minutes: 15), MemoryLocalStore? store}) {
+    store ??= MemoryLocalStore();
     final clock = MovableClock(testNow);
     final net = ManualConnectivity();
     final probe = ProbeElPayApi(MockElPayApi(
@@ -125,15 +127,30 @@ void main() {
     });
 
     test('sync дожидается записи кэша перед возвратом', () async {
-      final s = stand();
+      // Хранилище с ЗАДЕРЖИВАЕМОЙ записью. У MemoryLocalStore тело writeJson
+      // синхронное (async только по подписи), поэтому пометка оказывалась
+      // в кэше ещё до возврата sync — и тест был зелёным даже со снятым
+      // await, то есть ровно того дефекта, под который написан, поймать
+      // не мог. В бою стоит PrefsLocalStore с двумя настоящими await.
+      final gate = _GatedStore();
+      final s = stand(store: gate);
       await s.repo.accounts();
       s.probe.failAlways('syncCharges', const AppFailure.server());
       final writesBefore = s.store.writes;
 
-      await s.repo.sync();
+      gate.hold();
+      var returned = false;
+      final pending = s.repo.sync().then((_) => returned = true);
+      await settleProviders();
 
       // Ни одного лишнего await после возврата: экран перечитывает кэш
       // сразу, и пометка «не обновилось» обязана там уже лежать.
+      expect(s.store.writes, writesBefore, reason: 'запись ещё не доехала');
+      expect(returned, isFalse, reason: 'sync вернулся раньше записи кэша');
+
+      gate.release();
+      await pending;
+
       expect(s.store.writes, greaterThan(writesBefore));
       expect(
         s.repo.cachedAccounts().first.status,
@@ -197,6 +214,9 @@ void main() {
       final container = await env.container();
       final notifier = container.read(accountsProvider.notifier);
       final all = await container.read(accountsProvider.future);
+      // Время обновления ДО повтора: по нему и видно, за какими счетами
+      // приложение действительно сходило.
+      final was = {for (final a in all.accounts) a.id: a.syncedAt};
       env.offline();
       await notifier.sync();
       env.online();
@@ -208,9 +228,24 @@ void main() {
       expect(result.isOk, isTrue);
       final after = container.read(accountsProvider).value!;
       expect(after.accounts, hasLength(all.accounts.length));
+      final retried = after.accounts.firstWhere((a) => a.id == victim.id);
+      expect(retried.status, AccountSyncStatus.ok);
+      expect(retried.syncedAt, env.now, reason: 'упавший счёт обновлён заново');
+      // Без этой проверки тест оставался зелёным, даже если список
+      // accountIds выбросить целиком: демо-бэкенд отвечает ВСЕМИ счетами
+      // в любом случае, и адресность наблюдаема только по тому, у кого
+      // сдвинулось время обновления. «Повторить только упавшие» по трём
+      // счетам дёргало бы реестры всех трёх поставщиков.
       expect(
-        after.accounts.firstWhere((a) => a.id == victim.id).status,
-        AccountSyncStatus.ok,
+        {
+          for (final a in after.accounts)
+            if (a.id != victim.id) a.id: a.syncedAt,
+        },
+        {
+          for (final e in was.entries)
+            if (e.key != victim.id) e.key: e.value,
+        },
+        reason: 'адресный повтор не ходит за остальными счетами',
       );
     });
   });
@@ -257,4 +292,32 @@ void main() {
       expect(result.valueOrNull!.fromCache, isTrue);
     });
   });
+}
+
+/// Хранилище в памяти, у которого запись можно ЗАДЕРЖАТЬ.
+///
+/// Нужно одному тесту — «sync дожидается записи кэша». У MemoryLocalStore
+/// точки приостановки нет вовсе: writeJson помечен async, но тело из трёх
+/// синхронных строк, и Dart выполняет его до возврата future. Поэтому
+/// снятый `await` у записи кэша ничем не наблюдался. Боевой
+/// PrefsLocalStore ждёт SharedPreferences по-настоящему — здесь это
+/// ожидание отдано под управление теста.
+class _GatedStore extends MemoryLocalStore {
+  Completer<void>? _gate;
+
+  /// Задержать следующие записи до [release].
+  void hold() => _gate = Completer<void>();
+
+  void release() {
+    final gate = _gate;
+    _gate = null;
+    if (gate != null && !gate.isCompleted) gate.complete();
+  }
+
+  @override
+  Future<void> writeJson(String key, Object? value, {required DateTime now}) async {
+    final gate = _gate;
+    if (gate != null) await gate.future;
+    await super.writeJson(key, value, now: now);
+  }
 }

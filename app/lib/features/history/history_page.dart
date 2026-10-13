@@ -36,7 +36,12 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final list = all.where((p) {
       if (_cat != 'all' && p.cat != _cat) return false;
       if (q.isEmpty) return true;
-      return p.title.toLowerCase().contains(q) ||
+      // Искать надо по тому, что нарисовано на экране: строка показывает
+      // s.tr(p.title), и в кыргызской локали поиск по видимому слову
+      // («тармагы») по русскому ключу не находил ничего. Сам ключ оставлен
+      // вторым вариантом — он работал и раньше.
+      return s.tr(p.title).toLowerCase().contains(q) ||
+          p.title.toLowerCase().contains(q) ||
           p.account.toLowerCase().contains(q) ||
           p.receiptNo.toLowerCase().contains(q);
     }).toList();

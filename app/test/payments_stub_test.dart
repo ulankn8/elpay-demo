@@ -234,6 +234,9 @@ void main() {
       // До шлюза дело не доходит: остаток проверяется ДО списания.
       expect(recorder.calls, isEmpty);
       expect(find.text('На кошельке недостаточно средств'), findsOneWidget);
+      // И баланс остался прежним: spend() делает clamp(0, ∞), поэтому
+      // без проверки остатка кошелёк просто уезжал в ноль.
+      expect(_walletOf(tester), closeTo(1240, 0.001));
     });
 
     testWidgets('Оплата кошельком в пределах остатка списывает ровно сумму',
@@ -253,9 +256,20 @@ void main() {
       expect(receipt, isNotNull);
       expect(recorder.calls, hasLength(1));
       expect(recorder.calls.single.methodId, 'wallet');
+      // «Списывает ровно сумму» — это про баланс, а не про квитанцию:
+      // без этой проверки тест оставался зелёным и при выброшенном
+      // списании, то есть кошельком можно было платить бесконечно.
+      expect(_walletOf(tester), closeTo(1240 - 205, 0.001));
     });
   });
 }
+
+/// Баланс кошелька в контейнере, который поднял виджет-тест.
+///
+/// Берётся из того же ProviderScope, что видит экран оплаты: отдельный
+/// контейнер показал бы начальное значение, а не состояние после оплаты.
+double _walletOf(WidgetTester tester) =>
+    ProviderScope.containerOf(tester.element(find.text('Оплатить'))).read(walletProvider);
 
 /// Что передали шлюзу на одной попытке.
 class _PayCall {

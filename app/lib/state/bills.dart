@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -107,6 +109,8 @@ class BillsNotifier extends AsyncNotifier<BillsState> {
         syncedAt: data.updatedAt,
       ),
       (failure) {
+        // 401/403 повтором не лечится: нужен новый вход.
+        unawaited(handleAuthFailure(ref, failure));
         if (cached.isEmpty) throw failure;
         // Данные есть, свежих нет — это офлайн, а не пустой экран.
         return _fromSnapshot(cached).copyWith(failure: failure);
@@ -129,17 +133,93 @@ class BillsNotifier extends AsyncNotifier<BillsState> {
   /// Потянули вниз: идём в источник, ошибку показываем плашкой,
   /// данные при этом не теряем.
   Future<void> refresh() async {
-    final current = state.value;
+    final before = state.value;
     final result = await _repo.loadCached(refresh: true);
+    // Состояние перечитываем ПОСЛЕ запроса. Пока он был в полёте,
+    // пользователь мог оплатить начисление, переключить автоплатёж или
+    // править объекты, а источник об этих правках не знает: в [ElPayApi]
+    // нет ни «отметить оплаченным», ни автоплатежа, ни объектов. Снимок,
+    // снятый до await, молча откатывал их назад — оплаченное начисление
+    // снова висело «к оплате», и его оплачивали второй раз.
+    final latest = state.value;
     state = AsyncData(result.fold(
-      (data) => _fromSnapshot(
-        data.value,
-        fromCache: data.fromCache,
-        syncedAt: data.updatedAt,
+      (data) => _keepInFlightEdits(
+        _fromSnapshot(
+          data.value,
+          fromCache: data.fromCache,
+          syncedAt: data.updatedAt,
+        ),
+        before: before,
+        latest: latest,
       ).copyWith(clearFailure: true),
-      (failure) => (current ?? BillsState.empty)
-          .copyWith(failure: failure, fromCache: true),
+      (failure) =>
+          (latest ?? BillsState.empty).copyWith(failure: failure, fromCache: true),
     ));
+  }
+
+  /// Ответ источника с сохранёнными правками, которые пользователь успел
+  /// сделать ВО ВРЕМЯ запроса.
+  ///
+  /// Сравниваем снимок до запроса ([before]) со свежим состоянием
+  /// ([latest]): что успело измениться — остаётся за пользователем,
+  /// всё остальное берём из источника. Так правка не теряется, а список
+  /// по-прежнему обновляется.
+  BillsState _keepInFlightEdits(
+    BillsState loaded, {
+    required BillsState? before,
+    required BillsState? latest,
+  }) {
+    if (before == null || latest == null) return loaded;
+
+    final wasBills = {for (final b in before.bills) b.id: b};
+    final myBills = {for (final b in latest.bills) b.id: b};
+    final loadedBills = {for (final b in loaded.bills) b.id};
+    final bills = <Bill>[
+      for (final b in loaded.bills)
+        // Начисление, убранное в полёте (удалили объект, отключили счёт),
+        // не возвращаем.
+        if (!wasBills.containsKey(b.id) || myBills.containsKey(b.id))
+          _withLocalFlags(b, wasBills[b.id], myBills[b.id]),
+      // Начисления, дописанные в полёте: источник о них ещё не знает.
+      for (final b in latest.bills)
+        if (!loadedBills.contains(b.id) && !wasBills.containsKey(b.id)) b,
+    ];
+
+    final wasObjects = {for (final o in before.objects) o.id: o};
+    final myObjects = {for (final o in latest.objects) o.id: o};
+    final loadedObjects = {for (final o in loaded.objects) o.id};
+    final objects = <PayObject>[
+      for (final o in loaded.objects)
+        if (myObjects[o.id] case final edited?)
+          // Правка в полёте сильнее ответа: записать объект источнику
+          // всё равно некуда, он их не хранит.
+          (identical(edited, wasObjects[o.id]) ? o : edited)
+        // Объект, удалённый в полёте, не возвращаем.
+        else if (!wasObjects.containsKey(o.id))
+          o,
+      for (final o in latest.objects)
+        if (!loadedObjects.contains(o.id)) o,
+    ];
+
+    return loaded.copyWith(bills: bills, objects: objects);
+  }
+
+  /// «Оплачено» и автоплатёж: в ответе источника их нет (писать их
+  /// в [ElPayApi] некуда), поэтому локальное значение сильнее.
+  ///
+  /// `paid` ЗАЛИПАЕТ в true: отменить оплату нечем, а вернув начисление
+  /// в «к оплате», мы приглашаем оплатить его второй раз и списать
+  /// кошелёк повторно. Автоплатёж выключать можно, поэтому его берём
+  /// из источника — кроме случая, когда пользователь переключил тумблер,
+  /// пока шёл запрос.
+  Bill _withLocalFlags(Bill source, Bill? was, Bill? mine) {
+    if (mine == null) return source;
+    final paid = source.paid || mine.paid;
+    final autopay =
+        was != null && was.autopay == mine.autopay ? source.autopay : mine.autopay;
+    return paid == source.paid && autopay == source.autopay
+        ? source
+        : source.copyWith(paid: paid, autopay: autopay);
   }
 
   // ───────────────────────── мутации ─────────────────────────
@@ -151,6 +231,7 @@ class BillsNotifier extends AsyncNotifier<BillsState> {
     if (current == null) {
       return const Fail(AppFailure.notFound('начисления ещё не загружены'));
     }
+    final was = current.billById(billId)?.autopay ?? false;
     _set(current.copyWith(
       bills: [
         for (final b in current.bills) b.id == billId ? b.copyWith(autopay: on) : b,
@@ -167,7 +248,16 @@ class BillsNotifier extends AsyncNotifier<BillsState> {
       (_) => const Ok<void>(null),
       (failure) {
         Log.w(_tag, 'автоплатёж не сохранился: ${failure.message}');
-        _set(current); // откат к тому, что было до нажатия
+        // Откат к тому, что было до нажатия, — но ТОЛЬКО своего тумблера
+        // и по свежему состоянию: запись целого снимка затирала правки,
+        // сделанные пока шёл запрос (оплату, объекты, соседний тумблер).
+        final latest = state.value ?? current;
+        _set(latest.copyWith(
+          bills: [
+            for (final b in latest.bills)
+              b.id == billId ? b.copyWith(autopay: was) : b,
+          ],
+        ));
         return Fail<void>(failure);
       },
     );
@@ -193,6 +283,9 @@ class BillsNotifier extends AsyncNotifier<BillsState> {
     if (ids.isEmpty) {
       return const Fail(AppFailure.validation('нечего отмечать оплаченным'));
     }
+    final was = {
+      for (final id in ids) id: current.billById(id)?.paid ?? false,
+    };
     _set(current.copyWith(
       bills: [
         for (final b in current.bills) ids.contains(b.id) ? b.copyWith(paid: true) : b,
@@ -205,7 +298,14 @@ class BillsNotifier extends AsyncNotifier<BillsState> {
       (_) => const Ok<void>(null),
       (failure) {
         Log.w(_tag, 'отметка оплаты не сохранилась: ${failure.message}');
-        _set(current);
+        // Возвращаем ТОЛЬКО свои отметки и по свежему состоянию.
+        final latest = state.value ?? current;
+        _set(latest.copyWith(
+          bills: [
+            for (final b in latest.bills)
+              if (was[b.id] case final mark?) b.copyWith(paid: mark) else b,
+          ],
+        ));
         return Fail<void>(failure);
       },
     );
@@ -216,7 +316,13 @@ class BillsNotifier extends AsyncNotifier<BillsState> {
     if (current == null) {
       return const Fail(AppFailure.notFound('объекты ещё не загружены'));
     }
-    final known = current.objects.any((o) => o.id == object.id);
+    // Прежняя версия объекта — для отката: пустой список значит, что
+    // объект новый и при отказе его надо просто убрать.
+    final previous = [
+      for (final o in current.objects)
+        if (o.id == object.id) o,
+    ];
+    final known = previous.isNotEmpty;
     _set(current.copyWith(
       objects: known
           ? [for (final o in current.objects) o.id == object.id ? object : o]
@@ -226,7 +332,18 @@ class BillsNotifier extends AsyncNotifier<BillsState> {
 
     final result = await _repo.saveObject(object);
     return result.fold(Ok<PayObject>.new, (failure) {
-      _set(current);
+      // Откатываем ТОЛЬКО свой объект по свежему состоянию: снимок целиком
+      // стирал оплату и автоплатёж, сохранённые пока шла запись.
+      final latest = state.value ?? current;
+      _set(latest.copyWith(
+        objects: [
+          for (final o in latest.objects)
+            if (o.id != object.id)
+              o
+            else if (known)
+              previous.first,
+        ],
+      ));
       return Fail<PayObject>(failure);
     });
   }
@@ -244,6 +361,16 @@ class BillsNotifier extends AsyncNotifier<BillsState> {
     if (current == null) {
       return const Fail(AppFailure.notFound('объекты ещё не загружены'));
     }
+    // Что именно убираем — чтобы при отказе вернуть ровно это, а не
+    // весь снимок: за время отключения счетов состояние уже уехало.
+    final removedObjects = [
+      for (final o in current.objects)
+        if (o.id == objectId) o,
+    ];
+    final removedBills = [
+      for (final b in current.bills)
+        if (b.objectId == objectId) b,
+    ];
     _set(current.copyWith(
       objects: [
         for (final o in current.objects)
@@ -270,7 +397,22 @@ class BillsNotifier extends AsyncNotifier<BillsState> {
 
     final result = await _repo.removeObject(objectId, detachAccounts: true);
     if (result.isFail) {
-      _set(current.copyWith(failure: result.failureOrNull));
+      final latest = state.value ?? current;
+      final aliveObjects = {for (final o in latest.objects) o.id};
+      final aliveBills = {for (final b in latest.bills) b.id};
+      _set(latest.copyWith(
+        objects: [
+          ...latest.objects,
+          for (final o in removedObjects)
+            if (!aliveObjects.contains(o.id)) o,
+        ],
+        bills: [
+          ...latest.bills,
+          for (final b in removedBills)
+            if (!aliveBills.contains(b.id)) b,
+        ],
+        failure: result.failureOrNull,
+      ));
       return result;
     }
     if (attached.isNotEmpty) ref.invalidate(accountsProvider);

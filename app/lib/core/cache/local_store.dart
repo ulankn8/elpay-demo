@@ -217,6 +217,9 @@ class CacheKeys {
   static const bills = 'bills';
   static const accounts = 'accounts';
   static const history = 'history';
+
+  /// Купленные билеты маркета.
+  static const tickets = 'tickets';
   static const stories = 'stories';
   static const notices = 'notices';
   static const outbox = 'outbox';

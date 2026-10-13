@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/s.dart';
 import '../../core/tokens.dart';
 import '../../data/models.dart';
 import '../../state/providers.dart';
@@ -38,6 +39,7 @@ class _StoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     final colors = Brand.category[story.cat] ?? Brand.category['market']!;
     return GestureDetector(
       onTap: onTap,
@@ -100,15 +102,18 @@ class _StoryCard extends StatelessWidget {
                         color: Colors.white.withValues(alpha: .24),
                         borderRadius: BorderRadius.circular(999),
                       ),
+                      // tag и preview — демо-данные, им нужен s.tr():
+                      // без него лента на главной остаётся русской даже в
+                      // кыргызской локали, и словарь её не догонит.
                       child: Text(
-                        story.tag,
+                        s.tr(story.tag),
                         style: const TextStyle(
                             fontSize: 9.5, fontWeight: FontWeight.w700, color: Colors.white),
                       ),
                     ),
                     const Spacer(),
                     Text(
-                      story.preview,
+                      s.tr(story.preview),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
