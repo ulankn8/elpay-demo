@@ -131,40 +131,59 @@ class _AccountRow extends ConsumerWidget {
       AccountSyncStatus.syncing => (s.syncPending, ChipTone.soft),
       AccountSyncStatus.failed => (s.syncFailed, ChipTone.bad),
       AccountSyncStatus.ok => (
-          account.syncedAt == null ? s.syncOk : s.syncedAt(_when(context, account.syncedAt!)),
+          account.syncedAt == null
+              ? s.syncOk
+              : s.syncedAt('${s.dayMonthText(account.syncedAt!)}, ${_hhmm(account.syncedAt!)}'),
           ChipTone.ok,
         ),
     };
 
-    return AppRow(
-      leading: CatTile(account.cat, catIcon(account.cat), soft: true),
-      title: s.tr(account.title),
-      subtitle: '${account.accountNo} · ${s.tr(account.subtitle)}',
-      trailing: PopupMenuButton<String>(
-        icon: Icon(Icons.more_horiz_rounded, color: c.muted2),
-        onSelected: (value) async {
-          if (value != 'off') return;
-          final ok = await confirmDialog(context, s.disconnectConfirm, s.disconnectAccount);
-          if (ok != true) return;
-          final result = await ref.read(accountsProvider.notifier).disconnect(account.id);
-          if (!context.mounted) return;
-          showAppSnack(
-            context,
-            result.isOk ? s.disconnected : s.errorUnknown,
-          );
-        },
-        itemBuilder: (context) => [
-          PopupMenuItem(value: 'off', child: Text(s.disconnectAccount)),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 13, 6, 13),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CatTile(account.cat, catIcon(account.cat), soft: true),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(s.tr(account.title),
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: context.t.titleMedium),
+                const SizedBox(height: 2),
+                Text('${account.accountNo} · ${s.tr(account.subtitle)}',
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: context.t.bodySmall),
+                const SizedBox(height: 8),
+                AppChip(
+                  statusText,
+                  tone: tone,
+                  icon: switch (account.status) {
+                    AccountSyncStatus.syncing => Icons.sync_rounded,
+                    AccountSyncStatus.failed => Icons.sync_problem_rounded,
+                    AccountSyncStatus.ok => Icons.check_rounded,
+                  },
+                ),
+              ],
+            ),
+          ),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_horiz_rounded, color: c.muted2),
+            onSelected: (value) async {
+              if (value != 'off') return;
+              final ok = await confirmDialog(context, s.disconnectConfirm, s.disconnectAccount);
+              if (ok != true) return;
+              final result = await ref.read(accountsProvider.notifier).disconnect(account.id);
+              if (!context.mounted) return;
+              showAppSnack(context, result.isOk ? s.disconnected : s.errorUnknown);
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'off', child: Text(s.disconnectAccount)),
+            ],
+          ),
         ],
       ),
-      onTap: () => showAppSnack(context, statusText),
-      subtitleColor: account.status == AccountSyncStatus.failed ? c.chipBadFg : null,
     );
-  }
-
-  String _when(BuildContext context, DateTime at) {
-    final s = S.of(context);
-    return '${s.dayMonthText(at)}, ${_hhmm(at)}';
   }
 
   String _hhmm(DateTime d) =>
