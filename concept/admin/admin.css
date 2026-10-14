@@ -1,0 +1,261 @@
+/* Кабинет служб ЭлPay — концепт. Токены те же, что у мобильного концепта
+   (../style.css): один бренд, одна палитра, тот же Montserrat. */
+@font-face{font-family:Mont;src:url('../../app/assets/fonts/Montserrat-400.ttf');font-weight:400}
+@font-face{font-family:Mont;src:url('../../app/assets/fonts/Montserrat-500.ttf');font-weight:500}
+@font-face{font-family:Mont;src:url('../../app/assets/fonts/Montserrat-600.ttf');font-weight:600}
+@font-face{font-family:Mont;src:url('../../app/assets/fonts/Montserrat-700.ttf');font-weight:700}
+
+:root{
+  --p:#1FB886;--p6:#06A06E;--p7:#05804F;--onp:#04332B;--l:#DEF3EC;--l2:#EBF8F2;
+  --ink:#1E2A32;--ink2:#2A3942;--ink3:#3C4A55;--mut:#6B7772;--mut2:#9AA5A0;
+  --line:#E4E8E6;--line2:#EEF1EF;--bg:#fff;--soft:#F5F7F6;--soft2:#F9FAF9;
+  --dan:#E0533F;--warn:#E0A93F;--info:#3F7BE0;
+  --side:#0F2A24;--side2:#163731;--side-ink:#CFE3DC;--side-mut:#7F9A92;
+  --g-water:linear-gradient(135deg,#5B9BF0,#3F7BE0);
+  --g-power:linear-gradient(135deg,#F6C453,#E0A93F);
+  --g-trash:linear-gradient(135deg,#FF9A52,#F0643F);
+  --g-kid:linear-gradient(135deg,#FF7DBE,#E0428D);
+  --g-school:linear-gradient(135deg,#8C75FF,#5B45D9);
+  --g-net:linear-gradient(135deg,#8B9BF0,#6B7EE0);
+  --g-gas:linear-gradient(135deg,#E07A5F,#C0553F);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:Mont,system-ui,sans-serif;background:#E3E8E6;color:var(--ink);padding:48px 40px 80px}
+svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── страница-галерея ─────────────────────────────── */
+.intro{max-width:1440px;margin:0 auto 40px}
+.intro h1{font-size:30px;font-weight:700;letter-spacing:-.6px}
+.intro p{font-size:15px;color:var(--mut);line-height:1.55;margin-top:8px;max-width:920px}
+.intro .toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.intro .toc a{font-size:12.5px;font-weight:600;color:var(--ink3);background:#fff;border-radius:999px;padding:7px 13px;text-decoration:none}
+.group{max-width:1440px;margin:56px auto 18px;font-size:13px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mut)}
+.item{max-width:1440px;margin:0 auto 54px}
+.cap{font-size:17px;font-weight:700;margin:0 0 4px 2px}
+.cap span{display:block;font-weight:500;font-size:13.5px;color:var(--mut);margin-top:5px;line-height:1.5;max-width:1000px}
+.cap .no{display:inline-block;min-width:28px;color:var(--p7)}
+
+/* ── рамка экрана: 1440×900, как ноутбук службы ───── */
+.desk{width:1440px;height:900px;background:var(--soft);border-radius:14px;overflow:hidden;position:relative;
+  display:flex;box-shadow:0 22px 60px rgba(30,42,50,.18);margin-top:14px}
+.desk.auth{display:block;background:linear-gradient(140deg,#0F2A24 0%,#123B31 55%,#0B2420 100%)}
+
+/* ── боковая панель ─────────────────────────────── */
+.side{width:260px;flex:none;background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;padding:20px 14px 16px}
+.logo{display:flex;align-items:center;gap:10px;padding:0 8px 20px}
+.logo b{width:34px;height:34px;border-radius:10px;background:var(--p);color:var(--onp);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.logo span{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.2px}
+.logo small{display:block;font-size:10.5px;font-weight:600;color:var(--side-mut);letter-spacing:.3px;margin-top:1px}
+.org{background:var(--side2);border-radius:12px;padding:11px 12px;display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.org .ic{width:32px;height:32px;border-radius:9px}
+.org .ic svg{width:17px;height:17px}
+.org b{display:block;font-size:13px;color:#fff;font-weight:700}
+.org small{display:block;font-size:11px;color:var(--side-mut);margin-top:1px}
+.menu{display:flex;flex-direction:column;gap:2px}
+.menu .sec{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--side-mut);padding:14px 10px 6px}
+.menu a{display:flex;align-items:center;gap:11px;height:38px;white-space:nowrap;padding:0 10px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--side-ink);text-decoration:none}
+.menu a svg{width:19px;height:19px;flex:none;color:var(--side-mut)}
+.menu a.on{background:rgba(31,184,134,.16);color:#fff}
+.menu a.on svg{color:var(--p)}
+.menu a i{margin-left:auto;font-style:normal;font-size:11px;font-weight:700;background:var(--dan);color:#fff;border-radius:999px;padding:2px 7px}
+.menu a i.n{background:rgba(255,255,255,.12);color:var(--side-ink)}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 8px 0;border-top:1px solid rgba(255,255,255,.08)}
+.me .av{width:34px;height:34px;border-radius:50%;background:#2E5A4E;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700}
+.me b{display:block;font-size:12.5px;color:#fff}
+.me small{display:block;font-size:11px;color:var(--side-mut)}
+
+/* ── основная область ───────────────────────────── */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{height:68px;flex:none;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 28px}
+.top .crumbs{font-size:12px;color:var(--mut2);font-weight:600}
+.top h2{font-size:19px;font-weight:700;letter-spacing:-.3px}
+.top .grow{flex:1}
+.search{height:38px;width:300px;border-radius:10px;background:var(--soft);display:flex;align-items:center;gap:8px;padding:0 12px;font-size:13px;color:var(--mut2)}
+.search svg{width:16px;height:16px}
+.period{height:38px;border-radius:10px;border:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 12px;font-size:13px;font-weight:600}
+.period svg{width:16px;height:16px;color:var(--mut)}
+.body{flex:1;overflow:hidden;padding:24px 28px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr 1fr}
+.g21{grid-template-columns:2fr 1fr}.g12{grid-template-columns:1fr 2fr}
+.row{display:flex;align-items:center;gap:12px}
+.col{display:flex;flex-direction:column;gap:12px}
+.grow{flex:1;min-width:0}
+.ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}.mt24{margin-top:24px}
+
+/* ── типографика ────────────────────────────────── */
+.h3{font-size:15px;font-weight:700;letter-spacing:-.2px}
+.h4{font-size:13.5px;font-weight:700}
+.sub{font-size:12.5px;color:var(--mut);line-height:1.5}
+.tiny{font-size:11px;color:var(--mut2);font-weight:600}
+.num{font-variant-numeric:tabular-nums}
+.som{font-style:normal;font-size:.62em;font-weight:600;color:var(--mut);margin-left:3px}
+
+/* ── карточки и плитки ──────────────────────────── */
+.card{background:#fff;border-radius:16px;box-shadow:0 1px 2px rgba(30,42,50,.06)}
+.card.p{padding:18px 20px}
+.card .hd{display:flex;align-items:center;gap:10px;padding:16px 20px 12px}
+.card .hd .h3{flex:1}
+.kpi{padding:16px 18px}
+.kpi .l{font-size:12px;font-weight:600;color:var(--mut)}
+.kpi .v{font-size:26px;font-weight:700;letter-spacing:-.8px;margin-top:6px}
+.kpi .d{font-size:11.5px;font-weight:600;color:var(--mut);margin-top:4px}
+.kpi .d.up{color:var(--p7)}.kpi .d.dn{color:#B03A28}
+.meter{height:7px;border-radius:999px;background:var(--line2);overflow:hidden;display:flex;margin-top:10px}
+.meter span{display:block;height:100%}
+
+/* ── иконки услуг ───────────────────────────────── */
+.ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;color:#fff}
+.ic svg{width:18px;height:18px;stroke:#fff}
+.ic.soft{background:var(--l2)!important;color:var(--p7)}
+.ic.soft svg{stroke:var(--p7)}
+
+/* ── кнопки ─────────────────────────────────────── */
+.btn{height:40px;border-radius:11px;background:var(--p);color:var(--onp);font-family:Mont;font-size:13.5px;font-weight:700;border:0;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 16px;white-space:nowrap}
+.btn svg{width:17px;height:17px}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.soft{background:var(--l2);color:var(--p7)}
+.btn.dan{background:#FCEBE8;color:#B03A28}
+.btn.sm{height:32px;font-size:12.5px;border-radius:9px;padding:0 12px}
+.btn.lg{height:48px;font-size:15px;border-radius:13px;padding:0 22px}
+.btn.off{opacity:.45}
+.link{color:var(--p7);font-weight:700;font-size:12.5px}
+
+/* ── чипы статусов ──────────────────────────────── */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.chip svg{width:12px;height:12px}
+.chip.ok{background:var(--l2);color:var(--p7)}
+.chip.warn{background:#FDF3E0;color:#9A6C12}
+.chip.bad{background:#FCEBE8;color:#B03A28}
+.chip.info{background:#E8F0FC;color:#2456B0}
+.chip.soft{background:var(--soft);color:var(--mut)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+
+/* ── таблица ────────────────────────────────────── */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.3px;text-transform:uppercase;
+  padding:10px 12px;border-bottom:1px solid var(--line);background:var(--soft2);white-space:nowrap}
+.tbl td{padding:11px 12px;border-bottom:1px solid var(--line2);vertical-align:middle;white-space:nowrap}
+.tbl tr.sel td{background:#F2FBF7}
+.tbl tr.err td{background:#FDF5F3}
+.tbl .r{text-align:right}
+.tbl .m{color:var(--mut)}
+.tbl b{font-weight:700}
+.tbl .acc{font-weight:700;font-variant-numeric:tabular-nums}
+.tbl td:first-child,.tbl th:first-child{padding-left:20px}
+.tbl td:last-child,.tbl th:last-child{padding-right:20px}
+.cb{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--mut2);display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
+.cb.on{background:var(--p);border-color:var(--p)}
+.cb.on::after{content:'';width:8px;height:4px;border:2px solid var(--onp);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.cb.mid{background:var(--p);border-color:var(--p)}
+.cb.mid::after{content:'';width:8px;height:2px;background:var(--onp);border-radius:1px}
+.pager{display:flex;align-items:center;gap:10px;padding:12px 20px;font-size:12.5px;color:var(--mut)}
+.pager .grow{flex:1}
+.pager b{color:var(--ink)}
+.pg{width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px}
+.pg.on{background:var(--l2);color:var(--p7)}
+
+/* ── фильтры ────────────────────────────────────── */
+.filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.f{height:34px;border-radius:999px;border:1px solid var(--line);background:#fff;display:inline-flex;align-items:center;gap:6px;padding:0 13px;font-size:12.5px;font-weight:600;color:var(--ink3);white-space:nowrap}
+.f b{font-weight:700;color:var(--mut);font-size:11.5px}
+.f.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.f.on b{color:rgba(255,255,255,.65)}
+.f svg{width:14px;height:14px}
+
+/* ── поля форм ──────────────────────────────────── */
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld label{font-size:12px;font-weight:700;color:var(--ink3)}
+.fld .in{height:42px;border-radius:10px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;gap:8px;padding:0 13px;font-size:13.5px;color:var(--ink)}
+.fld .in.ph{color:var(--mut2)}
+.fld .in.focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(31,184,134,.16)}
+.fld .in.bad{border-color:var(--dan);box-shadow:0 0 0 3px rgba(224,83,63,.12)}
+.fld .in svg{width:16px;height:16px;color:var(--mut)}
+.fld .in .grow{flex:1}
+.fld .hint{font-size:11.5px;color:var(--mut)}
+.fld .hint.bad{color:#B03A28;font-weight:600}
+.fld .area{min-height:96px;border-radius:10px;border:1px solid var(--line);background:#fff;padding:11px 13px;font-size:13.5px;line-height:1.5}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px;gap:2px}
+.seg span{height:32px;padding:0 14px;border-radius:8px;display:inline-flex;align-items:center;font-size:12.5px;font-weight:600;color:var(--mut)}
+.seg span.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(30,42,50,.1)}
+.tog{width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;flex:none}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tog.on{background:var(--p)}.tog.on::after{left:19px}
+
+/* ── мастер (шаги) ──────────────────────────────── */
+.steps{display:flex;align-items:center;gap:10px}
+.step{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--mut2)}
+.step b{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px}
+.step.on{color:var(--ink)}.step.on b{border-color:var(--p);background:var(--p);color:var(--onp)}
+.step.done{color:var(--p7)}.step.done b{border-color:var(--p);color:var(--p7);background:var(--l2)}
+.step-line{width:44px;height:1.5px;background:var(--line)}
+.step-line.done{background:var(--p)}
+
+/* ── зона загрузки файла ────────────────────────── */
+.drop{border:2px dashed #BFD9CF;border-radius:16px;background:#F7FCFA;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:36px}
+.drop .big{width:64px;height:64px;border-radius:18px;background:var(--l2);color:var(--p7);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.drop .big svg{width:30px;height:30px}
+.file{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--soft)}
+.file .ft{width:38px;height:44px;border-radius:7px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-size:10px;font-weight:700;color:#fff}
+.file .ft.csv{background:#1FA894}.file .ft.xls{background:#1D7A47}
+
+/* ── плашки ─────────────────────────────────────── */
+.note{display:flex;gap:10px;padding:10px 13px;border-radius:12px;font-size:12px;line-height:1.45}
+.note svg{width:18px;height:18px;flex:none;margin-top:1px}
+.note.info{background:#E8F0FC;color:#1F4E9C}
+.note.ok{background:var(--l2);color:var(--p7)}
+.note.warn{background:#FDF3E0;color:#7A560D}
+.note.bad{background:#FCEBE8;color:#962F20}
+.note b{font-weight:700}
+
+/* ── графики (простые столбцы) ──────────────────── */
+.bars{display:flex;align-items:flex-end;gap:8px;height:190px;padding:0 4px}
+.bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bars i{display:block;width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#3FCB9A,#1FB886)}
+.bars i.today{background:linear-gradient(180deg,#7BDDB9,#1FB886);outline:2px solid var(--p);outline-offset:2px}
+.bars span{font-size:10.5px;font-weight:600;color:var(--mut2)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink3);font-weight:600}
+.legend b{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+
+/* ── выезжающая панель справа ───────────────────── */
+.dim{position:absolute;inset:0;background:rgba(15,30,26,.38)}
+.drawer{position:absolute;top:0;right:0;bottom:0;width:560px;background:#fff;box-shadow:-20px 0 50px rgba(15,30,26,.18);display:flex;flex-direction:column}
+.drawer .dh{padding:20px 24px 16px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:12px}
+.drawer .db{flex:1;overflow:hidden;padding:20px 24px}
+.drawer .df{padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+.x{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--mut)}
+.x svg{width:18px;height:18px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:9px 14px;font-size:13px}
+.kv dt{color:var(--mut);font-weight:500}
+.kv dd{font-weight:600}
+
+/* ── мини-телефон (предпросмотр push) ───────────── */
+.phone{width:250px;height:500px;border-radius:34px;background:#111;padding:9px;box-shadow:0 18px 40px rgba(0,0,0,.25);flex:none}
+.phone .scr{width:100%;height:100%;border-radius:26px;overflow:hidden;position:relative;
+  background:linear-gradient(170deg,#3E6C88 0%,#25455E 45%,#162B3D 100%);padding:44px 12px 0}
+.phone .time{color:#fff;text-align:center;font-size:44px;font-weight:600;letter-spacing:-1px}
+.phone .date{color:rgba(255,255,255,.8);text-align:center;font-size:12px;font-weight:600;margin-bottom:22px}
+.push{background:rgba(255,255,255,.86);border-radius:16px;padding:10px 12px;backdrop-filter:blur(8px)}
+.push .ph{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;color:#53605B;margin-bottom:4px}
+.push .ph b{width:18px;height:18px;border-radius:5px;background:var(--p);color:var(--onp);display:inline-flex;align-items:center;justify-content:center;font-size:8px}
+.push .ph span{margin-left:auto;font-weight:600}
+.push .pt{font-size:12.5px;font-weight:700;color:#111}
+.push .pb{font-size:11.5px;color:#222;line-height:1.4;margin-top:2px}
+
+/* ── страница-документ (API) ────────────────────── */
+.doc{max-width:1440px;margin:0 auto;background:#fff;border-radius:14px;box-shadow:0 22px 60px rgba(30,42,50,.12);padding:56px 72px}
+.doc h2{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.doc h3{font-size:18px;font-weight:700;margin:36px 0 12px;letter-spacing:-.2px}
+.doc p,.doc li{font-size:14.5px;line-height:1.65;color:var(--ink2)}
+.doc ul,.doc ol{padding-left:22px}
+.doc li+li{margin-top:5px}
+.doc .lead{font-size:16px;color:var(--mut);margin-top:10px;max-width:980px}
+.doc table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+.doc th,.doc td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.5}
+.doc th{background:var(--soft2);font-size:12px;text-transform:uppercase;letter-spacing:.3px;color:var(--mut)}
+.doc code,.doc pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+.doc code{background:var(--soft);padding:2px 6px;border-radius:5px}
+.doc pre{background:#0F2A24;color:#D7EEE6;border-radius:12px;padding:16px 18px;overflow:hidden;line-height:1.6;margin-top:8px;white-space:pre-wrap}
+.doc .verb{display:inline-block;min-width:58px;font-weight:700;color:var(--p7)}

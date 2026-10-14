@@ -1,0 +1,54 @@
+<!-- group: Кабинет службы | cap: Обзор | sub: Первое, что видит служба после входа: сколько начислено и оплачено за открытый период, кто и как платит, что требует внимания сегодня. Каждая цифра кликабельна и ведёт в отфильтрованный список абонентов. -->
+<div class="desk">
+{{side:svc:obzor}}
+<div class="main">
+{{top:Обзор|Ошводоканал · сентябрь 2026}}
+<div class="body">
+  <div class="grid g4">
+    <div class="card kpi"><div class="l">Начислено за сентябрь</div><div class="v num">2 368 940<i class="som">сом</i></div><div class="d">12 480 абонентов · загружено 1 окт</div></div>
+    <div class="card kpi"><div class="l">Оплачено на сегодня</div><div class="v num">1 487 310<i class="som">сом</i></div>
+      <div class="meter"><span style="width:62.8%;background:var(--p)"></span></div><div class="d up">62,8% · до срока 11 дней</div></div>
+    <div class="card kpi"><div class="l">Не оплатили сентябрь</div><div class="v num">4 032</div><div class="d">ещё 642 оплатили частично</div></div>
+    <div class="card kpi"><div class="l">Подключили счёт в ЭлPay</div><div class="v num">3 914</div>
+      <div class="meter"><span style="width:31.4%;background:var(--info)"></span></div><div class="d">31,4% абонентов · видят начисления в телефоне</div></div>
+  </div>
+
+  <div class="grid g21 mt16">
+    <div class="card">
+      <div class="hd"><div class="h3">Поступления по дням</div>
+        <div class="seg"><span class="on">Октябрь</span><span>Сентябрь</span><span>Год</span></div></div>
+      <div style="padding:6px 20px 18px">
+        <div class="row" style="align-items:baseline;gap:10px;margin-bottom:14px">
+          <div style="font-size:22px;font-weight:700;letter-spacing:-.5px" class="num">216 800<i class="som">сом</i></div>
+          <div class="sub">сегодня, 14 октября — пик перед сроком, как и в прошлом месяце</div></div>
+        <div class="bars"><div><i style="height:18%" title="38200"></i><span>1</span></div><div><i style="height:29%" title="61940"></i><span>2</span></div><div><i style="height:39%" title="84510"></i><span>3</span></div><div><i style="height:33%" title="72300"></i><span>4</span></div><div><i style="height:19%" title="41080"></i><span>5</span></div><div><i style="height:44%" title="96420"></i><span>6</span></div><div><i style="height:55%" title="118760"></i><span>7</span></div><div><i style="height:61%" title="131900"></i><span>8</span></div><div><i style="height:50%" title="109340"></i><span>9</span></div><div><i style="height:41%" title="88120"></i><span>10</span></div><div><i style="height:37%" title="79650"></i><span>11</span></div><div><i style="height:66%" title="142830"></i><span>12</span></div><div><i style="height:95%" title="205460"></i><span>13</span></div><div><i class="today" style="height:100%" title="216800"></i><span>14</span></div></div>
+        <div class="legend mt16">
+          <b><span class="dot" style="background:var(--p)"></span>ЭлPay — 912 450 сом · 61,3%</b>
+          <b><span class="dot" style="background:var(--ink3)"></span>Касса службы — 341 280 сом</b>
+          <b><span class="dot" style="background:var(--warn)"></span>Банки и терминалы — 233 580 сом</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd"><div class="h3">Требует внимания</div><span class="chip bad">4</span></div>
+      <div style="padding:0 16px 16px" class="col">
+        <div class="note warn">{{i:alert}}<div><b>36 строк не загрузились</b> в импорте 1 октября: адрес не найден, дубль лицевого, пустое ФИО.<div style="margin-top:5px"><span class="link">Разобрать ошибки →</span></div></div></div>
+        <div class="note info">{{i:download}}<div><b>382 платежа не выгружены в 1С</b> — сегодняшние, на 216 800 сом.<div style="margin-top:5px"><span class="link">Выгрузить реестр →</span></div></div></div>
+        <div class="note info">{{i:bell}}<div><b>До срока 11 дней</b>, не оплатили 4 032. Push бесплатно дойдёт до 1 266.<div style="margin-top:5px"><span class="link">Напомнить →</span></div></div></div>
+        <div class="note bad">{{i:coins}}<div><b>Долг прошлых периодов</b> — 418 270 сом у 1 905 абонентов.<div style="margin-top:5px"><span class="link">Список должников →</span></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g3 mt16">
+    <div class="card p"><div class="row"><span class="ic soft">{{i:upload}}</span><div class="grow"><div class="h4">Последний импорт абонентов</div><div class="sub">abonenty_2026-10-01.csv · 1 окт, 09:42 · Жыпар Т.</div></div></div>
+      <div class="row mt12" style="gap:6px;flex-wrap:wrap"><span class="chip ok">+37 новых</span><span class="chip info">211 обновлено</span><span class="chip soft">12 214 без изменений</span><span class="chip bad">36 с ошибкой</span></div></div>
+    <div class="card p"><div class="row"><span class="ic soft">{{i:doc}}</span><div class="grow"><div class="h4">Начисления за сентябрь</div><div class="sub">nachisleniya_sentyabr.xlsx · 1 окт, 10:15 · Бакыт О.</div></div></div>
+      <div class="row mt12" style="gap:6px"><span class="chip ok">{{i:check}} 12 480 из 12 480 сопоставлены</span><span class="chip soft">срок до 25 окт</span></div></div>
+    <div class="card p"><div class="row"><span class="ic soft">{{i:send}}</span><div class="grow"><div class="h4">Последняя рассылка</div><div class="sub">5 окт · «Напоминание о сроке» · 3 120 получателей</div></div></div>
+      <div class="row mt12" style="gap:6px"><span class="chip ok">после неё оплатили 1 044 · 33,5%</span></div></div>
+  </div>
+</div>
+</div>
+</div>
