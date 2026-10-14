@@ -20,10 +20,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// проходит молча.
 void main() {
   /// Экраны, которые ещё видят репозиторий напрямую, а не через провайдер.
-  const knownRepoImports = {
-    'lib/features/auth/otp_page.dart',
-    'lib/features/auth/login_page.dart',
-  };
+  const knownRepoImports = {'lib/features/auth/otp_page.dart', 'lib/features/auth/login_page.dart'};
 
   /// Что из lib/data экрану видеть МОЖНО.
   ///
@@ -32,17 +29,9 @@ void main() {
   /// ConnectBlock), которые список найденного и рисует. Отдельное правило
   /// ниже следит за тем, чтобы правила не утащили за собой ни Flutter,
   /// ни Riverpod — иначе такое разрешение было бы дырой.
-  const allowedFromData = {
-    'lib/data/models.dart',
-    'lib/data/registry_data.dart',
-    'lib/data/demo_data.dart',
-    'lib/data/connect_rules.dart',
-  };
+  const allowedFromData = {'lib/data/models.dart', 'lib/data/registry_data.dart', 'lib/data/demo_data.dart', 'lib/data/connect_rules.dart'};
 
-  final importLine = RegExp(
-    r'''^\s*(?:import|export)\s+['"]([^'"]+)['"]''',
-    multiLine: true,
-  );
+  final importLine = RegExp(r'''^\s*(?:import|export)\s+['"]([^'"]+)['"]''', multiLine: true);
 
   List<File> dartFiles(String dir) {
     final d = Directory(dir);
@@ -75,10 +64,7 @@ void main() {
   }
 
   /// Все импорты файла, приведённые к пути внутри пакета.
-  List<String> importsOf(File f) => [
-        for (final m in importLine.allMatches(f.readAsStringSync()))
-          resolve(f.path, m.group(1)!),
-      ];
+  List<String> importsOf(File f) => [for (final m in importLine.allMatches(f.readAsStringSync())) resolve(f.path, m.group(1)!)];
 
   /// Файлы слоя, у которых есть импорт из запрещённых каталогов.
   Map<String, List<String>> offenders(String layer, List<String> forbidden) {
@@ -105,10 +91,7 @@ void main() {
   test('lib/core не импортирует data, state и features', () {
     // core — инфраструктура: она не знает ни про модели, ни про экраны,
     // иначе её нельзя вынести в отдельный пакет и переиспользовать.
-    expect(
-      offenders('lib/core', ['lib/data/', 'lib/state/', 'lib/features/']),
-      isEmpty,
-    );
+    expect(offenders('lib/core', ['lib/data/', 'lib/state/', 'lib/features/']), isEmpty);
   });
 
   test('lib/data не импортирует features и state', () {
@@ -160,11 +143,7 @@ void main() {
   test('Ни один файл в lib/features не импортирует data/demo_data.dart', () {
     // Строго и без списка исключений: экран не знает, откуда взялся
     // каталог, поэтому источник подменяется одной строкой apiProvider.
-    expect(
-      offenders('lib/features', ['lib/data/demo_data.dart']),
-      isEmpty,
-      reason: 'каталог приходит из CatalogRepository, а не из Demo.*',
-    );
+    expect(offenders('lib/features', ['lib/data/demo_data.dart']), isEmpty, reason: 'каталог приходит из CatalogRepository, а не из Demo.*');
   });
 
   test('Состояние тоже не читает demo_data вместо репозитория', () {
@@ -182,16 +161,14 @@ void main() {
 
   test('Ни один экран не импортирует репозиторий напрямую — '
       'barrel-файл providers.dart это не разрешает', () {
-    final repos = offenders('lib/features', ['lib/data/']).entries.where((e) {
-      final rest = e.value.where((i) => !allowedFromData.contains(i));
-      return rest.isNotEmpty;
-    }).map((e) => e.key);
+    final repos = offenders('lib/features', ['lib/data/']).entries
+        .where((e) {
+          final rest = e.value.where((i) => !allowedFromData.contains(i));
+          return rest.isNotEmpty;
+        })
+        .map((e) => e.key);
 
-    expect(
-      repos.toSet().difference(knownRepoImports),
-      isEmpty,
-      reason: 'репозиторий берут через провайдер: экран о реализации не знает',
-    );
+    expect(repos.toSet().difference(knownRepoImports), isEmpty, reason: 'репозиторий берут через провайдер: экран о реализации не знает');
   });
 
   test('Ни один экран не импортирует data/api напрямую', () {
@@ -203,5 +180,64 @@ void main() {
     // Настройки живут в AppPrefs, кэш — в LocalStore. Прямой доступ
     // из экрана обходит и то, и другое.
     expect(offenders('lib/features', ['package:shared_preferences']), isEmpty);
+  });
+
+  // ───────────── кабинет служб (lib/admin) ─────────────
+  //
+  // Кабинет — отдельное приложение в том же пакете. Общее у него с
+  // мобильным только lib/core; модели и состояние жителя ему не нужны,
+  // а мобильному приложению не нужен ни один байт кабинета.
+
+  test('В lib/admin тоже есть что проверять', () {
+    expect(dartFiles('lib/admin/data'), isNotEmpty);
+    expect(dartFiles('lib/admin/state'), isNotEmpty);
+    expect(dartFiles('lib/admin/ui'), isNotEmpty);
+  });
+
+  test('Кабинет берёт из мобильного приложения только lib/core', () {
+    expect(offenders('lib/admin', ['lib/data/', 'lib/state/', 'lib/features/', 'lib/app.dart', 'lib/main.dart']), isEmpty);
+  });
+
+  test('Мобильное приложение не знает про кабинет', () {
+    // Иначе кабинет с парсером Excel и демо-реестром на 12 тысяч абонентов
+    // уехал бы в сборку для жителей.
+    final out = <String, List<String>>{};
+    for (final dir in ['lib/core', 'lib/data', 'lib/state', 'lib/features']) {
+      out.addAll(offenders(dir, ['lib/admin/']));
+    }
+    for (final f in [File('lib/app.dart'), File('lib/main.dart')]) {
+      final bad = importsOf(f).where((i) => i.startsWith('lib/admin/')).toList();
+      if (bad.isNotEmpty) out[slash(f.path)] = bad;
+    }
+    expect(out, isEmpty);
+  });
+
+  test('lib/admin/data — чистый Dart: без виджетов, контейнера и браузера', () {
+    // Движок импорта и сид проверяются обычными unit-тестами на VM,
+    // и так должно остаться.
+    expect(
+      offenders('lib/admin/data', const [
+        'package:flutter/',
+        'package:flutter_riverpod',
+        'package:riverpod',
+        'package:shared_preferences',
+        'package:web',
+        'dart:js_interop',
+        'lib/admin/state/',
+        'lib/admin/ui/',
+        'lib/admin/platform/',
+      ]),
+      isEmpty,
+    );
+  });
+
+  test('Состояние кабинета не знает про экраны', () {
+    expect(offenders('lib/admin/state', ['lib/admin/ui/', 'package:flutter/material.dart', 'package:go_router']), isEmpty);
+  });
+
+  test('Экраны кабинета не трогают браузер и хранилище напрямую', () {
+    // Файлы — через FileGateway (его подменяют в тестах), хранилище — через
+    // AdminStore. Прямой package:web в экране сломал бы виджет-тесты на VM.
+    expect(offenders('lib/admin/ui', ['package:web', 'dart:js_interop', 'package:shared_preferences', 'lib/admin/platform/file_io_web.dart']), isEmpty);
   });
 }

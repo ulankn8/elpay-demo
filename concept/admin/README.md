@@ -33,4 +33,5 @@
 Как собрать: `python3 build.py` (экраны — `screens/NN-имя.html`, первая строка —
 метаданные; заготовки `{{side:…}}`, `{{top:…}}`, `{{i:…}}` описаны в `build.py`).
 
-После утверждения переносится в код.
+Перенесён в код: `app/lib/admin/` (Flutter Web), описание — `app/ADMIN.md`,
+демо — https://ulankn8.github.io/elpay-demo/admin/.
