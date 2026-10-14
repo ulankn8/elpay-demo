@@ -1,0 +1,119 @@
+<!-- group: Админ ЭлPay | cap: Подключение новой службы | sub: Админ ЭлPay заводит службу за пять шагов и видит, на каком она застряла. Школа-гимназия №5 ждёт первого входа бухгалтера и файла учеников. -->
+<style>
+.s17 .menu a:nth-of-type(2){font-size:0;gap:0}.s17 .menu a:nth-of-type(2) svg{margin-right:11px}.s17 .menu a:nth-of-type(2)::after{content:'Без сопоставления';font-size:13.5px;order:1}.s17 .menu a:nth-of-type(2) i{order:2;font-size:11px}
+.s17 .seg span{white-space:nowrap;height:28px}
+.s17 .st{display:flex;gap:14px;padding:11px 20px;border-top:1px solid var(--line2)}
+.s17 .st .b{width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.s17 .st .b svg{width:15px;height:15px}
+.s17 .st .b.done{background:var(--l2);color:var(--p7)}
+.s17 .st .b.half{background:#FDF3E0;color:#9A6C12}
+.s17 .st .b.now{background:var(--p);color:var(--onp)}
+.s17 .st .t{display:flex;align-items:center;gap:10px}
+.s17 .st .t .h4{flex:1}
+.s17 .kk{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:4px 28px;margin-top:6px;font-size:12.5px}
+.s17 .kk span{display:block;font-size:11px;color:var(--mut2);font-weight:600}
+.s17 .kk b{font-weight:600;color:var(--ink2)}
+.s17 .opt{flex:1;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
+.s17 .chk{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:12.5px;font-weight:600}
+.s17 .chk .c{width:20px;height:20px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center}
+.s17 .chk .c svg{width:12px;height:12px}
+.s17 .chk .c.y{background:var(--p);color:var(--onp)}
+.s17 .chk .c.w{background:#FDF3E0;color:#9A6C12}
+.s17 .chk .c.n{border:1.5px solid var(--line);color:var(--mut2)}
+.s17 .chk .grow{color:var(--ink2)}
+.s17 .chk small{font-size:11px;color:var(--mut2);font-weight:600;white-space:nowrap}
+.s17 .scr{width:292px;height:300px;margin:0 auto;border:8px solid #111;border-bottom:0;border-radius:30px 30px 0 0;background:#F5F7F6;padding:16px 12px 0;overflow:hidden;position:relative}
+.s17 .scr::after{content:'';position:absolute;left:0;right:0;bottom:0;height:40px;background:linear-gradient(180deg,rgba(255,255,255,0),#fff)}
+.s17 .scr .ttl{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
+.s17 .scr .ttl svg{width:15px;height:15px}
+.s17 .scr .sr{height:30px;border-radius:9px;background:#fff;display:flex;align-items:center;gap:6px;padding:0 9px;font-size:10.5px;color:var(--mut2);margin-top:10px}
+.s17 .scr .sr svg{width:12px;height:12px}
+.s17 .scr .it{background:#fff;border-radius:12px;padding:9px 10px;display:flex;align-items:center;gap:9px;margin-top:8px}
+.s17 .scr .it .ic{width:30px;height:30px;border-radius:50%}
+.s17 .scr .it .ic svg{width:15px;height:15px}
+</style>
+<div class="desk s17">
+{{side:adm:services}}
+<div class="main">
+<header class="top"><div><div class="crumbs">Службы · подключение</div><h2>Школа-гимназия №5</h2></div>
+  <span class="chip warn" style="margin-left:6px">{{i:clock}} Ждём первый файл учеников</span>
+  <div class="grow"></div>
+  <div class="search">{{i:search}} Служба, лицевой или № платежа</div>
+  <span class="btn ghost">{{i:mail}} Написать школе</span></header>
+<div class="body">
+  <div class="grid" style="grid-template-columns:1fr 372px">
+    <div class="card" style="overflow:hidden">
+      <div style="padding:16px 20px 14px">
+        <div class="row"><div class="grow"><div class="h3">Подключение службы</div><div class="sub" style="margin-top:2px">Начато 6 октября · ведёт Азамат Кадыров · осталось: вход бухгалтера и первый файл</div></div>
+          <div style="font-size:22px;font-weight:700;letter-spacing:-.5px" class="num">3<span style="color:var(--mut2);font-size:15px"> / 5</span></div></div>
+        <div class="meter" style="margin-top:12px"><span style="width:60%;background:var(--p)"></span><span style="width:10%;background:var(--warn)"></span></div>
+      </div>
+
+      <div class="st"><span class="b done">{{i:check}}</span><div class="grow">
+        <div class="t"><div class="h4">1 · Данные службы</div><span class="chip ok">Заполнено</span><span class="link">Изменить</span></div>
+        <div class="kk"><div><span>Название</span><b>Школа-гимназия №5</b></div><div><span>Услуга в приложении</span><b>Школа</b></div><div><span>ИНН</span><b class="num">02208199710034</b></div>
+          <div><span>Адрес</span><b>г. Ош, ул. Г. Айтиева, 34</b></div><div><span>Договор</span><b>№ ЭП-07/2026 от 6 окт 2026</b></div><div><span>Директор</span><b>Мамытова Чолпон Асановна</b></div></div></div></div>
+
+      <div class="st"><span class="b done">{{i:check}}</span><div class="grow">
+        <div class="t"><div class="h4">2 · Реквизиты для зачисления</div><span class="chip ok">{{i:check}} Тестовый 1 сом дошёл 8 окт</span><span class="link">Изменить</span></div>
+        <div class="kk"><div><span>Банк</span><b>ОАО «РСК Банк»</b></div><div><span>Расчётный счёт</span><b class="num">1290020004817265</b></div><div><span>БИК</span><b class="num">129002</b></div></div></div></div>
+
+      <div class="st"><span class="b done">{{i:check}}</span><div class="grow">
+        <div class="t"><div class="h4">3 · Комиссия и тариф</div><span class="chip ok">Заполнено</span><span class="link">Изменить</span></div>
+        <div class="row mt8" style="gap:14px"><div class="seg"><span>Платит житель</span><span class="on">Платит школа</span></div>
+          <div class="sub"><b style="color:var(--ink)">1,0% с платежа</b> · родитель платит ровно начисленное, деньги — школе на следующий рабочий день</div></div></div></div>
+
+      <div class="st"><span class="b half">4</span><div class="grow">
+        <div class="t"><div class="h4">4 · Доступ сотрудникам школы</div><span class="chip warn">Ждёт входа</span><span class="link">+ Пригласить ещё</span></div>
+        <div class="sub" style="margin-top:2px">Ролей внутри службы нет: все сотрудники школы видят учеников и оплаты, загружают файлы и делают рассылки.</div>
+        <div class="row mt8" style="padding:9px 12px;border-radius:11px;background:var(--soft)">
+          <span style="width:30px;height:30px;border-radius:50%;background:#E6E1FB;color:#5B45D9;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex:none">АМ</span>
+          <div class="grow"><div style="font-size:13px;font-weight:700">Айзада Мамбетова <span style="font-weight:500;color:var(--mut)">· бухгалтер</span></div><div class="tiny">a.mambetova@gimnaziya5-osh.kg · приглашение 9 окт, код для входа действует до 16 окт</div></div>
+          <span class="btn ghost sm">{{i:refresh}} Отправить ещё раз</span></div></div></div>
+
+      <div class="st" style="background:#F7FCFA;box-shadow:inset 3px 0 0 var(--p)"><span class="b now">5</span><div class="grow">
+        <div class="t"><div class="h4">5 · Первый файл учеников</div><span class="chip info">{{i:clock}} Ждём</span></div>
+        <div class="sub" style="margin-top:2px">Номер ученика (это лицевой), ФИО ребёнка, класс, телефон родителя — около 1 350 строк из 1С или Excel.</div>
+        <div class="row mt12" style="gap:10px;align-items:stretch">
+          <div class="opt"><div class="row" style="gap:8px"><span class="ic soft" style="width:28px;height:28px;border-radius:8px">{{i:user}}</span><div class="h4">Школа загрузит сама</div></div>
+            <div class="sub" style="margin-top:6px">После первого входа Айзаде сразу откроется мастер импорта — тот же, что у Ошводоканала.</div>
+            <span class="btn ghost sm mt12">{{i:download}} Образец файла для школы</span></div>
+          <div class="opt" style="border-color:#BFD9CF"><div class="row" style="gap:8px"><span class="ic soft" style="width:28px;height:28px;border-radius:8px">{{i:upload}}</span><div class="h4">Загрузить за школу</div></div>
+            <div class="sub" style="margin-top:6px">Если файл прислали на почту. В журнале будет отметка, что загрузил админ ЭлPay.</div>
+            <span class="btn sm mt12">{{i:upload}} Выбрать файл учеников</span></div>
+        </div></div></div>
+    </div>
+
+    <div class="col" style="gap:16px">
+      <div class="card">
+        <div class="hd" style="padding-bottom:4px"><div class="h3">Чек-лист запуска</div><span class="chip soft">3 из 7</span></div>
+        <div style="padding:0 20px 14px">
+          <div class="chk"><span class="c y">{{i:check}}</span><div class="grow">Договор подписан</div><small>6 окт</small></div>
+          <div class="chk"><span class="c y">{{i:check}}</span><div class="grow">Реквизиты проверены</div><small>8 окт</small></div>
+          <div class="chk"><span class="c y">{{i:check}}</span><div class="grow">Комиссия согласована</div><small>1,0%, школа</small></div>
+          <div class="chk"><span class="c w">{{i:clock}}</span><div class="grow">Бухгалтер вошёл в кабинет</div><small>ждём с 9 окт</small></div>
+          <div class="chk"><span class="c n"></span><div class="grow" style="color:var(--mut)">Ученики загружены</div><small>—</small></div>
+          <div class="chk"><span class="c n"></span><div class="grow" style="color:var(--mut)">Начисления за октябрь</div><small>—</small></div>
+          <div class="chk"><span class="c n"></span><div class="grow" style="color:var(--mut)">Школа видна в приложении</div><small>—</small></div>
+          <span class="btn off mt8" style="width:100%">{{i:lock}} Включить в приложении</span>
+          <div class="tiny" style="text-align:center;margin-top:6px">Станет доступно, когда будут ученики и начисления</div>
+        </div>
+      </div>
+
+      <div class="card" style="overflow:hidden">
+        <div class="hd" style="padding-bottom:10px"><div class="h3">Что увидят родители</div><span class="tiny">раздел «Школа»</span></div>
+        <div class="scr">
+          <div class="ttl">{{i:back}} Школа</div>
+          <div class="tiny" style="margin-top:4px;font-weight:500">Выберите школу — реквизиты подставим сами</div>
+          <div class="sr">{{i:search}} Название или номер школы</div>
+          <div class="it" style="box-shadow:0 0 0 1.5px var(--p)">{{ic:school:school}}<div class="grow"><div style="font-size:11.5px;font-weight:700">Школа-гимназия №5</div><div style="font-size:9.5px;color:var(--mut)">ул. Г. Айтиева, 34 · Ош</div></div><span class="chip ok" style="font-size:9.5px;padding:2px 6px">Новое</span></div>
+          <div style="font-size:10.5px;font-weight:700;margin-top:12px;color:var(--ink3)">Номер ученика</div>
+          <div class="sr" style="margin-top:5px;border:1.5px solid var(--p)">например, 5-0417</div>
+          <div style="font-size:9.5px;color:var(--mut);margin-top:5px;line-height:1.4">Есть в дневнике или у классного руководителя</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>

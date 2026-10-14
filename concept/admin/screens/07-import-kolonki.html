@@ -1,0 +1,72 @@
+<!-- group: Импорт из 1С | cap: Импорт · Шаг 2 из 3: сопоставление колонок | sub: Мастер сам узнаёт колонки 1С и подставляет сохранённый шаблон «1С: Абоненты ОВК». Бухгалтеру остаётся сверить примеры и проверить одну помеченную колонку. -->
+<style>#s07 .tbl{table-layout:fixed}#s07 .tbl td{padding-top:12px;padding-bottom:12px}#s07 .tbl td:nth-child(4){overflow:hidden;text-overflow:ellipsis;font-size:12.5px}</style>
+<div class="desk">
+{{side:svc:import}}
+<div class="main">
+{{top:Импорт из 1С|Ошводоканал · abonenty_2026-10-01.csv}}
+<div class="body">
+  <div class="card row" style="padding:14px 20px;gap:16px">
+    <div class="steps">
+      <div class="step done"><b>{{i:check}}</b>Файл</div><div class="step-line done"></div>
+      <div class="step on"><b>2</b>Колонки</div><div class="step-line"></div>
+      <div class="step"><b>3</b>Проверка</div>
+    </div>
+    <div class="grow"></div>
+    <div class="file" style="padding:6px 12px 6px 8px;background:var(--soft)"><span class="ft csv" style="width:26px;height:30px;font-size:8px;padding-bottom:4px">CSV</span><div><div class="h4" style="font-size:12.5px">abonenty_2026-10-01.csv</div><div class="tiny" style="white-space:nowrap">12 498 строк · Windows-1251 · «;»</div></div></div>
+  </div>
+
+  <div class="note ok mt12" style="align-items:center">{{i:check}}<div class="grow"><b>Шаблон «1С: Абоненты ОВК» подставлен</b> — так вы загружали 1 сентября. Все 8 колонок узнаны, проверьте одну — «Телефон».</div><span class="link">Выбрать другой шаблон</span></div>
+
+  <div class="card mt12">
+    <table class="tbl"><colgroup><col style="width:164px"><col style="width:30px"><col style="width:212px"><col><col style="width:256px"></colgroup>
+      <tr><th>Колонка в вашем файле</th><th></th><th>Поле ЭлPay</th><th>Первые значения из файла</th><th>Сопоставление</th></tr>
+      <tr><td><b>Лиц_счет</b></td><td class="m" style="width:24px"><span style="display:flex;width:18px;height:18px">{{i:arrow}}</span></td>
+        <td><div class="fld"><div class="in" style="height:36px;width:190px"><span class="grow" style="font-weight:600">Лицевой счёт</span>{{i:down}}</div></div></td>
+        <td class="m num">31-00562 · 31-01187 · 31-00218</td><td><span class="chip ok">{{i:check}} Определено автоматически</span></td></tr>
+      <tr><td><b>Абонент</b></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:arrow}}</span></td>
+        <td><div class="fld"><div class="in" style="height:36px;width:190px"><span class="grow" style="font-weight:600">ФИО</span>{{i:down}}</div></div></td>
+        <td class="m">Токтогулова Айгерим · Токтогулов Бакыт · Абдыкадыров Нурлан</td><td><span class="chip ok">{{i:check}} Определено автоматически</span></td></tr>
+      <tr><td><b>Улица</b></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:arrow}}</span></td>
+        <td><div class="fld"><div class="in" style="height:36px;width:190px"><span class="grow" style="font-weight:600">Улица</span>{{i:down}}</div></div></td>
+        <td class="m">Курманжан Датка · Масалиева · Ленина</td><td><span class="chip ok">{{i:check}} Определено автоматически</span></td></tr>
+      <tr><td><b>Дом</b></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:arrow}}</span></td>
+        <td><div class="fld"><div class="in" style="height:36px;width:190px"><span class="grow" style="font-weight:600">Дом</span>{{i:down}}</div></div></td>
+        <td class="m num">212 · 44 · 301</td><td><span class="chip ok">{{i:check}} Определено автоматически</span></td></tr>
+      <tr><td><b>Кв</b></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:arrow}}</span></td>
+        <td><div class="fld"><div class="in" style="height:36px;width:190px"><span class="grow" style="font-weight:600">Квартира</span>{{i:down}}</div></div></td>
+        <td class="m num">14 · 3 · 56</td><td><span class="chip ok">{{i:check}} Определено автоматически</span></td></tr>
+      <tr><td><b>Кол_прож</b></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:arrow}}</span></td>
+        <td><div class="fld"><div class="in" style="height:36px;width:190px"><span class="grow" style="font-weight:600">Жильцов</span>{{i:down}}</div></div></td>
+        <td class="m num">5 · 3 · 3</td><td><span class="chip ok">{{i:check}} Определено автоматически</span></td></tr>
+      <tr style="background:#FFFBF2"><td><b>Телефон</b></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:arrow}}</span></td>
+        <td><div class="fld" style="position:relative"><div style="position:absolute;left:0;bottom:44px;width:204px;background:#fff;border-radius:11px;padding:6px;box-shadow:0 12px 32px rgba(30,42,50,.18),0 0 0 1px var(--line);z-index:5"><div class="row" style="gap:8px;height:27px;padding:0 10px;border-radius:7px;font-size:12.5px;color:var(--mut2)"><span class="grow">Лицевой счёт</span><span style="font-size:10.5px;font-weight:600">Лиц_счет</span></div><div class="row" style="gap:8px;height:27px;padding:0 10px;border-radius:7px;font-size:12.5px;color:var(--mut2)"><span class="grow">ФИО</span><span style="font-size:10.5px;font-weight:600">Абонент</span></div><div class="row" style="gap:8px;height:27px;padding:0 10px;border-radius:7px;font-size:12.5px;color:var(--mut2)"><span class="grow">Улица</span><span style="font-size:10.5px;font-weight:600">Улица</span></div><div class="row" style="gap:8px;height:27px;padding:0 10px;border-radius:7px;font-size:12.5px;color:var(--mut2)"><span class="grow">Дом</span><span style="font-size:10.5px;font-weight:600">Дом</span></div><div class="row" style="gap:8px;height:27px;padding:0 10px;border-radius:7px;font-size:12.5px;color:var(--mut2)"><span class="grow">Квартира</span><span style="font-size:10.5px;font-weight:600">Кв</span></div><div class="row" style="gap:8px;height:27px;padding:0 10px;border-radius:7px;font-size:12.5px;color:var(--mut2)"><span class="grow">Жильцов</span><span style="font-size:10.5px;font-weight:600">Кол_прож</span></div><div class="row" style="gap:8px;height:27px;padding:0 10px;border-radius:7px;font-size:12.5px;font-weight:700;background:var(--l2);color:var(--p7)"><span class="grow">Телефон</span><span style="display:flex;width:15px;height:15px">{{i:check}}</span></div><div style="height:1px;background:var(--line2);margin:4px 6px"></div><div class="row" style="height:27px;padding:0 10px;font-size:12.5px;color:var(--ink3);font-weight:600">Не загружать</div></div><div class="in focus" style="height:36px;width:190px"><span class="grow" style="font-weight:600">Телефон</span>{{i:down}}</div></div></td>
+        <td class="m num">0555 31 82 47 · <i style="color:var(--mut2)">пусто</i> · 0700 12 64 09<div class="tiny" style="color:#9A6C12;margin-top:2px">Номера без кода страны — допишем +996 сами. Пустые не мешают</div></td>
+        <td><span class="chip warn">{{i:alert}} Проверьте</span></td></tr>
+      <tr><td><b>Примечание</b></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:arrow}}</span></td>
+        <td><div class="fld"><div class="in" style="height:36px;width:190px;background:var(--soft)"><span class="grow" style="color:var(--mut)">Не загружать</span>{{i:down}}</div></div></td>
+        <td class="m"><i style="color:var(--mut2)">пусто</i> · <i style="color:var(--mut2)">пусто</i> · пенсионер, льгота</td><td><span class="chip soft">Не загружается</span></td></tr>
+    </table>
+  </div>
+
+  <div class="card mt12" style="padding:16px 20px">
+    <div class="row" style="gap:28px;align-items:flex-start">
+      <div>
+        <div class="h4">Если лицевой уже есть в реестре</div>
+        <div class="seg mt8"><span class="on">Обновить данные</span><span>Пропустить строку</span></div>
+        <div class="tiny mt8" style="font-weight:500">ФИО, адрес и жильцов возьмём из файла. Оплаты и долги не меняются</div>
+      </div>
+      <div style="width:1px;align-self:stretch;background:var(--line)"></div>
+      <div class="grow">
+        <div class="row" style="gap:10px"><span class="cb on"></span><div class="h4">Запомнить как шаблон</div></div>
+        <div class="fld mt8" style="max-width:260px"><div class="in" style="height:36px">1С: Абоненты ОВК</div></div>
+        <div class="tiny mt8" style="font-weight:500;white-space:nowrap">В следующий раз подставится сам</div>
+      </div>
+      <div class="col" style="gap:10px;align-items:flex-end;align-self:center">
+        <div class="row" style="gap:10px"><span class="btn ghost">{{i:back}} Назад</span><span class="btn">Далее: проверка {{i:arrow}}</span></div>
+        <span class="tiny" style="font-weight:500">Покажем новых, обновлённых и ошибки — ещё до загрузки</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>

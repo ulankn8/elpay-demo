@@ -1,0 +1,72 @@
+<!-- group: Импорт из 1С | cap: Итог импорта и журнал | sub: Итог загрузки 1 октября: что попало в реестр и что нет. Импорт можно откатить в течение суток, журнал хранит каждую загрузку — кто, когда, каким файлом. -->
+<style>
+#s09 .tbl td{padding-top:10px;padding-bottom:10px}
+#s09 .typ{display:flex;align-items:center;gap:9px}
+#s09 .typ .ic{width:28px;height:28px;border-radius:8px}
+#s09 .typ .ic svg{width:15px;height:15px}
+#s09 .mini{border-radius:12px;padding:10px 14px;background:var(--soft)}
+#s09 .mini .v{font-size:19px;font-weight:700;letter-spacing:-.5px}
+#s09 .mini .v small{font-size:12.5px;font-weight:700;letter-spacing:0;margin-left:5px}
+#s09 .mini .l{font-size:11.5px;font-weight:600;color:var(--mut);margin-top:1px}
+</style>
+<div class="desk">
+{{side:svc:import}}
+<div class="main">
+{{top:Импорт из 1С|Ошводоканал · итог загрузки и журнал}}
+<div class="body">
+  <div class="card" style="padding:20px 22px;border-left:4px solid var(--p)">
+    <div class="row" style="gap:16px;align-items:flex-start">
+      <span style="width:52px;height:52px;border-radius:50%;background:var(--l2);color:var(--p7);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:26px;height:26px;display:flex">{{i:check}}</span></span>
+      <div class="grow">
+        <div style="font-size:23px;font-weight:700;letter-spacing:-.6px">Загружено 12 462 строки из 12 498</div>
+        <div class="sub" style="margin-top:3px">Абоненты · abonenty_2026-10-01.csv · <b style="color:var(--ink3)">1 октября, 09:42</b> · Жыпар Турсунова · 18 сек</div>
+      </div>
+      <div class="col" style="gap:6px;align-items:flex-end">
+        <div class="row" style="gap:10px">
+          <span class="btn dan">{{i:refresh}} Отменить импорт</span>
+          <span class="btn">{{i:alert}} Разобрать 36 ошибок</span>
+        </div>
+        <span class="tiny" style="font-weight:500;text-align:right">Отменить можно до 2 окт, 09:42 — реестр вернётся как был до загрузки.<br>Начисления 37 новым абонентам из файла 10:15 снимутся вместе с ними</span>
+      </div>
+    </div>
+    <div class="grid mt16" style="grid-template-columns:repeat(4,1fr);gap:10px;margin-left:68px">
+      <div class="mini" style="background:var(--l2)"><div class="v num" style="color:var(--p7)">+37<small>новых</small></div><div class="l">в реестре теперь 12 480</div></div>
+      <div class="mini" style="background:#EEF3FC"><div class="v num" style="color:#2456B0">211<small>обновлено</small></div><div class="l">адрес, ФИО или число жильцов</div></div>
+      <div class="mini"><div class="v num" style="color:var(--ink3)">12 214<small>без изменений</small></div><div class="l">совпали с реестром</div></div>
+      <div class="mini" style="background:#FCEFEC"><div class="v num" style="color:#B03A28">36<small>не загружены</small></div><div class="l">адрес 19 · дубль 11 · пустое ФИО 6</div></div>
+    </div>
+  </div>
+
+  <div class="card mt16">
+    <div class="hd" style="padding-bottom:10px">
+      <div class="h3">Журнал импортов</div>
+      <span class="f on">Все <b>12</b></span><span class="f">Абоненты <b>7</b></span><span class="f">Начисления <b>5</b></span>
+      <span class="f">{{i:user}} Кто загрузил: все {{i:down}}</span>
+    </div>
+    <table class="tbl" style="table-layout:fixed">
+      <colgroup><col style="width:106px"><col style="width:212px"><col style="width:200px"><col style="width:142px"><col><col style="width:118px"><col style="width:40px"></colgroup>
+      <tr><th>Когда</th><th>Что загружали</th><th>Файл</th><th>Кто</th><th>Итог</th><th>Статус</th><th></th></tr>
+      <tr><td class="num"><b>1 окт</b>, 10:15</td><td><div class="typ"><span class="ic soft">{{i:doc}}</span>Начисления · сентябрь</div></td><td class="ell">nachisleniya_sentyabr.xlsx</td><td>Бакыт Осмонов</td>
+        <td><span class="chip ok">{{i:check}} 12 480 из 12 480</span> <span class="chip soft">2 368 940 сом</span></td><td><span class="chip ok">Применён</span></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:chev}}</span></td></tr>
+      <tr class="sel"><td class="num"><b>1 окт</b>, 09:42</td><td><div class="typ"><span class="ic soft">{{i:users}}</span>Абоненты</div></td><td class="ell">abonenty_2026-10-01.csv</td><td>Жыпар Турсунова</td>
+        <td><span class="chip ok">+37</span> <span class="chip info">211 обновлено</span> <span class="chip bad">36 ошибок</span></td><td><span class="chip warn">С ошибками</span></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:chev}}</span></td></tr>
+      <tr><td class="num"><b>16 сен</b>, 14:05</td><td><div class="typ"><span class="ic soft">{{i:users}}</span>Абоненты</div></td><td class="ell">abonenty_16-09.xlsx</td><td>Бакыт Осмонов</td>
+        <td><span class="chip ok">+12</span> <span class="chip soft">новый дом, ул. Г. Айтиева, 9</span></td><td><span class="chip ok">Применён</span></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:chev}}</span></td></tr>
+      <tr><td class="num"><b>1 сен</b>, 11:48</td><td><div class="typ"><span class="ic soft">{{i:doc}}</span>Начисления · август</div></td><td class="ell">nachisleniya_avgust.xlsx</td><td>Бакыт Осмонов</td>
+        <td><span class="chip ok">{{i:check}} 12 431 из 12 431</span> <span class="chip soft">2 349 870 сом</span></td><td><span class="chip ok">Применён</span></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:chev}}</span></td></tr>
+      <tr><td class="num m"><b>1 сен</b>, 11:40</td><td class="m"><div class="typ"><span class="ic soft">{{i:doc}}</span>Начисления · август</div></td><td class="ell m" style="text-decoration:line-through">nachisleniya_iyul.xlsx</td><td class="m">Бакыт Осмонов</td>
+        <td><span class="sub ell" style="font-size:12px;display:block">Не тот месяц — отменил через 5 мин</span></td><td><span class="chip soft">{{i:x}} Отменён</span></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:chev}}</span></td></tr>
+      <tr><td class="num"><b>1 сен</b>, 10:55</td><td><div class="typ"><span class="ic soft">{{i:users}}</span>Абоненты</div></td><td class="ell">oshibki_ispravleno.xlsx</td><td>Жыпар Турсунова</td>
+        <td><span class="chip ok">+4</span> <span class="chip soft">дозагрузка ошибок от 09:20</span></td><td><span class="chip ok">Применён</span></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:chev}}</span></td></tr>
+      <tr><td class="num"><b>1 сен</b>, 09:20</td><td><div class="typ"><span class="ic soft">{{i:users}}</span>Абоненты</div></td><td class="ell">abonenty_2026-09-01.csv</td><td>Жыпар Турсунова</td>
+        <td><span class="chip ok">+20</span> <span class="chip info">148 обновлено</span> <span class="chip soft">4 ошибки</span></td><td><span class="chip ok">Применён</span></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:chev}}</span></td></tr>
+      <tr><td class="num"><b>1 авг</b>, 10:30</td><td><div class="typ"><span class="ic soft">{{i:doc}}</span>Начисления · июль</div></td><td class="ell">nachisleniya_iyul.xlsx</td><td>Бакыт Осмонов</td>
+        <td><span class="chip ok">{{i:check}} 12 407 из 12 407</span> <span class="chip soft">2 337 410 сом</span></td><td><span class="chip ok">Применён</span></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:chev}}</span></td></tr>
+      <tr><td class="num"><b>1 авг</b>, 09:10</td><td><div class="typ"><span class="ic soft">{{i:users}}</span>Абоненты</div></td><td class="ell">abonenty_2026-08-01.csv</td><td>Жыпар Турсунова</td>
+        <td><span class="chip ok">+19</span> <span class="chip info">97 обновлено</span></td><td><span class="chip ok">Применён</span></td><td class="m"><span style="display:flex;width:18px;height:18px">{{i:chev}}</span></td></tr>
+    </table>
+    <div class="pager"><span>Показаны <b>1–9</b> из <b>12</b> · с подключения к ЭлPay 24 июня</span><div class="grow"></div><span class="pg on">1</span><span class="pg">2</span></div>
+  </div>
+</div>
+</div>
+</div>

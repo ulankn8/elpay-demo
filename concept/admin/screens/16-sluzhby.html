@@ -1,0 +1,78 @@
+<!-- group: Админ ЭлPay | cap: Службы пилота | sub: Все службы Оша на одном экране: абоненты, доля в ЭлPay, сбор за сентябрь и последняя загрузка. Отстающих и застрявших на подключении видно без звонков. -->
+<style>
+.s16 .tbl td{padding:10px 9px}.s16 .tbl th{padding:10px 9px}
+.s16 .tbl td:first-child,.s16 .tbl th:first-child{padding-left:20px}.s16 .tbl td:last-child,.s16 .tbl th:last-child{padding-right:20px}
+.s16 .tbl .ic{width:32px;height:32px;border-radius:9px}.s16 .tbl .ic svg{width:16px;height:16px}
+.s16 .mini{width:52px;height:6px;border-radius:999px;background:var(--line2);overflow:hidden;display:inline-block;vertical-align:middle}
+.s16 .mini span{display:block;height:100%;border-radius:999px}
+.s16 .nm{font-weight:700;font-size:13px}.s16 .nm small{display:block;font-size:11px;font-weight:600;color:var(--mut2);margin-top:2px}
+.s16 tr.wait td{background:#FFFBF3}
+.s16 .tbl td.cv svg{width:16px;height:16px;display:block}
+.s16 .menu a:nth-of-type(2){font-size:0;gap:0}.s16 .menu a:nth-of-type(2) svg{margin-right:11px}.s16 .menu a:nth-of-type(2)::after{content:'Без сопоставления';font-size:13.5px;order:1}.s16 .menu a:nth-of-type(2) i{order:2;font-size:11px}
+.s16 .ic.tone svg{stroke:currentColor}
+</style>
+<div class="desk s16">
+{{side:adm:services}}
+<div class="main">
+<header class="top"><div><div class="crumbs">Пилот · Ош · 14 октября</div><h2>Службы</h2></div><div class="grow"></div>
+  <div class="search">{{i:search}} Служба, лицевой или № платежа</div>
+  <div class="period">{{i:cal}} Сентябрь 2026 {{i:down}}</div></header>
+<div class="body">
+  <div class="grid g4">
+    <div class="card kpi"><div class="l">Работают в пилоте</div><div class="v num">6<i class="som">служб</i></div><div class="d">и ещё 1 на подключении — школа</div></div>
+    <div class="card kpi"><div class="l">Абонентов у служб</div><div class="v num">60 966</div>
+      <div class="meter"><span style="width:26.1%;background:var(--info)"></span></div><div class="d">15 906 в ЭлPay · 26,1%</div></div>
+    <div class="card kpi"><div class="l">Оплачено за сентябрь</div><div class="v num">60,6<i class="som">%</i></div>
+      <div class="meter"><span style="width:60.6%;background:var(--p)"></span></div><div class="d">среднее, взвешенное по абонентам</div></div>
+    <div class="card kpi" style="box-shadow:inset 0 0 0 1.5px #F3C9C1"><div class="l">Платежи без сопоставления</div><div class="v num" style="color:#B03A28">3<i class="som">платежа</i></div><div class="d dn">1 464 сом · один разобрать сегодня</div></div>
+  </div>
+
+  <div class="card mt16">
+    <div class="hd" style="padding:16px 20px 14px">
+      <div class="grow"><div class="h3">Службы пилота</div><div class="sub" style="margin-top:2px">У каждой службы свой кабинет: видит только своих абонентов и платежи</div></div>
+      <div class="filters"><span class="f on">Все <b>7</b></span><span class="f">Работают <b>6</b></span><span class="f">Подключаются <b>1</b></span></div>
+      <span class="btn">{{i:plus}} Подключить службу</span>
+    </div>
+    <table class="tbl">
+      <tr><th>Служба и услуга</th><th class="r">Абонентов</th><th>Доля в ЭлPay</th><th class="r">Оплачено</th><th>Последний импорт</th><th class="r">Доступ</th><th>Статус</th><th></th></tr>
+      <tr><td><div class="row" style="gap:10px">{{ic:water:water}}<div class="nm">Ошводоканал<small>Вода</small></div></div></td><td class="r num"><b>12 480</b></td>
+        <td><span class="mini"><span style="width:31.4%;background:var(--info)"></span></span> <span class="num" style="margin-left:6px">31,4%</span></td>
+        <td class="r num"><b>62,8%</b></td><td>1 окт, 10:15<div class="tiny">начисления · XLSX</div></td><td class="r num">3 сотр.</td>
+        <td><span class="chip ok"><span class="dot" style="background:var(--p)"></span>Работает</span></td><td class="m cv">{{i:chev}}</td></tr>
+      <tr><td><div class="row" style="gap:10px">{{ic:power:power}}<div class="nm">Ошэлектро<small>Электроэнергия</small></div></div></td><td class="r num"><b>18 920</b></td>
+        <td><span class="mini"><span style="width:27.1%;background:var(--info)"></span></span> <span class="num" style="margin-left:6px">27,1%</span></td>
+        <td class="r num"><b>58,4%</b></td><td>2 окт, 11:30<div class="tiny">начисления · XLSX</div></td><td class="r num">3 сотр.</td>
+        <td><span class="chip ok"><span class="dot" style="background:var(--p)"></span>Работает</span></td><td class="m cv">{{i:chev}}</td></tr>
+      <tr><td><div class="row" style="gap:10px">{{ic:trash:trash}}<div class="nm">Ош-Тазалык<small>Вывоз мусора</small></div></div></td><td class="r num"><b>15 300</b></td>
+        <td><span class="mini"><span style="width:22.6%;background:var(--info)"></span></span> <span class="num" style="margin-left:6px">22,6%</span></td>
+        <td class="r num"><b style="color:#9A6C12">49,1%</b></td><td>1 окт, 16:05<div class="tiny">начисления · CSV</div></td><td class="r num">2 сотр.</td>
+        <td><span class="chip ok"><span class="dot" style="background:var(--p)"></span>Работает</span></td><td class="m cv">{{i:chev}}</td></tr>
+      <tr><td><div class="row" style="gap:10px">{{ic:gas:gas}}<div class="nm">Газпром Кыргызстан, Ош<small>Газ</small></div></div></td><td class="r num"><b>9 870</b></td>
+        <td><span class="mini"><span style="width:18.3%;background:var(--info)"></span></span> <span class="num" style="margin-left:6px">18,3%</span></td>
+        <td class="r num"><b>71,0%</b></td><td>3 окт, 09:12<div class="tiny">начисления · XLSX</div></td><td class="r num">4 сотр.</td>
+        <td><span class="chip ok"><span class="dot" style="background:var(--p)"></span>Работает</span></td><td class="m cv">{{i:chev}}</td></tr>
+      <tr><td><div class="row" style="gap:10px">{{ic:net:net}}<div class="nm">Сайма Телеком<small>Интернет</small></div></div></td><td class="r num"><b>4 210</b></td>
+        <td><span class="mini"><span style="width:35.2%;background:var(--info)"></span></span> <span class="num" style="margin-left:6px">35,2%</span></td>
+        <td class="r num"><b>80,6%</b></td><td>5 окт, 14:48<div class="tiny">абоненты · CSV</div></td><td class="r num">1 сотр.</td>
+        <td><span class="chip ok"><span class="dot" style="background:var(--p)"></span>Работает</span></td><td class="m cv">{{i:chev}}</td></tr>
+      <tr><td><div class="row" style="gap:10px">{{ic:kid:kid}}<div class="nm">Детский сад №14 «Балапан»<small>Садик</small></div></div></td><td class="r num"><b>186</b></td>
+        <td><span class="mini"><span style="width:64%;background:var(--info)"></span></span> <span class="num" style="margin-left:6px">64,0%</span></td>
+        <td class="r num"><b>91,4%</b></td><td>30 сен, 17:20<div class="tiny">начисления · XLSX</div></td><td class="r num">1 сотр.</td>
+        <td><span class="chip ok"><span class="dot" style="background:var(--p)"></span>Работает</span></td><td class="m cv">{{i:chev}}</td></tr>
+      <tr class="wait"><td style="border-bottom:0"><div class="row" style="gap:10px">{{ic:school:school}}<div class="nm">Школа-гимназия №5<small>Школа · договор от 6 окт</small></div></div></td><td class="r m" style="border-bottom:0">—</td><td class="m" style="border-bottom:0">—</td><td class="r m" style="border-bottom:0">—</td>
+        <td style="border-bottom:0"><span style="color:#9A6C12;font-weight:700">ждём первый файл</span><div class="tiny">учеников ещё нет</div></td><td class="r" style="border-bottom:0"><span class="tiny" style="color:#9A6C12">1 приглашена</span></td>
+        <td style="border-bottom:0"><span class="chip warn">{{i:clock}} Подключение</span><div class="tiny" style="margin-top:4px">готово 3 из 5 шагов</div></td><td style="border-bottom:0"><span class="link">Продолжить →</span></td></tr>
+    </table>
+  </div>
+
+  <div class="grid g3 mt16">
+    <div class="card p"><div class="row"><span class="ic tone" style="background:#FCEBE8;color:#B03A28">{{i:alert}}</span><div class="grow"><div class="h4">3 платежа без сопоставления</div><div class="sub">Деньги на транзитном счёте ЭлPay. У 164 сом для Ошводоканала срок разбора истекает сегодня.</div></div></div>
+      <div class="mt12"><span class="link">Разобрать платежи →</span></div></div>
+    <div class="card p"><div class="row"><span class="ic tone" style="background:#FDF3E0;color:#9A6C12">{{i:trash}}</span><div class="grow"><div class="h4">Ош-Тазалык отстаёт: 49,1%</div><div class="sub">Ниже всех в пилоте, а напоминание за сентябрь служба ещё не отправляла.</div></div></div>
+      <div class="mt12"><span class="link">Написать службе →</span></div></div>
+    <div class="card p"><div class="row"><span class="ic soft">{{i:school}}</span><div class="grow"><div class="h4">Школа-гимназия №5: готово 3 из 5</div><div class="sub">Договор, реквизиты и комиссия готовы. Бухгалтер приглашена 9 окт, но ещё не входила — без неё нет файла учеников.</div></div></div>
+      <div class="mt12"><span class="link">Продолжить подключение →</span></div></div>
+  </div>
+</div>
+</div>
+</div>

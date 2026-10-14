@@ -1,0 +1,78 @@
+<!-- group: Кабинет службы | cap: Абоненты | sub: Главный рабочий экран: весь реестр с оплатой за сентябрь по каждому лицевому счёту. Фильтры сразу отвечают «кто не заплатил», выбранным — напоминание в один клик. -->
+<style>.s03 .tbl{font-size:12.5px}.s03 .tbl td{padding:15px 7px}.s03 .tbl th{padding:10px 7px}.s03 .tbl td:first-child,.s03 .tbl th:first-child{padding-left:20px}.s03 .tbl td:last-child,.s03 .tbl th:last-child{padding-right:20px}.s03 .pager svg{width:16px;height:16px}.s03 .f{padding:0 12px}</style>
+<div class="desk s03">
+{{side:svc:abon}}
+<div class="main">
+{{top:Абоненты|Ошводоканал · 12 480 лицевых счетов}}
+<div class="body" style="padding:20px 24px">
+  <div class="row">
+    <div class="grow">
+      <div class="h3">Реестр абонентов</div>
+      <div class="sub ell" style="margin-top:2px">Обновлён из 1С 1 окт · оплата за сентябрь <b style="color:var(--ink)">до 25 октября</b>, осталось 11 дней</div>
+    </div>
+    <span class="btn ghost">{{i:upload}} Импорт из 1С</span>
+    <span class="btn">{{i:useradd}} Добавить абонента</span>
+  </div>
+
+  <div class="card mt16">
+    <div class="row" style="padding:14px 20px">
+      <div class="filters grow">
+        <span class="f on">Все <b>12 480</b></span>
+        <span class="f"><span class="dot" style="background:var(--p)"></span>Оплатили <b>7 806</b></span>
+        <span class="f"><span class="dot" style="background:var(--warn)"></span>Частично <b>642</b></span>
+        <span class="f"><span class="dot" style="background:var(--dan)"></span>Не оплатили <b>4 032</b></span>
+        <span class="f"><span class="dot" style="background:#962F20"></span>С долгом <b>1 905</b></span>
+        <span class="f"><span class="dot" style="background:var(--info)"></span>Подключены в ЭлPay <b>3 914</b></span>
+      </div>
+    </div>
+
+    <div class="row" style="margin:0 12px 10px;padding:8px 10px 8px 12px;border-radius:11px;background:var(--l2)">
+      <span class="cb mid"></span>
+      <div style="font-size:13px;font-weight:700;color:var(--p7);white-space:nowrap">Выбрано 2</div>
+      <div class="sub ell" style="color:var(--p7)">оба подключены в ЭлPay — push дойдёт бесплатно</div>
+      <div class="grow"></div>
+      <span class="btn sm">{{i:bell}} Напомнить об оплате</span>
+      <span class="btn ghost sm">{{i:download}} Выгрузить</span>
+      <span class="btn ghost sm" style="padding:0 8px">{{i:more}}</span>
+      <span class="x" style="width:28px;height:28px">{{i:x}}</span>
+    </div>
+
+    <table class="tbl">
+      <thead><tr>
+        <th style="width:44px"><span class="cb mid"></span></th>
+        <th>Лицевой</th><th>ФИО</th><th>Адрес</th><th class="r">Жильцов</th>
+        <th class="r">Начислено</th><th class="r">Оплачено</th><th>Статус оплаты</th><th>Канал оплаты</th><th>В ЭлPay</th>
+      </tr></thead>
+      <tbody>
+        <tr class="sel"><td><span class="cb on"></span></td><td class="acc">31-00562</td><td><b>Токтогулова Айгерим</b></td><td class="m">ул. Курманжан Датка, 212, кв. 14</td><td class="r num">5</td><td class="r num">205</td><td class="r num m">0</td>
+          <td><span class="chip bad">Не оплачено</span></td><td class="m">—</td><td><span class="chip info">{{i:check}} Да</span></td></tr>
+        <tr class="sel"><td><span class="cb on"></span></td><td class="acc">31-01187</td><td><b>Токтогулов Бакыт</b></td><td class="m">ул. Масалиева, 44, кв. 3</td><td class="r num">3</td><td class="r num">123</td><td class="r num m">0</td>
+          <td><span class="chip bad">Не оплачено</span></td><td class="m">—</td><td><span class="chip info">{{i:check}} Да</span></td></tr>
+        <tr><td><span class="cb"></span></td><td class="acc">31-00218</td><td><b>Абдыкадыров Нурлан</b></td><td class="m">ул. Ленина, 301, кв. 56</td><td class="r num">3</td><td class="r num">123</td><td class="r num">123</td>
+          <td><span class="chip ok">{{i:check}} Оплачено 12 окт</span></td><td>ЭлPay · Элкарт</td><td><span class="chip info">{{i:check}} Да</span></td></tr>
+        <tr><td><span class="cb"></span></td><td class="acc">31-00944</td><td><b>Маматова Гулзат</b></td><td class="m">ул. Навои, 18</td><td class="r num">4</td><td class="r num">164</td><td class="r num">100</td>
+          <td><span class="chip warn">Частично, долг 64</span></td><td>ЭлPay · Элкарт</td><td><span class="chip info">{{i:check}} Да</span></td></tr>
+        <tr><td><span class="cb"></span></td><td class="acc">31-01502</td><td><b>Юсупов Рустам</b></td><td class="m">ул. Курманжан Датка, 230</td><td class="r num">2</td><td class="r num">82</td><td class="r num">82</td>
+          <td><span class="chip ok">{{i:check}} Оплачено 9 окт</span></td><td>Касса службы</td><td class="m">Нет</td></tr>
+        <tr><td><span class="cb"></span></td><td class="acc">31-02071</td><td><b>Сыдыкова Жамиля</b></td><td class="m">ул. Масалиева, 52, кв. 7</td><td class="r num">6</td><td class="r num">246</td><td class="r num m">0</td>
+          <td><span class="chip bad" style="background:#F6D3CC">{{i:alert}} Долг 2 мес. · 492</span></td><td class="m">—</td><td class="m">Нет</td></tr>
+        <tr><td><span class="cb"></span></td><td class="acc">31-00731</td><td><b>Эргешов Талант</b></td><td class="m">ул. Ленина, 285</td><td class="r num">1</td><td class="r num">41</td><td class="r num">41</td>
+          <td><span class="chip ok">{{i:check}} Оплачено 3 окт</span></td><td>MBANK</td><td class="m">Нет</td></tr>
+        <tr><td><span class="cb"></span></td><td class="acc">31-01845</td><td><b>Ташиева Айнура</b></td><td class="m">ул. Навои, 24, кв. 11</td><td class="r num">4</td><td class="r num">164</td><td class="r num">164</td>
+          <td><span class="chip ok">{{i:check}} Оплачено 11 окт</span></td><td>ЭлPay · кошелёк</td><td><span class="chip info">{{i:check}} Да</span></td></tr>
+        <tr><td><span class="cb"></span></td><td class="acc">31-00390</td><td><b>Кадыров Мирлан</b></td><td class="m">ул. Г. Айтиева, 7</td><td class="r num">5</td><td class="r num">205</td><td class="r num m">0</td>
+          <td><span class="chip bad">Не оплачено</span></td><td class="m">—</td><td class="m">Нет</td></tr>
+        <tr><td><span class="cb"></span></td><td class="acc">31-02260</td><td><b>Осмонова Динара</b></td><td class="m">ул. Курманжан Датка, 205, кв. 2</td><td class="r num">3</td><td class="r num">123</td><td class="r num">0</td>
+          <td><span class="chip info">Новый · не оплачено</span></td><td class="m">—</td><td class="m">Нет</td></tr>
+      </tbody>
+    </table>
+    <div class="pager">
+      <span><b>1–10</b> из 12 480</span>
+      <span class="tiny" style="margin-left:8px;display:inline-flex;align-items:center;gap:4px">по 10 строк {{i:down}}</span>
+      <div class="grow"></div>
+      <span class="pg">{{i:back}}</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">…</span><span class="pg" style="width:auto;padding:0 6px">1 248</span><span class="pg">{{i:arrow}}</span>
+    </div>
+  </div>
+</div>
+</div>
+</div>

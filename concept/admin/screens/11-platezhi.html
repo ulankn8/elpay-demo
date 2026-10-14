@@ -1,0 +1,76 @@
+<!-- group: Платежи и уведомления | cap: Платежи | sub: Все поступления по лицевым счетам — ЭлPay, касса службы и банки — в одной ленте. Сразу видно, что пришло после последней выгрузки в 1С. -->
+<style>
+.s11 .tbl{font-size:12.5px}
+.s11 .tbl td{padding:7px 9px}.s11 .tbl th{padding:9px 9px}
+.s11 .tbl td:first-child,.s11 .tbl th:first-child{padding-left:20px}
+.s11 .tbl td:last-child,.s11 .tbl th:last-child{padding-right:20px}
+.s11 .tbl tr.day td{background:var(--soft2);padding-top:7px;padding-bottom:7px;font-size:11.5px;font-weight:700;color:var(--ink3)}
+.s11 .tbl tr.day td span{font-weight:600;color:var(--mut)}
+.s11 .nm{font-weight:600}
+.s11 .ad{font-size:11px;color:var(--mut2);font-weight:500;margin-top:1px}
+.s11 .ch{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--ink2)}
+.s11 .rc{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;color:var(--ink3)}
+.s11 .kpi .v{font-size:23px}
+.s11 .pager svg{width:16px;height:16px}
+.s11 .xh svg{width:16px;height:16px}
+.s11 .seg span{height:28px;padding:0 12px;gap:6px}
+</style>
+<div class="desk s11">
+{{side:svc:pay}}
+<div class="main">
+{{top:Платежи|Ошводоканал · оплаты за сентябрь 2026}}
+<div class="body" style="padding:20px 24px">
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1.45fr;gap:14px">
+    <div class="card kpi"><div class="l">Оплачено на 14 окт</div><div class="v num">1 487 310<i class="som">сом</i></div>
+      <div class="meter"><span style="width:38.5%;background:var(--p)"></span><span style="width:14.4%;background:var(--ink3)"></span><span style="width:9.9%;background:var(--warn)"></span></div>
+      <div class="d up">62,8% от начисленного</div></div>
+    <div class="card kpi"><div class="l"><span class="dot" style="background:var(--p);margin-right:5px"></span>Через ЭлPay</div><div class="v num">912 450<i class="som">сом</i></div><div class="d">61,3% всех оплат</div></div>
+    <div class="card kpi"><div class="l"><span class="dot" style="background:var(--ink3);margin-right:5px"></span>Касса службы</div><div class="v num">341 280<i class="som">сом</i></div><div class="d">22,9% всех оплат</div></div>
+    <div class="card kpi"><div class="l"><span class="dot" style="background:var(--warn);margin-right:5px"></span>Банки и терминалы</div><div class="v num">233 580<i class="som">сом</i></div><div class="d" style="white-space:nowrap">15,7% · MBANK, Элкарт, О!Деньги</div></div>
+    <div class="card" style="padding:15px 18px;background:#E8F0FC;box-shadow:inset 0 0 0 1.5px #C9DAF5">
+      <div class="row xh" style="gap:7px;color:#1F4E9C;font-size:12px;font-weight:700">{{i:download}}<span class="grow">Не выгружено в 1С</span><span class="tiny" style="color:#4A6FAE">авто в 18:00</span></div>
+      <div class="num" style="font-size:22px;font-weight:700;letter-spacing:-.6px;margin-top:6px;color:#173E7D;white-space:nowrap">382 платежа<span style="font-size:13px;font-weight:600;color:#1F4E9C;letter-spacing:0"> · 216 800 сом</span></div>
+      <span class="btn sm" style="background:var(--info);color:#fff;margin-top:10px;width:100%">{{i:download}} Выгрузить реестр</span>
+    </div>
+  </div>
+
+  <div class="card mt16">
+    <div class="row" style="padding:13px 20px">
+      <div class="filters grow" style="gap:10px">
+        <span class="f on">{{i:cal}} 1–14 октября {{i:down}}</span>
+        <div class="seg"><span class="on">Все каналы</span><span><i class="dot" style="background:var(--p)"></i>ЭлPay</span><span><i class="dot" style="background:var(--ink3)"></i>Касса</span><span><i class="dot" style="background:var(--warn)"></i>Банки</span></div>
+        <div class="seg"><span class="on">Любой статус</span><span>Выгружен в 1С</span><span>Ждёт выгрузки · 382</span></div>
+      </div>
+      <span class="btn ghost sm">{{i:download}} Excel</span>
+    </div>
+
+    <table class="tbl">
+      <thead><tr><th>Время</th><th>Лицевой</th><th>Плательщик</th><th class="r">Сумма, сом</th><th>За период</th><th>Канал и способ</th><th>№ квитанции</th><th>В 1С</th></tr></thead>
+      <tbody>
+        <tr class="day"><td colspan="8">Сегодня, 14 октября <span>· после выгрузки 13 окт в 18:00 · 382 платежа на 216 800 сом</span></td></tr>
+        <tr><td class="num">11:58</td><td class="acc">31-01376</td><td><div class="nm">Жээнбеков Улан</div><div class="ad">ул. Навои, 31, кв. 9</div></td><td class="r num"><b>164,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--p)"></span>ЭлPay · Visa</span></td><td class="rc">EP-261014-0217</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr><td class="num">11:54</td><td class="acc">31-00944</td><td><div class="nm">Маматова Гулзат</div><div class="ad">ул. Навои, 18</div></td><td class="r num"><b>100,00</b></td><td>Сентябрь <span class="chip warn" style="margin-left:4px">частично, долг 64</span></td><td><span class="ch"><span class="dot" style="background:var(--p)"></span>ЭлPay · Элкарт</span></td><td class="rc">EP-261014-0216</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr><td class="num">11:47</td><td class="acc">31-02415</td><td><div class="nm">Абдиева Чолпон</div><div class="ad">ул. Масалиева, 60, кв. 21</div></td><td class="r num"><b>205,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--ink3)"></span>Касса службы</span></td><td class="rc">КО-004518</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr><td class="num">11:41</td><td class="acc">31-00687</td><td><div class="nm">Мамытов Эрлан</div><div class="ad">ул. Ленина, 297, кв. 40</div></td><td class="r num"><b>123,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--warn)"></span>MBANK · приложение</span></td><td class="rc">MB-4410228719</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr><td class="num">11:29</td><td class="acc">31-00125</td><td><div class="nm">Сатыбалдиев Азамат</div><div class="ad">ул. Г. Айтиева, 15</div></td><td class="r num"><b>492,00</b></td><td>Август + сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--warn)"></span>О!Деньги · терминал</span></td><td class="rc">OD-77310582</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr><td class="num">11:22</td><td class="acc">31-02108</td><td><div class="nm">Исмаилова Нургуль</div><div class="ad">ул. Курманжан Датка, 218, кв. 5</div></td><td class="r num"><b>82,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--p)"></span>ЭлPay · кошелёк</span></td><td class="rc">EP-261014-0215</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr class="day"><td colspan="8">13 октября <span>· выгружены в 1С 13 окт в 18:00 · reestr_2026-10-13.csv</span></td></tr>
+        <tr><td class="num">17:58</td><td class="acc">31-01764</td><td><div class="nm">Камчыбеков Данияр</div><div class="ad">ул. Масалиева, 38, кв. 12</div></td><td class="r num"><b>246,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--warn)"></span>Элкарт · терминал</span></td><td class="rc">ЭК-T0391-5521</td><td><span class="chip ok">{{i:check}} Выгружен</span></td></tr>
+        <tr><td class="num">17:52</td><td class="acc">31-00473</td><td><div class="nm">Орозбаева Мээрим</div><div class="ad">ул. Ленина, 279, кв. 3</div></td><td class="r num"><b>41,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--p)"></span>ЭлPay · Visa</span></td><td class="rc">EP-261013-0598</td><td><span class="chip ok">{{i:check}} Выгружен</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="note warn" style="margin:12px 16px 0;align-items:center">{{i:alert}}
+      <div class="grow"><b>2 платежа на 464 сом не сопоставлены с лицевым</b> — жители ошиблись в номере: «31-0562» (300 сом) и «31-01854» (164 сом). Их разбирает ЭлPay, деньги не потеряются: после проверки платёж сам попадёт в реестр.</div>
+      <span class="link" style="color:#7A560D;white-space:nowrap">Посмотреть →</span></div>
+
+    <div class="pager">
+      <span><b>1–8</b> из 6 596 платежей за 1–14 октября</span>
+      <span class="tiny" style="margin-left:8px">из них сегодня 382 на 216 800 сом</span>
+      <div class="grow"></div>
+      <span class="pg">{{i:back}}</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">…</span><span class="pg" style="width:auto;padding:0 6px">825</span><span class="pg">{{i:arrow}}</span>
+    </div>
+  </div>
+</div>
+</div>
+</div>

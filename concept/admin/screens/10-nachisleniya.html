@@ -1,0 +1,93 @@
+<!-- group: Импорт из 1С | cap: Начисления: ежемесячная загрузка | sub: Раз в месяц бухгалтер загружает начисления тем же мастером импорта — и жители сразу видят счёт в приложении. Слева месяцы с процентом оплаты, справа расчёт по каждому абоненту. -->
+<style>
+#s10 .per{border-radius:14px;background:#fff;padding:14px 16px;box-shadow:0 1px 2px rgba(30,42,50,.06)}
+#s10 .per.on{box-shadow:0 0 0 2px var(--p) inset;background:#F2FBF7}
+#s10 .pl{display:flex;align-items:center;gap:10px;padding:11px 16px;border-top:1px solid var(--line2)}
+#s10 .pl .meter{width:54px;margin-top:0;height:6px}
+#s10 .kc{padding:14px 18px;border-right:1px solid var(--line2)}
+#s10 .kc:last-child{border-right:0}
+#s10 .kc .l{font-size:11.5px;font-weight:600;color:var(--mut)}
+#s10 .kc .v{font-size:21px;font-weight:700;letter-spacing:-.6px;margin-top:4px}
+#s10 .tbl td{padding-top:15px;padding-bottom:15px}
+</style>
+<div class="desk">
+{{side:svc:nach}}
+<div class="main">
+{{top:Начисления|Ошводоканал · по месяцам}}
+<div class="body">
+  <div style="display:grid;grid-template-columns:316px 1fr;gap:16px;height:100%">
+    <div class="col" style="gap:12px">
+      <div style="border:2px dashed #BFD9CF;background:#F7FCFA;border-radius:14px;padding:14px 16px">
+        <div class="row" style="gap:8px"><div class="h4 grow">Октябрь 2026</div><span class="chip soft">ещё не загружен</span></div>
+        <div class="sub" style="margin-top:4px">Месяц закроется 31 октября — файл из 1С обычно грузят 1-го</div>
+        <span class="btn mt12" style="width:100%;font-size:13px;padding:0 10px;gap:6px">{{i:upload}} Загрузить начисления за октябрь</span>
+        <div class="tiny" style="font-weight:500;margin-top:7px;text-align:center">тот же мастер импорта, тип «Начисления»</div>
+      </div>
+
+      <div class="per on">
+        <div class="row" style="gap:8px"><div class="h4 grow">Сентябрь 2026</div><span class="chip ok">Открыт</span></div>
+        <div class="num" style="font-size:20px;font-weight:700;letter-spacing:-.5px;margin-top:8px">2 368 940<i class="som">сом</i></div>
+        <div class="meter" style="margin-top:8px"><span style="width:62.8%;background:var(--p)"></span></div>
+        <div class="row mt8" style="font-size:11.5px;font-weight:600;color:var(--mut)"><span class="grow" style="color:var(--p7)">оплачено 62,8%</span><span>срок до 25 окт</span></div>
+      </div>
+
+      <div class="card">
+        <div class="tiny" style="padding:12px 16px 8px;text-transform:uppercase;letter-spacing:.6px;font-weight:700">Закрытые</div>
+        <div class="pl"><div class="grow"><div class="h4" style="font-size:13px">Август 2026</div><div class="tiny num" style="font-weight:500;margin-top:1px">2 349 870 сом</div></div><div class="meter"><span style="width:98.1%;background:var(--p)"></span></div><b class="num" style="font-size:12.5px;width:40px;text-align:right">98,1%</b></div>
+        <div class="pl"><div class="grow"><div class="h4" style="font-size:13px">Июль 2026</div><div class="tiny num" style="font-weight:500;margin-top:1px">2 337 410 сом</div></div><div class="meter"><span style="width:99.2%;background:var(--p)"></span></div><b class="num" style="font-size:12.5px;width:40px;text-align:right">99,2%</b></div>
+        <div class="pl"><div class="grow"><div class="h4" style="font-size:13px">Июнь 2026</div><div class="tiny num" style="font-weight:500;margin-top:1px">2 331 160 сом</div></div><div class="meter"><span style="width:99.6%;background:var(--p)"></span></div><b class="num" style="font-size:12.5px;width:40px;text-align:right">99,6%</b></div>
+      </div>
+
+      <div class="card" style="padding:14px 16px">
+        <div class="row" style="gap:8px"><span style="width:16px;height:16px;display:flex;color:var(--p7)">{{i:phone}}</span><div class="h4">Что видит житель</div></div>
+        <div class="sub" style="margin-top:4px">Счёт появляется в приложении сразу после загрузки — с push-уведомлением</div>
+        <div class="mt12" style="border-radius:14px;padding:12px;background:linear-gradient(170deg,#3E6C88 0%,#25455E 60%,#162B3D 100%)">
+          <div class="push"><div class="ph"><b>Эл</b>ЭлPay<span>1 окт, 10:16</span></div>
+            <div class="pt">Пришло начисление за сентябрь</div>
+            <div class="pb">Вода, Ошводоканал — 205 сом. Оплатите до 25 октября</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;min-width:0">
+      <div class="hd" style="padding-bottom:14px">
+        <div class="h3" style="flex:none;font-size:17px">Сентябрь 2026</div><span class="chip ok">Открыт</span><span class="chip soft">оплата до 25 октября · пеня с 26-го</span>
+        <div class="grow"></div>
+        <span class="btn ghost sm">{{i:download}} Скачать</span>
+      </div>
+      <div class="grid" style="grid-template-columns:1.25fr 1fr 1fr 1.25fr;gap:0;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)">
+        <div class="kc"><div class="l">Начислено</div><div class="v num">2 368 940<i class="som">сом</i></div></div>
+        <div class="kc"><div class="l">Абонентов</div><div class="v num">12 480</div></div>
+        <div class="kc"><div class="l">Средний счёт</div><div class="v num">≈ 190<i class="som">сом</i></div></div>
+        <div class="kc"><div class="l">Оплачено на 14 окт</div><div class="v num">62,8%<span class="sub num" style="font-size:12px;font-weight:600;margin-left:6px;letter-spacing:0">1 487 310 сом</span></div></div>
+      </div>
+      <div class="row" style="padding:14px 20px;gap:12px">
+        <span class="ft" style="width:34px;height:40px;border-radius:7px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;font-size:9px;font-weight:700;color:#fff;background:#1D7A47;flex:none">XLSX</span>
+        <div class="grow"><div class="h4">nachisleniya_sentyabr.xlsx</div><div class="sub">Бакыт Осмонов · 1 октября, 10:15</div></div>
+        <span class="chip ok">{{i:check}} 12 480 из 12 480 сопоставлены · ошибок 0</span>
+        <span class="link" style="margin-left:6px">В журнале →</span>
+      </div>
+      <div class="row" style="padding:0 20px 12px;gap:8px">
+        <span class="f on">Все <b>12 480</b></span><span class="f">Не оплатили <b>4 032</b></span><span class="f">С долгом за прошлые месяцы <b>1 905</b></span>
+        <div class="grow"></div>
+        <span class="btn ghost sm">{{i:edit}} Корректировка</span>
+      </div>
+      <table class="tbl" style="table-layout:fixed">
+        <colgroup><col style="width:96px"><col style="width:174px"><col style="width:112px"><col style="width:92px"><col><col style="width:140px"></colgroup>
+        <tr><th>Лицевой</th><th>Абонент</th><th>Расчёт</th><th class="r">Начислено</th><th>Оплата</th><th>В приложении</th></tr>
+        <tr><td class="acc">31-00562</td><td>Токтогулова Айгерим</td><td class="m num">5 чел × 41 сом</td><td class="r num"><b>205</b></td><td><span class="chip bad">Не оплачено</span></td><td><span class="chip info">видит счёт</span></td></tr>
+        <tr><td class="acc">31-01187</td><td>Токтогулов Бакыт</td><td class="m num">3 чел × 41 сом</td><td class="r num"><b>123</b></td><td><span class="chip bad">Не оплачено</span></td><td><span class="chip info">видит счёт</span></td></tr>
+        <tr><td class="acc">31-00218</td><td>Абдыкадыров Нурлан</td><td class="m num">3 чел × 41 сом</td><td class="r num"><b>123</b></td><td><span class="chip ok">{{i:check}} 12 окт · ЭлPay</span></td><td><span class="chip info">видит счёт</span></td></tr>
+        <tr><td class="acc">31-00944</td><td>Маматова Гулзат</td><td class="m num">4 чел × 41 сом</td><td class="r num"><b>164</b></td><td><span class="chip warn">Частично, долг 64 сом</span></td><td><span class="chip info">видит счёт</span></td></tr>
+        <tr><td class="acc">31-01502</td><td>Юсупов Рустам</td><td class="m num">2 чел × 41 сом</td><td class="r num"><b>82</b></td><td><span class="chip ok">{{i:check}} 9 окт · касса</span></td><td class="m">не подключён</td></tr>
+        <tr><td class="acc">31-02071</td><td>Сыдыкова Жамиля</td><td class="m num">6 чел × 41 сом</td><td class="r num"><b>246</b></td><td><span class="chip bad">Долг 2 месяца, 492 сом</span></td><td class="m">не подключён</td></tr>
+        <tr><td class="acc">31-00731</td><td>Эргешов Талант</td><td class="m num">1 чел × 41 сом</td><td class="r num"><b>41</b></td><td><span class="chip ok">{{i:check}} 3 окт · MBANK</span></td><td class="m">не подключён</td></tr>
+        <tr><td class="acc">31-01845</td><td>Ташиева Айнура</td><td class="m num">4 чел × 41 сом</td><td class="r num"><b>164</b></td><td><span class="chip ok">{{i:check}} 11 окт · ЭлPay</span></td><td><span class="chip info">видит счёт</span></td></tr>
+        <tr><td class="acc">31-00390</td><td>Кадыров Мирлан</td><td class="m num">5 чел × 41 сом</td><td class="r num"><b>205</b></td><td><span class="chip bad">Не оплачено</span></td><td class="m">не подключён</td></tr>
+      </table>
+      <div class="pager" style="margin-top:auto"><span>Показаны <b>1–9</b> из <b>12 480</b></span><div class="grow"></div><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span>…</span><span class="pg" style="width:auto;padding:0 6px">1 387</span></div>
+    </div>
+  </div>
+</div>
+</div>
+</div>

@@ -1,0 +1,92 @@
+<!-- group: Доступ и интеграция | cap: Сотрудники и доступ службы | sub: Кто из водоканала работает в кабинете и что делал. Ролей внутри службы нет — права у всех одинаковые, коллегу приглашают по рабочей почте за полминуты. -->
+<div class="desk">
+{{side:svc:access}}
+<div class="main">
+{{top:Сотрудники и доступ|Ошводоканал · служба}}
+<div class="body">
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 368px;height:100%">
+
+  <!-- левая колонка -->
+  <div class="col" style="gap:16px;min-height:0">
+    <div class="card">
+      <div class="hd"><div class="h3">Сотрудники службы <span class="tiny" style="font-size:12.5px;margin-left:4px">3</span></div>
+        <span class="chip ok">{{i:check}} 2 работают</span><span class="chip warn">{{i:clock}} 1 ждёт входа</span></div>
+      <table class="tbl">
+        <thead><tr><th>Сотрудник</th><th>Последний вход</th><th class="r"></th></tr></thead>
+        <tbody>
+          <tr><td><div class="row" style="gap:11px"><span class="av" style="width:34px;height:34px;border-radius:50%;background:#2E5A4E;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none">ЖТ</span>
+              <div><b>Жыпар Турсунова</b> <span class="chip soft" style="padding:1px 7px;margin-left:4px">вы</span><div class="tiny" style="margin-top:2px">jypar@oshvodokanal.kg</div></div></div></td>
+            <td><span class="row" style="gap:6px"><span class="dot" style="background:var(--p)"></span><b>сейчас в кабинете</b></span><div class="tiny" style="margin-top:2px">с 08:47 · Chrome · Windows · Ош</div></td>
+            <td class="r m">—</td></tr>
+          <tr><td><div class="row" style="gap:11px"><span style="width:34px;height:34px;border-radius:50%;background:#3F7BE0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none">БО</span>
+              <div><b>Бакыт Осмонов</b><div class="tiny" style="margin-top:2px">bakyt@oshvodokanal.kg</div></div></div></td>
+            <td>сегодня, 09:05<div class="tiny" style="margin-top:2px">Яндекс Браузер · Windows · Ош</div></td>
+            <td class="r"><span class="btn ghost sm">Удалить</span></td></tr>
+          <tr><td><div class="row" style="gap:11px"><span style="width:34px;height:34px;border-radius:50%;background:var(--soft);color:var(--mut);border:1.5px dashed var(--mut2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none">НА</span>
+              <div><b>Нургуль Абдыраимова</b><div class="tiny" style="margin-top:2px">nurgul@oshvodokanal.kg</div></div></div></td>
+            <td><span class="chip warn">{{i:clock}} ждёт входа</span><div class="tiny" style="margin-top:2px">приглашение 12 окт · ссылка до 19 окт</div></td>
+            <td class="r"><div class="row" style="gap:6px;justify-content:flex-end"><span class="btn soft sm">{{i:send}} Ещё раз</span><span class="btn ghost sm" style="padding:0 8px" title="Отменить приглашение">{{i:x}}</span></div></td></tr>
+        </tbody>
+      </table>
+      <div style="padding:16px 20px 18px">
+        <div class="row" style="gap:10px;align-items:flex-end">
+          <div class="fld" style="flex:1"><label>Рабочая почта нового сотрудника</label>
+            <div class="in focus"><span style="color:var(--mut);display:inline-flex">{{i:mail}}</span><span>aibek.mamytov</span><span class="grow"></span><span style="color:var(--mut);font-weight:600">@oshvodokanal.kg</span></div></div>
+          <span class="btn" style="height:42px">{{i:useradd}} Пригласить сотрудника</span>
+        </div>
+        <div class="sub mt8" style="font-size:12px">Только рабочая почта водоканала — адреса gmail.com, mail.ru и других доменов кабинет не примет. Коллеге придёт письмо со ссылкой, войдёт он по коду.</div>
+      </div>
+    </div>
+
+    <div class="card" style="flex:1;min-height:0">
+      <div class="hd"><div class="h3">Журнал действий службы</div>
+        <div class="seg"><span class="on">Все</span><span>Загрузки</span><span>Выгрузки</span><span>Рассылки</span><span>Доступ</span></div></div>
+      <table class="tbl">
+        <tbody>
+          <tr><td style="width:112px"><b>14 окт</b>, 11:20</td><td style="width:96px">Жыпар Т.</td><td style="white-space:normal">скачала повторно реестр <b>reestr_2026-10-13.csv</b></td><td class="r m">6 214 платежей</td></tr>
+          <tr><td style="width:112px"><b>13 окт</b>, 18:00</td><td style="width:96px"><span class="chip info" style="padding:1px 7px">{{i:refresh}} авто</span></td><td style="white-space:normal">автовыгрузка реестра на buh@oshvodokanal.kg</td><td class="r m">1 270 510 сом</td></tr>
+          <tr><td style="width:112px"><b>12 окт</b>, 16:05</td><td style="width:96px">Жыпар Т.</td><td style="white-space:normal">пригласила nurgul@oshvodokanal.kg</td><td class="r m">ждёт входа</td></tr>
+          <tr><td style="width:112px"><b>5 окт</b>, 10:00</td><td style="width:96px">Бакыт О.</td><td style="white-space:normal">рассылка «Напоминание о сроке» должникам</td><td class="r m">3 120 получателей</td></tr>
+          <tr><td style="width:112px"><b>1 окт</b>, 10:15</td><td style="width:96px">Бакыт О.</td><td style="white-space:normal">загрузил начисления <b>nachisleniya_sentyabr.xlsx</b></td><td class="r m">2 368 940 сом</td></tr>
+          <tr><td style="width:112px"><b>1 окт</b>, 09:42</td><td style="width:96px">Жыпар Т.</td><td style="white-space:normal">импорт абонентов <b>abonenty_2026-10-01.csv</b></td><td class="r m"><span class="chip bad">36 с ошибкой</span></td></tr>
+        </tbody>
+      </table>
+      <div class="pager"><span>Показаны 6 последних из 41 · журнал хранится 3 года</span><span class="grow"></span><span class="link">Весь журнал →</span></div>
+    </div>
+  </div>
+
+  <!-- правая колонка -->
+  <div class="col" style="gap:16px;min-height:0">
+    <div class="card p">
+      <div class="row"><span class="ic soft">{{i:users}}</span><div class="grow"><div class="h4">Права у всех одинаковые</div><div class="sub" style="font-size:12px">ролей внутри службы нет</div></div></div>
+      <div class="sub mt12" style="color:var(--ink2);font-size:12.5px">Все сотрудники видят абонентов и платежи и могут загружать файлы. Добавить сотрудника может любой из вас; удалить — тоже.</div>
+      <div class="col mt12" style="gap:7px;font-size:12.5px;font-weight:600;color:var(--ink2)">
+        <div class="row" style="gap:8px"><span style="width:16px;height:16px;display:inline-flex;color:var(--p6)">{{i:check}}</span>абоненты, начисления и оплаты</div>
+        <div class="row" style="gap:8px"><span style="width:16px;height:16px;display:inline-flex;color:var(--p6)">{{i:check}}</span>импорт из 1С и ручной ввод</div>
+        <div class="row" style="gap:8px"><span style="width:16px;height:16px;display:inline-flex;color:var(--p6)">{{i:check}}</span>реестр платежей и рассылки</div>
+        <div class="row" style="gap:8px"><span style="width:16px;height:16px;display:inline-flex;color:var(--p6)">{{i:check}}</span>приглашение и удаление коллег</div>
+      </div>
+    </div>
+
+    <div class="card p">
+      <div class="row"><span class="ic soft">{{i:lock}}</span><div class="grow"><div class="h4">Безопасность входа</div><div class="sub" style="font-size:12px">одинаково для всех сотрудников</div></div></div>
+      <div class="col mt16" style="gap:0">
+        <div class="row" style="padding:10px 0;border-bottom:1px solid var(--line2)"><div class="grow"><div class="h4" style="font-size:12.5px">Вход по коду на почту</div><div class="tiny" style="margin-top:2px">6 цифр, действует 10 минут · паролей нет</div></div><span class="chip ok">всегда</span></div>
+        <div class="row" style="padding:10px 0;border-bottom:1px solid var(--line2)"><div class="grow"><div class="h4" style="font-size:12.5px">Сессия — 12 часов</div><div class="tiny" style="margin-top:2px">потом кабинет снова спросит код</div></div><span class="chip soft">12 ч</span></div>
+        <div class="row" style="padding:10px 0 6px"><div class="grow"><div class="h4" style="font-size:12.5px">Открытые сессии</div></div><span class="chip info">2</span></div>
+        <div class="row" style="padding:5px 0;gap:9px"><span class="dot" style="background:var(--p);margin:0 4px"></span><div class="grow tiny" style="color:var(--ink3)"><b>Жыпар Т.</b> · Chrome, этот компьютер</div><span class="tiny">до 20:47</span></div>
+        <div class="row" style="padding:5px 0 8px;gap:9px"><span class="dot" style="background:var(--p);margin:0 4px"></span><div class="grow tiny" style="color:var(--ink3)"><b>Бакыт О.</b> · Яндекс Браузер</div><span class="tiny">до 21:05</span></div>
+      </div>
+      <span class="btn dan" style="width:100%;margin-top:6px">{{i:x}} Выйти на всех устройствах</span>
+      <div class="tiny" style="margin-top:8px;text-align:center">Если ноутбук потеряли или сотрудник уволился</div>
+    </div>
+
+    <div class="note info" style="padding:14px 15px">{{i:info}}<div><b>Доступ к кабинету выдаёт ЭлPay.</b> Если в службе не осталось ни одного сотрудника или нужно сменить домен почты — звоните менеджеру.
+      <div class="row" style="gap:10px;margin-top:10px"><span style="width:32px;height:32px;border-radius:50%;background:#1FB886;color:var(--onp);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex:none">АК</span>
+        <div><b style="color:var(--ink)">Азамат Кадыров</b><div style="color:var(--ink3)">менеджер ЭлPay · +996 555 20 14 77</div></div></div></div></div>
+  </div>
+
+</div>
+</div>
+</div>
+</div>

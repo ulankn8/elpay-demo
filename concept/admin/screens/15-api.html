@@ -1,0 +1,113 @@
+<!-- group: Доступ и интеграция | cap: Интеграция по API — экран «скоро» | sub: Честный экран о следующем этапе: сейчас служба работает файлами и ручным вводом, а здесь видно, как будет устроен автообмен с 1С и как записаться в пилот. -->
+<div class="desk">
+{{side:svc:api}}
+<div class="main">
+{{top:Интеграция по API|Ошводоканал · служба}}
+<div class="body">
+
+  <!-- шапка -->
+  <div class="card" style="padding:18px 24px;display:flex;align-items:center;gap:20px;background:linear-gradient(100deg,#fff 55%,#EBF8F2)">
+    <span class="ic" style="width:52px;height:52px;border-radius:14px;background:var(--side)"><svg viewBox="0 0 24 24" style="width:24px;height:24px;stroke:var(--p)"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></svg></span>
+    <div class="grow">
+      <div class="row" style="gap:8px"><span class="chip warn">{{i:clock}} В проработке</span><span class="chip soft">следующий этап после пилота файлами</span></div>
+      <div style="font-size:17px;font-weight:700;letter-spacing:-.3px;margin-top:8px;white-space:nowrap">Сейчас — файлы и ручной ввод. Интеграция по API — следующий этап.</div>
+      <div class="sub" style="margin-top:4px">Вот как она будет работать. Пока вы не решите перейти, файлы из 1С работают как раньше — API лишь убирает ручные загрузки и выгрузки.</div>
+    </div>
+    <div style="text-align:center;flex:none">
+      <span class="btn" style="height:46px;padding:0 20px">{{i:zap}} Хочу участвовать в пилоте API</span>
+      <div class="tiny" style="margin-top:7px">Азамат Кадыров перезвонит в течение дня</div>
+    </div>
+  </div>
+
+  <!-- три способа -->
+  <div class="grid g3 mt16">
+    <div class="card p">
+      <div class="row"><span class="ic soft">{{i:upload}}</span><div class="grow"><div class="h4">Файл из 1С</div></div><span class="chip ok">{{i:check}} работает</span></div>
+      <div class="sub mt12" style="color:var(--ink2)">Раз в месяц выгрузить из 1С абонентов и начисления, загрузить в кабинет. Реестр платежей приходит на почту в 18:00.</div>
+      <div class="row mt12" style="padding-top:12px;border-top:1px solid var(--line2);gap:8px"><span class="tiny grow">От службы: бухгалтер и 1С</span><b class="num" style="font-size:13px">≈ 25 мин в месяц</b></div>
+    </div>
+    <div class="card p">
+      <div class="row"><span class="ic soft">{{i:edit}}</span><div class="grow"><div class="h4">Ручной ввод</div></div><span class="chip ok">{{i:check}} работает</span></div>
+      <div class="sub mt12" style="color:var(--ink2)">Для нового жильца, который пришёл в кассу: лицевой, адрес из справочника Оша, число жильцов — и он сразу видит счёт.</div>
+      <div class="row mt12" style="padding-top:12px;border-top:1px solid var(--line2);gap:8px"><span class="tiny grow">От службы: оператор кассы</span><b class="num" style="font-size:13px">≈ 1 мин на абонента</b></div>
+    </div>
+    <div class="card p" style="box-shadow:0 0 0 2px #F3DDAE inset">
+      <div class="row"><span class="ic soft" style="background:#FDF3E0!important">{{i:refresh}}</span><div class="grow"><div class="h4">Автообмен по API</div></div><span class="chip warn">в проработке</span></div>
+      <div class="sub mt12" style="color:var(--ink2)">Один раз поставить обработку ЭлPay в 1С. Дальше абоненты, начисления и платежи синхронизируются без файлов.</div>
+      <div class="row mt12" style="padding-top:12px;border-top:1px solid var(--line2);gap:8px"><span class="tiny grow">От службы: 15 минут один раз</span><b class="num" style="font-size:13px;color:var(--p7)">0 мин в месяц</b></div>
+    </div>
+  </div>
+
+  <!-- схема + что понадобится -->
+  <div class="grid mt16" style="grid-template-columns:minmax(0,1fr) 340px">
+    <div class="card" style="padding:18px 22px 20px">
+      <div class="row"><div class="h3 grow">Как будет работать автообмен</div><span class="tiny">без файлов и почты</span></div>
+
+      <div style="position:relative;margin-top:30px">
+        <div class="row" style="gap:0;align-items:stretch">
+          <div style="flex:1;border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff">
+            <span class="ic" style="width:34px;height:34px;background:#F0C530"><svg viewBox="0 0 24 24" style="stroke:#3A2F00"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10"/></svg></span>
+            <div class="h4 mt8">1С службы</div><div class="tiny" style="margin-top:3px;line-height:1.45">бухгалтер ведёт абонентов и начисления, как сейчас</div></div>
+          <div style="width:34px;display:flex;align-items:center;justify-content:center;color:var(--p)"><svg viewBox="0 0 24 24" style="width:26px;height:26px"><path d="M4 12h15M14 7l5 5-5 5"/></svg></div>
+          <div style="flex:1;border:1.5px solid var(--p);border-radius:14px;padding:14px;background:var(--l2)">
+            <span class="ic" style="width:34px;height:34px;background:var(--p)"><svg viewBox="0 0 24 24" style="stroke:var(--onp)"><path d="M6.5 3h7l4 4v14h-11z"/><path d="M13.5 3v4h4M9.5 12h5M9.5 16h5"/></svg></span>
+            <div class="h4 mt8">Обработка ЭлPay</div><div class="tiny" style="margin-top:3px;line-height:1.45;color:var(--ink3)">файл .epf для 1С — ставится за 15 минут, без программиста</div></div>
+          <div style="width:34px;display:flex;align-items:center;justify-content:center;color:var(--p)"><svg viewBox="0 0 24 24" style="width:26px;height:26px"><path d="M4 12h15M14 7l5 5-5 5"/></svg></div>
+          <div style="flex:1;border-radius:14px;padding:14px;background:var(--side);color:#fff">
+            <span class="ic" style="width:34px;height:34px;background:var(--side2)"><svg viewBox="0 0 24 24" style="stroke:var(--p)"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></svg></span>
+            <div class="h4 mt8">API ЭлPay</div><div class="tiny" style="margin-top:3px;line-height:1.45;color:var(--side-ink)">проверяет лицевые, как мастер импорта</div></div>
+          <div style="width:34px;display:flex;align-items:center;justify-content:center;color:var(--p)"><svg viewBox="0 0 24 24" style="width:26px;height:26px"><path d="M4 12h15M14 7l5 5-5 5"/></svg></div>
+          <div style="flex:1;border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff">
+            <span class="ic" style="width:34px;height:34px;background:var(--g-water)">{{i:phone}}</span>
+            <div class="h4 mt8">Приложение жителей</div><div class="tiny" style="margin-top:3px;line-height:1.45">3 914 абонентов видят счёт за минуту</div></div>
+        </div>
+        <div class="tiny" style="position:absolute;top:-21px;left:18%;color:var(--p7)">абоненты и начисления — сразу после проведения в 1С</div>
+
+        <!-- обратный поток -->
+        <div style="position:relative;height:52px">
+          <div style="position:absolute;left:calc((100% - 102px) / 8 - 1px);top:0;width:2px;height:28px;background:var(--info)"></div>
+          <div style="position:absolute;right:calc((100% - 102px) * 3 / 8 + 34px - 1px);top:0;width:2px;height:28px;background:var(--info)"></div>
+          <div style="position:absolute;left:calc((100% - 102px) / 8 - 1px);right:calc((100% - 102px) * 3 / 8 + 34px - 1px);top:27px;height:2px;background:var(--info)"></div>
+          <svg viewBox="0 0 12 12" style="position:absolute;left:calc((100% - 102px) / 8 - 6px);top:-2px;width:12px;height:12px;stroke:var(--info);stroke-width:2"><path d="M1 7l5-5 5 5"/></svg>
+          <div style="position:absolute;left:calc((100% - 102px) * 3 / 8 + 34px);transform:translateX(-50%);top:17px;background:#fff;padding:0 10px" class="row"><span class="chip info">{{i:coins}} платежи в 1С каждые 15 минут</span></div>
+        </div>
+      </div>
+
+      <div class="grid g3" style="gap:10px;margin-top:6px">
+        <div class="note ok" style="padding:9px 12px">{{i:check}}<div><b>Без загрузок</b> абонентов и начислений в начале месяца</div></div>
+        <div class="note ok" style="padding:9px 12px">{{i:check}}<div><b>Без выгрузки реестра</b> — оплата видна в 1С через 15 минут</div></div>
+        <div class="note ok" style="padding:9px 12px">{{i:check}}<div><b>Ошибки — в кабинете,</b> как в импорте: дубль, адрес, пустое ФИО</div></div>
+      </div>
+      <div class="row" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);gap:14px">
+        <span class="tiny" style="color:var(--ink3)">Подключение</span>
+        <div class="steps" style="gap:8px;white-space:nowrap">
+          <div class="step on"><b>1</b>Заявка</div><div class="step-line" style="width:18px"></div>
+          <div class="step"><b>2</b>Тестовый ключ</div><div class="step-line" style="width:18px"></div>
+          <div class="step"><b>3</b>Неделя в тесте</div><div class="step-line" style="width:18px"></div>
+          <div class="step"><b>4</b>Боевой ключ</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:18px 20px">
+      <div class="h3">Что понадобится</div>
+      
+
+      <div class="fld mt12"><div class="row"><label class="grow">Ключ API</label><span class="btn ghost sm off" style="height:28px">{{i:key}} Выпустить ключ</span></div>
+        <div class="in" style="background:var(--soft2);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;color:var(--ink3);letter-spacing:.3px">{{i:lock}}<span class="grow">elp_live_••••••••••••3f9a</span></div>
+        <div class="hint">Так будет выглядеть ключ — после заявки</div></div>
+
+      <div class="row mt12" style="padding:10px 0;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)">
+        <div class="grow"><div class="h4" style="font-size:12.5px">Тестовый режим</div><div class="tiny" style="margin-top:2px;line-height:1.4">на копии реестра — жители не видят</div></div><span class="tog" style="opacity:.5"></span></div>
+
+      <div class="fld mt12"><label>IP-адрес сервера 1С</label>
+        <div class="in ph">{{i:lock}}<span class="grow">например, 212.42.104.18</span></div>
+        <div class="hint">Запросы примем только с него. Узнайте у поставщика 1С.</div></div>
+
+      <div class="note info mt12" style="padding:10px 12px">{{i:info}}<div>Пилот — <b>3–5 служб Оша</b>, с декабря 2026, сначала в тесте.</div></div>
+    </div>
+  </div>
+
+</div>
+</div>
+</div>

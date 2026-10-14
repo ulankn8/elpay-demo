@@ -1,0 +1,107 @@
+<!-- group: Импорт из 1С | cap: Импорт · Шаг 1 из 3: что загружаем и файл | sub: Бухгалтер выбирает, что загружает — абонентов или начисления, — и бросает файл как есть из 1С. Кодировку 1251, разделитель и заголовки мастер определяет сам. -->
+<div class="desk">
+{{side:svc:import}}
+<div class="main">
+{{top:Импорт из 1С|Ошводоканал · новая загрузка}}
+<div class="body">
+  <div class="card row" style="padding:14px 20px;gap:16px">
+    <div class="steps">
+      <div class="step on"><b>1</b>Файл</div><div class="step-line"></div>
+      <div class="step"><b>2</b>Колонки</div><div class="step-line"></div>
+      <div class="step"><b>3</b>Проверка</div>
+    </div>
+    <div class="grow"></div>
+    <span class="tiny">Ничего не попадёт в реестр, пока вы не подтвердите на шаге 3</span>
+  </div>
+
+  <div class="grid g21 mt16" style="align-items:start">
+    <div class="card" style="padding:20px 22px">
+      <div class="h3">Что загружаем</div>
+      <div class="grid g2 mt12" style="gap:14px">
+        <div style="border:2px solid var(--p);background:#F2FBF7;border-radius:14px;padding:16px;display:flex;gap:14px;align-items:flex-start">
+          <span class="ic" style="background:var(--p)">{{i:users}}</span>
+          <div class="grow"><div class="h4" style="font-size:14.5px">Абоненты</div><div class="sub" style="margin-top:3px">Реестр: лицевые, ФИО, адреса, жильцы. Новых добавим, изменившихся обновим.</div></div>
+          <span style="width:22px;height:22px;border-radius:50%;background:var(--p);color:var(--onp);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:14px;height:14px;display:flex">{{i:check}}</span></span>
+        </div>
+        <div style="border:1.5px solid var(--line);border-radius:14px;padding:16.5px;display:flex;gap:14px;align-items:flex-start">
+          <span class="ic soft">{{i:doc}}</span>
+          <div class="grow"><div class="h4" style="font-size:14.5px">Начисления за период</div><div class="sub" style="margin-top:3px">Суммы за месяц по лицевым — их жители увидят в приложении как счёт к оплате.</div></div>
+          <span style="width:22px;height:22px;border-radius:50%;border:1.5px solid var(--mut2);flex:none"></span>
+        </div>
+      </div>
+
+      <div class="h3 mt20">Файл из 1С</div>
+      <div class="drop mt12" style="padding:14px 22px">
+        <div class="big" style="width:44px;height:44px;margin-bottom:8px;border-radius:13px">{{i:upload}}</div>
+        <div class="h4" style="font-size:14.5px">Перетащите файл сюда или <span style="color:var(--p7)">выберите на компьютере</span></div>
+        <div class="sub" style="margin-top:4px">CSV, XLSX или XLS · до 20 МБ · можно прямо как сохранила 1С</div>
+      </div>
+
+      <div class="file mt12">
+        <span class="ft csv">CSV</span>
+        <div class="grow"><div class="h4">abonenty_2026-10-01.csv</div><div class="sub">1,8 МБ · 12 498 строк · выбран только что</div></div>
+        <span class="chip ok">{{i:check}} Файл прочитан</span>
+        <span class="btn ghost sm">Заменить</span>
+      </div>
+
+      <div class="grid g3 mt12" style="gap:10px">
+        <div style="border:1px solid var(--line);border-radius:12px;padding:11px 13px"><div class="tiny">Кодировка</div><div class="h4 mt8" style="margin-top:4px">Windows-1251</div><div class="sub" style="font-size:11.5px">кириллица читается</div></div>
+        <div style="border:1px solid var(--line);border-radius:12px;padding:11px 13px"><div class="tiny">Разделитель</div><div class="h4" style="margin-top:4px">Точка с запятой «;»</div><div class="sub" style="font-size:11.5px">8 колонок в каждой строке</div></div>
+        <div style="border:1px solid var(--line);border-radius:12px;padding:11px 13px"><div class="tiny">Первая строка</div><div class="h4" style="margin-top:4px">Заголовки колонок</div><div class="sub" style="font-size:11.5px">данные — со 2-й строки</div></div>
+      </div>
+
+      <div class="mt12" style="background:var(--soft);border-radius:12px;padding:11px 14px">
+        <div class="row" style="gap:8px"><span class="tiny">Так мастер прочитал первые строки</span><div class="grow"></div><span class="link">Изменить настройки чтения</span></div>
+        <div class="num" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.7;margin-top:6px;color:var(--ink2)">
+          <div style="color:var(--mut)">Лиц_счет;Абонент;Улица;Дом;Кв;Кол_прож;Телефон;Примечание</div>
+          <div>31-00562;Токтогулова Айгерим;Курманжан Датка;212;14;5;0555 31 82 47;</div>
+          <div>31-01187;Токтогулов Бакыт;Масалиева;44;3;3;;</div>
+        </div>
+      </div>
+
+      <div class="row mt16" style="gap:12px">
+        <span class="btn ghost">Отмена</span>
+        <div class="grow"></div>
+        <span class="sub">Дальше сопоставим колонки файла с полями ЭлPay</span>
+        <span class="btn">Далее: колонки {{i:arrow}}</span>
+      </div>
+    </div>
+
+    <div class="col" style="gap:16px">
+      <div class="card" style="padding:20px">
+        <div class="row" style="gap:10px"><span class="ic soft" style="width:32px;height:32px">{{i:info}}</span><div class="h3">Как выгрузить из 1С</div></div>
+        <div class="col mt16" style="gap:14px">
+          <div class="row" style="gap:12px;align-items:flex-start"><span class="pg on" style="flex:none;width:26px;height:26px">1</span><div class="sub" style="color:var(--ink2)">В 1С откройте <b>Отчёты → Расчёты с абонентами → Список лицевых счетов</b></div></div>
+          <div class="row" style="gap:12px;align-items:flex-start"><span class="pg on" style="flex:none;width:26px;height:26px">2</span><div class="sub" style="color:var(--ink2)">Укажите дату — <b>на 1-е число месяца</b>, все участки, и нажмите <b>Сформировать</b></div></div>
+          <div class="row" style="gap:12px;align-items:flex-start"><span class="pg on" style="flex:none;width:26px;height:26px">3</span><div class="sub" style="color:var(--ink2)">Нажмите <b>Сохранить как</b> и выберите <b>CSV</b> или <b>Лист Excel (*.xlsx)</b></div></div>
+          <div class="row" style="gap:12px;align-items:flex-start"><span class="pg on" style="flex:none;width:26px;height:26px">4</span><div class="sub" style="color:var(--ink2)">Перетащите файл сюда. Переименовывать колонки не нужно</div></div>
+        </div>
+        <div class="file mt16" style="background:#fff;border:1px solid var(--line)">
+          <span class="ft xls" style="width:32px;height:38px">XLSX</span>
+          <div class="grow"><div class="h4" style="font-size:12.5px">Пример файла</div><div class="tiny">primer_abonenty.xlsx</div></div>
+          <span class="btn soft sm">{{i:download}} Скачать</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:18px 20px">
+        <div class="h4">Прошлая загрузка абонентов</div>
+        <div class="row mt12" style="gap:12px">
+          <span class="ic soft" style="width:32px;height:32px">{{i:history}}</span>
+          <div class="grow"><div class="h4" style="font-size:12.5px">abonenty_16-09.xlsx · +12 абонентов</div><div class="tiny">16 сентября · Бакыт Осмонов · новый дом</div></div>
+        </div>
+        <div class="note ok mt12">{{i:check}}<div>Для полной выгрузки из 1С сохранён шаблон <b>«1С: Абоненты ОВК»</b> от 1 сентября — на шаге 2 подставим его сами.</div></div>
+      </div>
+
+      <div class="card" style="padding:18px 20px">
+        <div class="h4">На шаге 3 мастер проверит — до загрузки</div>
+        <div class="col mt12" style="gap:9px;font-size:12.5px;color:var(--ink2)">
+          <div class="row" style="gap:9px"><span style="width:16px;height:16px;flex:none;color:var(--p7)">{{i:check}}</span>дубли лицевых внутри файла</div>
+          <div class="row" style="gap:9px"><span style="width:16px;height:16px;flex:none;color:var(--p7)">{{i:check}}</span>адреса — по справочнику улиц Оша</div>
+          <div class="row" style="gap:9px"><span style="width:16px;height:16px;flex:none;color:var(--p7)">{{i:check}}</span>пустые ФИО и число жильцов</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>

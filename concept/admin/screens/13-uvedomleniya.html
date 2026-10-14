@@ -1,0 +1,105 @@
+<!-- group: Платежи и уведомления | cap: Уведомления должникам | sub: Служба сама напоминает должникам: готовый список, шаблон и время. Сразу видно, кому push уйдёт бесплатно, сколько стоят SMS и как сообщение выглядит в телефоне. -->
+<style>
+.s13 .blk{display:flex;gap:14px;padding:14px 20px;border-top:1px solid var(--line2)}
+.s13 .blk>.no{width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px}
+.s13 .blk .t{font-size:13px;font-weight:700;margin-bottom:9px}
+.s13 .sg{border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;position:relative}
+.s13 .sg.on{border-color:var(--p);background:#F4FBF8}
+.s13 .sg .v{font-size:19px;font-weight:700;letter-spacing:-.5px}
+.s13 .sg .l{font-size:11.5px;font-weight:600;color:var(--ink3);margin-top:1px;line-height:1.3}
+.s13 .sg .cb{position:absolute;top:10px;right:10px;width:16px;height:16px}
+.s13 .ch{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:12px;background:var(--soft2);border:1px solid var(--line2)}
+.s13 .ch+.ch{margin-top:8px}
+.s13 .ch .ic{width:32px;height:32px;border-radius:9px}
+.s13 .ch .ic svg{width:16px;height:16px}
+.s13 .tpl{display:flex;gap:6px}
+.s13 .tpl span{height:28px;padding:0 11px;border-radius:999px;border:1px solid var(--line);display:inline-flex;align-items:center;font-size:12px;font-weight:600;color:var(--ink3);background:#fff;white-space:nowrap}
+.s13 .tpl span.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.s13 .var{display:inline-block;background:#E8F0FC;color:#2456B0;border-radius:6px;padding:0 3px;font-weight:700;font-size:12.5px}
+.s13 .area{border:1px solid var(--p);box-shadow:0 0 0 3px rgba(31,184,134,.12);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.6;margin-top:9px}
+.s13 .seg span{white-space:nowrap;height:30px}
+.s13 .tbl td{padding-top:9px;padding-bottom:9px}
+.s13 .tpl svg{width:13px;height:13px}
+.s13 .hdl svg,.s13 .tiny svg{width:14px;height:14px;vertical-align:-2px}
+.s13 .push .act{margin-top:7px;padding-top:7px;border-top:1px solid rgba(0,0,0,.08);font-size:11.5px;font-weight:700;color:var(--p7)}
+</style>
+<div class="desk s13">
+{{side:svc:notify}}
+<div class="main">
+{{top:Уведомления|Ошводоканал · напоминания об оплате}}
+<div class="body" style="padding:20px 24px;display:flex;gap:16px">
+  <div class="col grow" style="gap:14px">
+    <div class="card">
+      <div class="hd" style="padding:15px 20px 12px"><div class="h3">Новая рассылка</div><span class="chip soft">{{i:cal}} сентябрь · срок 25 окт, через 11 дней</span></div>
+
+      <div class="blk"><span class="no">1</span><div class="grow">
+        <div class="t">Кому</div>
+        <div class="grid g4" style="gap:8px">
+          <div class="sg on"><span class="cb on"></span><div class="v num">4 032</div><div class="l">Не оплатили сентябрь</div></div>
+          <div class="sg"><span class="cb"></span><div class="v num">1 905</div><div class="l">С долгом за прошлые месяцы</div></div>
+          <div class="sg"><span class="cb"></span><div class="v num">642</div><div class="l">Оплатили частично</div></div>
+          <div class="sg" style="border-style:dashed"><div class="v" style="color:var(--mut);display:flex;align-items:center;height:26px"><span style="width:18px;height:18px;display:inline-flex">{{i:filter}}</span></div><div class="l">Свой фильтр: улица, сумма долга</div></div>
+        </div>
+      </div></div>
+
+      <div class="blk"><span class="no">2</span><div class="grow">
+        <div class="t">Как доставить</div>
+        <div class="ch"><span class="ic" style="background:var(--p)">{{i:bell}}</span>
+          <div class="grow"><div class="h4">Push в приложении ЭлPay — <span style="color:var(--p7)">1 266 получат бесплатно</span></div><div class="sub" style="font-size:12px">у них подключён счёт Ошводоканала, кнопка «Оплатить» откроет начисление</div></div><span class="tog on"></span></div>
+        <div class="ch"><span class="ic" style="background:var(--ink3)">{{i:sms}}</span>
+          <div class="grow"><div class="h4">SMS остальным 2 766</div><div class="sub" style="font-size:12px">2 766 × 1,2 сом = <b style="color:var(--ink)">3 319,20 сом</b> · спишется с баланса службы</div></div><span class="tiny" style="margin-right:4px">выключено</span><span class="tog"></span></div>
+      </div></div>
+
+      <div class="blk"><span class="no">3</span><div class="grow">
+        <div class="row" style="gap:10px"><div class="t" style="margin:0">Текст</div><div class="grow"></div>
+          <div class="tpl"><span class="on">Напоминание о сроке</span><span>Долг за 2 месяца</span><span>Пеня с 26-го</span><span>{{i:plus}} Свой</span></div></div>
+        <div class="area"><span class="var">{имя}</span>, за воду за сентябрь <span class="var">{сумма}</span>. Оплатите до <span class="var">{срок}</span> — без пени.</div>
+        <div class="row tiny" style="margin-top:7px;gap:6px">Вставить: <span class="var" style="font-size:11px">{имя}</span><span class="var" style="font-size:11px">{сумма}</span><span class="var" style="font-size:11px">{срок}</span><span class="var" style="font-size:11px">{лицевой}</span><span class="grow"></span>Сумма подставится своя у каждого — из начислений за сентябрь</div>
+      </div></div>
+
+      <div class="blk"><span class="no">4</span><div class="grow">
+        <div class="row"><div class="t" style="margin:0">Когда</div><div class="grow"></div>
+          <div class="seg"><span>Сейчас</span><span class="on">Завтра в 10:00</span><span>Авто: за 3 дня до срока, каждый месяц</span></div></div>
+      </div></div>
+
+      <div class="row" style="padding:13px 20px;border-top:1px solid var(--line);background:var(--soft2);border-radius:0 0 16px 16px">
+        <div class="grow"><div class="h4">Уйдёт 1 266 push · бесплатно</div><div class="sub" style="font-size:12px">2 766 без приложения в этот раз не получат — включите SMS, если нужно всем</div></div>
+        <span class="btn ghost">Сохранить черновик</span>
+        <span class="btn">{{i:send}} Запланировать на 15 окт, 10:00</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd" style="padding:13px 20px 9px"><div class="h3">Рассылки по начислениям за сентябрь</div><span class="link">Все</span></div>
+      <table class="tbl">
+        <thead><tr><th>Дата</th><th>Шаблон</th><th>Кому</th><th class="r">Получили</th><th>Оплатили после неё</th></tr></thead>
+        <tbody>
+          <tr><td><b>5 окт</b>, 10:00</td><td>Напоминание о сроке</td><td class="m">Не оплатили сентябрь</td><td class="r num"><b>3 120</b></td>
+            <td><div class="row" style="gap:10px"><div class="meter" style="width:80px;margin:0"><span style="width:33.5%;background:var(--p)"></span></div><b class="num">1 044</b><span class="chip ok">33,5%</span></div></td></tr>
+          <tr><td><b>22 окт</b>, 10:00</td><td>Напоминание о сроке</td><td class="m">Авто: за 3 дня до срока</td><td class="r m">—</td>
+            <td><div class="row" style="gap:10px"><span class="chip soft">не включено</span><span class="link">Включить</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col" style="width:290px;flex:none;gap:12px;align-items:center">
+    <div class="tiny hdl" style="align-self:flex-start;font-size:12px;color:var(--ink3)">{{i:eye}} Так увидит Айгерим Токтогулова, 31-00562</div>
+    <div class="phone">
+      <div class="scr">
+        <div class="time num">10:00</div>
+        <div class="date">четверг, 15 октября</div>
+        <div class="push">
+          <div class="ph"><b>Эл</b>ЭлPay<span>сейчас</span></div>
+          <div class="pt">Ошводоканал</div>
+          <div class="pb">Айгерим, за воду за сентябрь 205 сом. Оплатите до 25 октября — без пени.</div>
+          <div class="act">Оплатить в ЭлPay →</div>
+        </div>
+      </div>
+    </div>
+    <div class="note info" style="width:100%">{{i:shield}}<div><b>Не чаще 1 раза в 3 дня одному абоненту.</b> Последняя рассылка была 5 окт — сейчас никого не исключили.</div></div>
+    <div class="note ok" style="width:100%">{{i:chart}}<div>После рассылки 5 окт оплатил <b>каждый третий</b>: 1 044 из 3 120 получивших.</div></div>
+  </div>
+</div>
+</div>
+</div>

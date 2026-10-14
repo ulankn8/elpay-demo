@@ -1,0 +1,349 @@
+<!-- group: Интеграция по API — для размышления | cap: API с 1С: нужно ли оно на пилоте | sub: Записка для решения по варианту «через API»: чем он отличается от файла и ручного ввода, почему пилот начинаем с файла и какие вопросы должен закрыть заказчик. -->
+<style>
+.s19 .w{max-width:1010px}
+.s19 .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.s19 .meta .tiny{margin-left:6px}
+.s19 h3{display:flex;align-items:baseline;gap:12px}
+.s19 h3 .n{font-size:13px;font-weight:700;color:var(--p7);min-width:22px}
+.s19 h4{font-size:14.5px;font-weight:700;margin:20px 0 6px}
+.s19 p+p{margin-top:10px}
+.s19 b{font-weight:700;color:var(--ink)}
+.s19 .verdict{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:0;margin-top:26px;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.s19 .verdict>div{padding:18px 20px;border-left:1px solid var(--line)}
+.s19 .verdict>div:first-child{border-left:0;background:var(--side);color:#fff}
+.s19 .verdict .k{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--mut)}
+.s19 .verdict>div:first-child .k{color:var(--p)}
+.s19 .verdict .v{font-size:24px;font-weight:700;letter-spacing:-.6px;margin-top:6px}
+.s19 .verdict .v small{font-size:13px;font-weight:600;color:var(--mut);margin-left:3px;letter-spacing:0}
+.s19 .verdict .t{font-size:12.5px;line-height:1.5;color:var(--mut);margin-top:4px}
+.s19 .verdict>div:first-child .t{color:var(--side-ink);font-size:13.5px;line-height:1.55;margin-top:8px}
+.s19 .verdict>div:first-child b{color:#fff}
+.s19 table.cmp th:first-child{width:200px}
+.s19 table.cmp td:first-child{font-weight:700;color:var(--ink3);font-size:13px}
+.s19 table.cmp th.hl,.s19 table.cmp td.hl{background:#FFFBF2}
+.s19 table.cmp th.hl{color:#9A6C12}
+.s19 table.cmp .chip{margin-bottom:4px}
+.s19 .cover{display:flex;height:34px;border-radius:10px;overflow:hidden;margin-top:12px;font-size:12px;font-weight:700}
+.s19 .ph svg,.s19 .cover svg{width:15px;height:15px;flex:none}
+.s19 .ph svg{color:var(--p7)}
+.s19 .cover span{display:flex;align-items:center;padding:0 12px;white-space:nowrap}
+.s19 .two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:14px}
+.s19 .opt{border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+.s19 .opt.rec{border:1.5px solid var(--p);background:#FAFDFB}
+.s19 .opt .hd{display:flex;align-items:center;gap:10px}
+.s19 .opt .hd b{font-size:16px;letter-spacing:-.2px;flex:1}
+.s19 .flow{display:flex;align-items:stretch;margin:16px 0 4px}
+.s19 .bx{flex:1;border-radius:12px;padding:11px 12px;font-size:12px;line-height:1.4;color:var(--mut);background:#fff;border:1px solid var(--line)}
+.s19 .bx b{display:block;font-size:13px;color:var(--ink);margin-bottom:2px}
+.s19 .bx.y{background:#FFF8DB;border-color:#F0DE8A}
+.s19 .bx.g{background:var(--l2);border-color:#BFE3D3}
+.s19 .bx.d{background:var(--side);border-color:var(--side);color:var(--side-ink)}
+.s19 .bx.d b{color:#fff}
+.s19 .ar{width:64px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:var(--p7);text-align:center;line-height:1.25;gap:2px}
+.s19 .ar svg{width:22px;height:22px}
+.s19 .ar.bad{color:#B03A28}
+.s19 .pc{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.s19 .pc ul{padding-left:18px}
+.s19 .pc li{font-size:13px;line-height:1.5}
+.s19 .pc .lb{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.s19 .ep td:first-child{white-space:nowrap}
+.s19 .ep code{font-size:12.5px}
+.s19 pre{margin-top:0;font-size:12px;line-height:1.6}
+.s19 pre em{font-style:normal;color:#6F9488}
+.s19 pre i{font-style:normal;color:#F3B9AE}
+.s19 pre u{text-decoration:none;color:#9EE6C8}
+.s19 .ph{font-size:12px;font-weight:700;color:var(--ink3);margin:16px 0 6px;display:flex;align-items:center;gap:8px}
+.s19 .stages{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:14px}
+.s19 .stg{border-radius:16px;padding:18px 20px;border:1px solid var(--line);position:relative}
+.s19 .stg.now{border:1.5px solid var(--p);background:#FAFDFB}
+.s19 .stg .when{font-size:11.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.s19 .stg .nm{font-size:16px;font-weight:700;margin:6px 0 10px;letter-spacing:-.2px}
+.s19 .stg ul{padding-left:18px}
+.s19 .stg li{font-size:13px;line-height:1.5}
+.s19 .stg .gate{margin-top:12px;padding-top:12px;border-top:1px solid var(--line2);font-size:12px;line-height:1.5;color:var(--mut)}
+.s19 .stg .gate b{color:var(--ink3)}
+.s19 .qs{counter-reset:q;list-style:none;padding:0;margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.s19 .qs li{counter-increment:q;border-radius:14px;background:var(--soft2);border:1px solid var(--line2);padding:14px 16px 14px 52px;position:relative;font-size:13.5px;margin:0}
+.s19 .qs li::before{content:counter(q);position:absolute;left:16px;top:14px;width:24px;height:24px;border-radius:50%;background:#FDF3E0;color:#9A6C12;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.s19 .qs li b{display:block;margin-bottom:3px}
+.s19 .qs .ours{display:block;margin-top:6px;font-size:12.5px;color:var(--p7);font-weight:600}
+.s19 table.risk td:first-child{font-weight:700;color:var(--ink);width:300px}
+.s19 table.risk td:nth-child(2){color:var(--mut);width:320px}
+.s19 .end{margin-top:36px;border-radius:16px;background:var(--side);color:var(--side-ink);padding:22px 26px;display:flex;gap:18px;align-items:flex-start}
+.s19 .end .ic{width:40px;height:40px;background:var(--p)}
+.s19 .end .ic svg{stroke:var(--onp)}
+.s19 .end b{color:#fff}
+.s19 .end p{color:var(--side-ink);font-size:14px}
+.s19 .end ol{padding-left:20px;margin-top:6px}
+.s19 .end li{color:var(--side-ink);font-size:14px}
+</style>
+<div class="doc s19">
+
+  <div class="meta">
+    <span class="chip warn">{{i:clock}} Вариант Б · для размышления</span>
+    <span class="chip soft">записка для решения, не обещание сроков</span>
+    <span class="tiny">ЭлPay · пилот Ош · 14 октября 2026 · 8 минут чтения</span>
+  </div>
+  <h2>Интеграция с 1С по API: нужна ли она на пилоте и когда к ней переходить</h2>
+  <p class="lead">Абонентов и начисления в кабинет службы можно передавать тремя способами: файлом из 1С, по API или вручную. Записка нужна, чтобы выбрать, с чего начинать пилот. Мы не продаём API: мы показываем, что он даст, сколько это стоит службам и где на нём можно споткнуться.</p>
+
+  <div class="verdict">
+    <div><div class="k">Наша рекомендация</div>
+      <div class="t"><b>Пилот запускаем на файле из 1С и ручном вводе</b> — они уже работают. API делаем вторым этапом, с 3–5 службами, которые сами попросят, и только с обменом, который запускает служба, а не ЭлPay.</div></div>
+    <div><div class="k">Файл уже справился</div><div class="v">12 498<small>строк одним файлом</small></div>
+      <div class="t">Ошводоканал, 1 октября: 37 новых, 211 обновлено, 36 строк с ошибками мастер не пустил в реестр</div></div>
+    <div><div class="k">Труд бухгалтера</div><div class="v">≈ 25<small>мин в месяц</small></div>
+      <div class="t">абоненты и начисления — раз в месяц; реестр платежей сам приходит на почту в 18:00, остаётся загрузить его в 1С</div></div>
+    <div><div class="k">Что уберёт API</div><div class="v">3<small>ручных шага</small></div>
+      <div class="t">две загрузки в начале месяца и ежедневная загрузка реестра в 1С; платежи в 1С — через 15 минут, а не вечером</div></div>
+  </div>
+
+  <!-- 1 -->
+  <h3><span class="n">1</span>Три способа добавлять абонентов и начисления</h3>
+  <p class="w">Способы не исключают друг друга: даже служба на API будет вносить нового жильца вручную, когда он пришёл в кассу, а файл останется запасным путём, если обмен сломался.</p>
+  <table class="cmp">
+    <tr><th></th><th>А · Файл из 1С (CSV, Excel)</th><th class="hl">Б · API, автообмен с 1С</th><th>В · Вручную</th></tr>
+    <tr><td>Для кого</td>
+      <td>Любая служба, у которой есть 1С или Excel: водоканал, электросеть, «Ош-Тазалык», газ</td>
+      <td class="hl">Крупные службы с частыми изменениями и своим 1С-специалистом: Ошэлектро (18 920 абонентов), Газпром Кыргызстан</td>
+      <td>Садик «Балапан» (186 детей), школа, а у всех — новый жилец, пришедший в кассу</td></tr>
+    <tr><td>Что нужно от службы</td>
+      <td>Бухгалтер сохраняет из 1С отчёт в файл и загружает в кабинет. Сопоставление колонок — один раз, дальше шаблон «1С: Абоненты ОВК»</td>
+      <td class="hl">Установить обработку ЭлPay в 1С, дать ЭлPay описать свою конфигурацию, назначить ответственного за обмен, при pull — открыть сервер 1С наружу</td>
+      <td>Оператор вводит лицевой, адрес из справочника Оша и число жильцов — около минуты на абонента</td></tr>
+    <tr><td>Как часто обновляются данные</td>
+      <td>Начисления — раз в месяц (за сентябрь — 1 октября). Платежи в 1С — реестром раз в день, в 18:00</td>
+      <td class="hl">Начисления — сразу после проведения в 1С. Платежи в 1С — каждые 15 минут</td>
+      <td>Сразу: абонент видит счёт в приложении через минуту</td></tr>
+    <tr><td>Риск ошибок</td>
+      <td>Кодировка 1251, дубли, опечатки в лицевом. <b>Ловит человек</b>: мастер показывает ошибки до записи, плохие строки не загружаются</td>
+      <td class="hl">Ошибка в 1С уходит жителям <b>без человека</b> и повторяется каждые 15 минут. Обновление 1С может тихо сломать обмен</td>
+      <td>Опечатка в лицевом. Ловим маской 31-00000 и проверкой адреса по справочнику</td></tr>
+    <tr><td>Стоимость для службы</td>
+      <td>0 сом</td>
+      <td class="hl">0 сом за обработку ЭлPay. Если 1С сильно доработана — 1–3 дня работы франчайзи 1С, кто платит — <b>открытый вопрос 5</b></td>
+      <td>0 сом</td></tr>
+    <tr><td>Когда запускаем</td>
+      <td><span class="chip ok">{{i:check}} работает</span><br>пилот, все 6 служб</td>
+      <td class="hl"><span class="chip warn">этап 2</span><br>с декабря 2026, 3–5 служб, сначала в тестовом режиме</td>
+      <td><span class="chip ok">{{i:check}} работает</span><br>пилот, все 6 служб</td></tr>
+  </table>
+
+  <!-- 2 -->
+  <h3><span class="n">2</span>Почему не начинать с API</h3>
+  <div class="w">
+    <p>API звучит как «правильный» способ, но реальность служб Оша ставит его в конец очереди. Вот что мы видим у служб пилота:</p>
+    <ul style="margin-top:10px">
+      <li><b>1С у всех разная.</b> У водоканала конфигурация «на базе Бухгалтерии 8.3», которую доработал франчайзи лет десять назад; у садика — Excel. Лицевой счёт, число жильцов и тариф лежат в разных реквизитах, с разными названиями. Одной обработки «на всех» не бывает: под каждую службу её надо настроить.</li>
+      <li><b>Программиста в штате нет.</b> 1С обслуживает приходящий франчайзи по вызову. Если обмен сломается 24-го числа, в пик оплат, ждать его придётся день-два — а файл бухгалтер загрузит сам за пять минут.</li>
+      <li><b>Сервер 1С — это компьютер в бухгалтерии.</b> Часто файловая база, без постоянного IP-адреса и без защиты от входа снаружи. Открыть его в интернет ради обмена — значит поставить под удар базу со всеми начислениями и персональными данными абонентов. Служба на это не согласится и будет права.</li>
+      <li><b>Начисления меняются раз в месяц.</b> Жителю важно вовремя увидеть счёт и оплатить. Файл 1 числа даёт ровно то же, что и автообмен: 12 480 начислений за сентябрь сопоставились с реестром без единой ошибки.</li>
+      <li><b>Единственное, где API реально выигрывает, — скорость платежей в 1С.</b> Житель оплатил в приложении утром и днём пришёл в кассу — кассир должен это видеть. Но это закрывает и кабинет: статус оплаты по каждому абоненту виден в нём сразу, без ожидания реестра.</li>
+    </ul>
+    <p style="margin-top:14px"><b>Файл, мастер и ручной ввод закрывают около 90% того, что нужно пилоту.</b> Без API остаются две загрузки в начале месяца (абоненты и начисления), загрузка реестра в 1С раз в день и задержка платежей в 1С до вечерней выгрузки.</p>
+  </div>
+  <div class="cover">
+    <span style="flex:9;background:var(--l2);color:var(--p7)">{{i:check}}&nbsp; Абоненты · начисления · статус оплат · реестр в 1С · напоминания должникам — закрыто файлом, мастером и кабинетом</span>
+    <span style="flex:1.4;background:#FDF3E0;color:#9A6C12;justify-content:center">≈ 10% — даст API</span>
+  </div>
+  <table style="margin-top:14px">
+    <tr><th style="width:290px">Что нужно пилоту</th><th>Чем закрыто сейчас</th><th style="width:260px">Что добавит API</th></tr>
+    <tr><td>Абоненты: новые и изменения</td><td>Мастер импорта раз в месяц: abonenty_2026-10-01.csv, 12 498 строк — 37 новых, 211 обновлено; кодировку 1251 и разделитель «;» определил сам</td><td>Изменения сразу, без файла</td></tr>
+    <tr><td>Начисления каждый месяц</td><td>Файл nachisleniya_sentyabr.xlsx, 2 368 940 сом, 0 ошибок — загрузил Бакыт Осмонов 1 октября</td><td>Не надо загружать вручную</td></tr>
+    <tr><td>Новый жилец</td><td>Ручной ввод в кабинете, как Жумабаева Асель, 31-02261</td><td>Ничего</td></tr>
+    <tr><td>Видеть, кто оплатил</td><td>Кабинет: 7 806 оплатили, 642 частично, 4 032 нет — по каждому абоненту</td><td>Ничего</td></tr>
+    <tr><td>Платежи в 1С</td><td>Реестр файлом каждый день в 18:00: за 1–13 октября 6 214 платежей на 1 270 510 сом</td><td><b>Каждые 15 минут, без загрузки руками</b></td></tr>
+  </table>
+
+  <!-- 3 -->
+  <h3><span class="n">3</span>Как API может выглядеть, когда до него дойдёт</h3>
+  <p class="w">Технически есть два пути. Они отличаются тем, кто начинает обмен и куда открывается соединение, — а от этого зависит безопасность сервера 1С.</p>
+  <div class="two">
+    <div class="opt rec">
+      <div class="hd">{{ic:water:upload}}<b>(а) Служба отправляет в ЭлPay — push</b><span class="chip ok">{{i:check}} рекомендуем</span></div>
+      <div class="flow">
+        <div class="bx y"><b>1С службы</b>как сейчас</div>
+        <div class="ar">{{i:arrow}}внутри 1С</div>
+        <div class="bx g"><b>Обработка ЭлPay .epf</b>кнопка «Отправить в ЭлPay»</div>
+        <div class="ar">{{i:arrow}}HTTPS наружу</div>
+        <div class="bx d"><b>API ЭлPay</b>проверки как в мастере</div>
+      </div>
+      <div class="tiny" style="margin-top:6px">Соединение всегда исходящее: снаружи к серверу 1С никто не подключается.</div>
+      <div class="pc">
+        <div><div class="lb" style="color:var(--p7)">Плюсы</div><ul>
+          <li>Сервер 1С не открывается в интернет, постоянный IP не нужен</li>
+          <li>Внешняя обработка не меняет конфигурацию — франчайзи не теряет поддержку, обновления 1С ставятся как раньше</li>
+          <li>Служба сама решает, когда отправить, — как с файлом, только без файла</li>
+          <li>Одна обработка на всех, разница — в настройке соответствия реквизитов</li></ul></div>
+        <div><div class="lb" style="color:#B03A28">Минусы</div><ul>
+          <li>В файловой базе расписание работает, только пока у бухгалтера открыта 1С</li>
+          <li>Обработку надо обновлять, когда меняется конфигурация службы</li>
+          <li>Если бухгалтер забыл нажать, данные не придут — нужно напоминание</li></ul></div>
+      </div>
+    </div>
+    <div class="opt">
+      <div class="hd"><span class="ic" style="background:var(--side)">{{i:download}}</span><b>(б) ЭлPay забирает из 1С — pull</b><span class="chip soft">только для служб с ИТ</span></div>
+      <div class="flow">
+        <div class="bx d"><b>ЭлPay</b>по расписанию</div>
+        <div class="ar bad">{{i:arrow}}вход снаружи</div>
+        <div class="bx"><b>Веб-сервер службы</b>Apache или IIS, сертификат</div>
+        <div class="ar">{{i:arrow}}HTTP-сервис</div>
+        <div class="bx y"><b>1С службы</b>доработанная</div>
+      </div>
+      <div class="tiny" style="margin-top:6px">ЭлPay сам приходит в сервер службы, поэтому сервер должен быть доступен из интернета.</div>
+      <div class="pc">
+        <div><div class="lb" style="color:var(--p7)">Плюсы</div><ul>
+          <li>Расписание ведёт ЭлPay — не зависит от того, открыта ли 1С у бухгалтера</li>
+          <li>Удобно для служб с серверной базой и своим администратором</li></ul></div>
+        <div><div class="lb" style="color:#B03A28">Минусы</div><ul>
+          <li>Сервер 1С открыт снаружи: нужны постоянный IP, веб-сервер, сертификат и тот, кто за ними следит</li>
+          <li>HTTP-сервис — это доработка конфигурации, у каждой службы своя, и обновления 1С её ломают</li>
+          <li>Сбой на стороне службы ЭлPay видит, но починить не может</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <p class="w" style="margin-top:16px"><b>Рекомендация:</b> push через обработку ЭлPay. Сначала по кнопке, на этапе 3 — по расписанию. Pull оставляем только для служб с серверной 1С и своим администратором — сейчас это, скорее всего, только Газпром Кыргызстан.</p>
+
+  <!-- 4 -->
+  <h3><span class="n">4</span>Набросок контракта</h3>
+  <p class="w">Это не спецификация, а набросок, чтобы оценить объём работы. Важное правило: API делает <b>те же проверки, что мастер импорта</b>, и возвращает ошибки построчно. Тогда служба на API и служба на файле видят в кабинете одинаковые ошибки: «адрес не найден», «дубль лицевого», «пустое ФИО».</p>
+  <table class="ep" style="margin-top:12px">
+    <tr><th style="width:420px">Запрос</th><th>Что делает</th><th style="width:270px">Ограничения</th></tr>
+    <tr><td><span class="verb">POST</span><code>/v1/provider/subscribers:batch</code></td><td>Добавляет и обновляет абонентов по лицевому счёту. Неизвестный лицевой — новый абонент, знакомый — обновление, удаления нет: закрытие только явным полем <code>closed_at</code></td><td>до 5 000 строк в пакете, весь Ошводоканал — 3 пакета</td></tr>
+    <tr><td><span class="verb">POST</span><code>/v1/provider/charges</code></td><td>Начисления за период (<code>period: "2026-09"</code>). Повтор за тот же период <b>заменяет</b> начисление, а не прибавляет — двойного долга у жителя не будет</td><td>до 5 000 строк, период закрывается после срока оплаты</td></tr>
+    <tr><td><span class="verb">GET</span><code>/v1/provider/batches/{id}</code></td><td>Итог пакета: сколько принято, сколько отклонено и почему — то же, что экран «Итог импорта»</td><td>хранится 90 дней</td></tr>
+    <tr><td><span class="verb">GET</span><code>/v1/provider/payments?since=…</code></td><td>Платежи после курсора: обработка запоминает последний курсор, поэтому платёж не потеряется и не придёт дважды</td><td>до 500 платежей за запрос</td></tr>
+    <tr><td><span class="verb">ВЕБХУК</span><code>payment.succeeded</code></td><td>ЭлPay сам сообщает об оплате. Только для служб со своим сервером; остальным хватит курсора</td><td>повтор до 24 часов, пока служба не ответит 200</td></tr>
+  </table>
+
+  <div class="two" style="margin-top:18px">
+    <div>
+      <div class="ph">{{i:upload}} Запрос: обработка 1С отправляет пакет абонентов</div>
+<pre><u>POST</u> /v1/provider/subscribers:batch
+X-ElPay-Key: elp_test_7Kd2…81c0
+X-ElPay-Timestamp: 2026-10-14T09:12:05+06:00
+X-ElPay-Signature: hmac-sha256=9b1f…c04e
+Idempotency-Key: ovk-abon-2026-10-14-001
+
+{ "rows": [
+  { "account": "31-02260", "name": "Осмонова Динара",
+    "address": "ул. Курманжан Датка, 205, кв. 2", "residents": 3 },
+  { "account": "31-00944", "name": "Маматова Гулзат",
+    "address": "ул. Навои, 18", "residents": 4 },
+  { "account": "31-01187", "name": "Токтогулов Бакыт",
+    "address": "ул. Масалиева, 4а4, кв. 3", "residents": 3 },
+  { "account": "31-00562", "name": "",
+    "address": "ул. Курманжан Датка, 212, кв. 14", "residents": 5 }
+] }</pre>
+    </div>
+    <div>
+      <div class="ph">{{i:check}} Ответ: что принято и что вернуть в 1С на исправление</div>
+<pre><u>200 OK</u>
+{ "batch_id": "b_20261014_0912_ovk",
+  "mode": "test",
+  "received": 4, "created": 0, "updated": 0,
+  "unchanged": 2, "rejected": 2,
+  "errors": [
+    { "row": 3, "account": "31-01187",
+      "code": <i>"address_not_found"</i>,
+      "message": "Адрес «ул. Масалиева, 4а4» не найден в справочнике Оша",
+      "hint": "ул. Масалиева, 44" },
+    { "row": 4, "account": "31-00562",
+      "code": <i>"empty_name"</i>,
+      "message": "Пустое ФИО: абонент не обновлён, старые данные сохранены" }
+  ] }
+<em>// Осмонову оператор уже внёс вручную — лицевой тот же, дубля нет.
+// Отклонённые строки не трогают реестр. Ошибки видны и в кабинете,
+// и в самой 1С — обработка показывает их списком.</em></pre>
+    </div>
+  </div>
+
+  <div class="two" style="margin-top:6px">
+    <div>
+      <h4>Идемпотентность</h4>
+      <p>Каждый POST идёт с заголовком <code>Idempotency-Key</code>. Если связь оборвалась и обработка отправила пакет ещё раз с тем же ключом, ЭлPay вернёт результат первой отправки и не проведёт её второй раз. Механизм уже работает в мобильном приложении ЭлPay: повтор оплаты из офлайн-очереди идёт с тем же ключом. Ключ хранится 72 часа.</p>
+      <h4>Тестовый режим</h4>
+      <p>Ключ <code>elp_test_…</code> работает с копией реестра службы: жители ничего не видят, push и SMS не уходят. Неделя в тесте, сверка итогов с последним файлом, потом боевой ключ <code>elp_live_…</code> — те же четыре шага, что на экране «Интеграция по API».</p>
+    </div>
+    <div>
+      <h4>Аутентификация</h4>
+      <ul>
+        <li><b>Ключ службы</b> выпускает и отзывает любой сотрудник службы в кабинете (ролей внутри службы нет), каждое действие пишется в журнал.</li>
+        <li><b>Подпись HMAC-SHA256</b> от времени и тела запроса: подделать или повторить перехваченный запрос нельзя, запрос старше 5 минут отклоняется.</li>
+        <li><b>Белый список IP</b> — для служб с постоянным адресом, например 212.42.104.18. У кого адреса нет, тем хватит ключа и подписи, плюс лимит 60 запросов в минуту.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <h3><span class="n">5</span>Платежи обратно в 1С</h3>
+  <div class="two" style="margin-top:4px">
+    <div class="opt">
+      <div class="hd"><span class="chip ok">{{i:check}} сейчас</span><b style="font-size:15px">Реестр файлом, раз в день</b></div>
+      <p style="margin-top:10px">В 18:00 ЭлPay собирает реестр в формате, который принимает 1С службы. Последний — reestr_2026-10-13.csv: 6 214 платежей на 1 270 510 сом за 1–13 октября. Бухгалтер загружает его обычной загрузкой выписки. Сегодня до 12:00 пришло ещё 382 платежа на 216 800 сом — в 1С они попадут вечером, а в кабинете видны уже сейчас.</p>
+    </div>
+    <div class="opt">
+      <div class="hd"><span class="chip warn">этап 2–3</span><b style="font-size:15px">Та же обработка, каждые 15 минут</b></div>
+      <p style="margin-top:10px">Обработка забирает платежи по курсору <code>since</code> и создаёт в 1С те же документы оплаты, что и загрузка реестра. Вместо одного файла вечером — небольшие порции, днём по 5–10 платежей. Раз в сутки обработка сверяет с ЭлPay число и сумму платежей за день; если не сошлось — плашка в кабинете и письмо бухгалтеру. Реестр файлом остаётся запасным путём.</p>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <h3><span class="n">6</span>Этапы и что нужно решить заказчику</h3>
+  <div class="stages">
+    <div class="stg now">
+      <div class="when">Этап 1 · пилот, сейчас</div>
+      <div class="nm">Файл и вручную</div>
+      <ul><li>Мастер импорта CSV и Excel с шаблонами колонок</li><li>Ручной ввод нового жильца</li><li>Реестр платежей файлом в 18:00</li><li>Все 6 работающих служб, 60 966 абонентов</li></ul>
+      <div class="gate"><b>Переход дальше:</b> служба два месяца подряд загружает начисления без правки шаблона и сама просит убрать ручную работу.</div>
+    </div>
+    <div class="stg">
+      <div class="when">Этап 2 · с декабря 2026</div>
+      <div class="nm">Обработка 1С по кнопке</div>
+      <ul><li>Кнопки «Отправить в ЭлPay» и «Получить платежи» прямо в 1С</li><li>Тестовый режим, потом боевой ключ</li><li>Тест начинаем с Ошводоканала на копии реестра, затем 3–5 служб</li></ul>
+      <div class="gate"><b>Переход дальше:</b> месяц без расхождений в суточной сверке и без ни одного звонка «не дошло».</div>
+    </div>
+    <div class="stg">
+      <div class="when">Этап 3 · 2027, по итогам этапа 2</div>
+      <div class="nm">Расписание и двусторонний обмен</div>
+      <ul><li>Платежи в 1С каждые 15 минут, начисления сразу после проведения</li><li>Для файловых баз — запуск по планировщику Windows</li><li>Вебхуки и pull — для служб со своим сервером</li></ul>
+      <div class="gate"><b>Условие:</b> у службы есть тот, кто отвечает за обмен и берёт трубку, когда обмен остановлен.</div>
+    </div>
+  </div>
+
+  <h4 style="margin-top:28px;font-size:16px">Открытые вопросы — их нужно закрыть до этапа 2</h4>
+  <ol class="qs">
+    <li><b>Кто пишет обработку для 1С?</b>Штатный 1С-разработчик ЭлPay — одна обработка на все службы, или франчайзи каждой службы — у каждого своя.<span class="ours">Мы за ЭлPay: исходник у нас, отвечаем мы.</span></li>
+    <li><b>Кто поддерживает обмен, когда он сломался?</b>Кто берёт трубку 24-го вечером, в пик оплат, и за сколько часов чинит. Нужна линия поддержки ЭлPay и понятный срок.<span class="ours">Предлагаем: ответ за 2 часа в рабочее время, запасной путь — файл.</span></li>
+    <li><b>Нужна ли связь с госсистемами КР?</b>Вход сотрудников служб через ЕСИ, проверка адресов и ПИН жителей через «Тундук». Это даёт точность, но требует соглашений с госорганами и займёт месяцы.<span class="ours">Для пилота — нет, хватит справочника адресов Оша.</span></li>
+    <li><b>Где и как хранить персональные данные?</b>ФИО, адреса и платежи жителей — данные персонального характера по закону КР. Где стоят серверы, нужен ли договор с каждой службой на обработку данных, передаём ли телефоны и ПИН.<span class="ours">Предлагаем минимум полей: лицевой, ФИО, адрес, жильцы.</span></li>
+    <li><b>Кто платит за доработку нетиповой 1С?</b>Если конфигурацию службы надо описать или поправить, 1–3 дня работы франчайзи: ЭлPay в рамках пилота, служба или поровну.</li>
+    <li style="background:#fff;border-style:dashed"><b>Чего мы не просим решать сейчас</b>Выбор между push и pull, формат ключей, лимиты — это наша работа, их можно поменять до этапа 2 без последствий для служб.</li>
+  </ol>
+
+  <!-- 7 -->
+  <h3><span class="n">7</span>Риски и как снимаем</h3>
+  <table class="risk">
+    <tr><th>Риск</th><th>Чем грозит</th><th>Как снимаем</th></tr>
+    <tr><td>Ошибка в 1С уходит жителям без проверки человеком</td><td>2 050 сом вместо 205 у Токтогуловой Айгерим, жалобы, недоверие к приложению</td><td>Контроль отклонений: если начисление абонента выросло больше чем в 3 раза или итог месяца отличается от прошлого больше чем на 15%, пакет ждёт подтверждения в кабинете</td></tr>
+    <tr><td>Повторная отправка начислений</td><td>Двойной долг у жителя</td><td>Начисление определяют лицевой и период: повтор заменяет, не прибавляет. Плюс <code>Idempotency-Key</code></td></tr>
+    <tr><td>Платёж проведён в 1С дважды или потерян</td><td>Расхождение кассы, акт сверки не сходится</td><td>Курсор <code>since</code> и уникальный номер платежа; суточная сверка числа и суммы; реестр файлом как запасной путь</td></tr>
+    <tr><td>Обновление 1С ломает обмен незаметно</td><td>Начисления не уходят, а служба думает, что всё работает</td><td>Обработка при запуске проверяет реквизиты и останавливается, если не совпали; в кабинете — плашка «Обмен остановлен», письмо службе и админу ЭлPay</td></tr>
+    <tr><td>Утёк ключ API</td><td>Чужие данные в реестре службы</td><td>Ключ отзывается в кабинете за минуту, подпись HMAC и белый список IP, журнал всех запросов с адресом и временем</td></tr>
+    <tr><td>Обработку знает один разработчик</td><td>Ушёл — и обмен некому чинить</td><td>Исходник и описание настройки у ЭлPay, обработка открытая, без пароля; франчайзи службы может её прочитать</td></tr>
+    <tr><td>Утечка персональных данных</td><td>Ответственность по закону, репутация пилота</td><td>Минимум полей, только HTTPS, доступ по ключу службы, хранение по итогам ответа на вопрос 4</td></tr>
+  </table>
+
+  <div class="end">
+    <span class="ic">{{i:check}}</span>
+    <div>
+      <p><b>Что предлагаем решить сейчас</b></p>
+      <ol>
+        <li>Утвердить: пилот в Оше идёт на файле из 1С и ручном вводе, API на пилоте не обещаем.</li>
+        <li>Разрешить ЭлPay в ноябре подготовить обработку для 1С и проверить её в тестовом режиме у одной службы, Ошводоканала, на копии реестра.</li>
+        <li>Ответить на открытые вопросы 1–5 до 1 декабря, чтобы этап 2 начался в декабре.</li>
+      </ol>
+    </div>
+  </div>
+
+</div>

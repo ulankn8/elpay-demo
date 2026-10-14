@@ -1,0 +1,159 @@
+<!-- group: Платежи и уведомления | cap: Выгрузка реестра платежей в 1С | sub: Один файл в формате, который принимает 1С: только то, что ещё не выгружено, поэтому платежи не задвоятся и не потеряются. Можно получать его на почту каждый день в 18:00. -->
+<style>
+.s12 .mdl{position:absolute;left:350px;top:50%;transform:translateY(-50%);width:1000px;background:#fff;border-radius:20px;box-shadow:0 30px 80px rgba(15,30,26,.35);display:flex;flex-direction:column}
+.s12 .mh{display:flex;align-items:flex-start;gap:14px;padding:20px 24px 16px;border-bottom:1px solid var(--line)}
+.s12 .mb{display:grid;grid-template-columns:1.32fr 1fr;gap:22px;padding:18px 24px}
+.s12 .mf{display:flex;align-items:center;gap:12px;padding:14px 24px;border-top:1px solid var(--line);background:var(--soft2);border-radius:0 0 20px 20px}
+.s12 .lbl{font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.s12 .lbl .tiny{font-weight:600}
+.s12 .opt{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:9px;align-items:flex-start}
+.s12 .opt.on{border-color:var(--p);background:#F4FBF8}
+.s12 .rad{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--mut2);flex:none;margin-top:1px}
+.s12 .opt.on .rad{border:5px solid var(--p)}
+.s12 .opt b{display:block;font-size:12.5px;font-weight:700}
+.s12 .opt small{display:block;font-size:11px;color:var(--mut);margin-top:2px;line-height:1.35}
+.s12 .cols{display:flex;gap:6px;flex-wrap:nowrap}
+.s12 .cols span{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px 0 5px;border-radius:9px;background:var(--soft);font-size:12px;font-weight:600;white-space:nowrap}
+.s12 .cols span i{font-style:normal;width:20px;height:20px;border-radius:6px;background:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:var(--p7)}
+.s12 pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.7;background:#0F2A24;color:#D7EEE6;border-radius:12px;padding:12px 14px;margin:0}
+.s12 pre em{font-style:normal;color:#6F9488}
+.s12 .hist{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line2)}
+.s12 .hist:first-of-type{border-top:0}
+.s12 .hist .ic{width:30px;height:30px;border-radius:9px}
+.s12 .hist .ic svg{width:15px;height:15px}
+.s12 .mb .seg span{white-space:nowrap}
+.s12 .x svg,.s12 .mh .ic svg{width:18px;height:18px}
+</style>
+
+<style>
+.s12 .tbl{font-size:12.5px}
+.s12 .tbl td{padding:7px 9px}.s12 .tbl th{padding:9px 9px}
+.s12 .tbl td:first-child,.s12 .tbl th:first-child{padding-left:20px}
+.s12 .tbl td:last-child,.s12 .tbl th:last-child{padding-right:20px}
+.s12 .tbl tr.day td{background:var(--soft2);padding-top:7px;padding-bottom:7px;font-size:11.5px;font-weight:700;color:var(--ink3)}
+.s12 .tbl tr.day td span{font-weight:600;color:var(--mut)}
+.s12 .nm{font-weight:600}
+.s12 .ad{font-size:11px;color:var(--mut2);font-weight:500;margin-top:1px}
+.s12 .ch{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--ink2)}
+.s12 .rc{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;color:var(--ink3)}
+.s12 .kpi .v{font-size:23px}
+.s12 .pager svg{width:16px;height:16px}
+.s12 .xh svg{width:16px;height:16px}
+.s12 .seg span{height:28px;padding:0 12px;gap:6px}
+</style>
+<div class="desk s12">
+{{side:svc:pay}}
+<div class="main">
+{{top:Платежи|Ошводоканал · оплаты за сентябрь 2026}}
+<div class="body" style="padding:20px 24px">
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1.45fr;gap:14px">
+    <div class="card kpi"><div class="l">Оплачено на 14 окт</div><div class="v num">1 487 310<i class="som">сом</i></div>
+      <div class="meter"><span style="width:38.5%;background:var(--p)"></span><span style="width:14.4%;background:var(--ink3)"></span><span style="width:9.9%;background:var(--warn)"></span></div>
+      <div class="d up">62,8% от начисленного</div></div>
+    <div class="card kpi"><div class="l"><span class="dot" style="background:var(--p);margin-right:5px"></span>Через ЭлPay</div><div class="v num">912 450<i class="som">сом</i></div><div class="d">61,3% всех оплат</div></div>
+    <div class="card kpi"><div class="l"><span class="dot" style="background:var(--ink3);margin-right:5px"></span>Касса службы</div><div class="v num">341 280<i class="som">сом</i></div><div class="d">22,9% всех оплат</div></div>
+    <div class="card kpi"><div class="l"><span class="dot" style="background:var(--warn);margin-right:5px"></span>Банки и терминалы</div><div class="v num">233 580<i class="som">сом</i></div><div class="d" style="white-space:nowrap">15,7% · MBANK, Элкарт, О!Деньги</div></div>
+    <div class="card" style="padding:15px 18px;background:#E8F0FC;box-shadow:inset 0 0 0 1.5px #C9DAF5">
+      <div class="row xh" style="gap:7px;color:#1F4E9C;font-size:12px;font-weight:700">{{i:download}}<span class="grow">Не выгружено в 1С</span><span class="tiny" style="color:#4A6FAE">авто в 18:00</span></div>
+      <div class="num" style="font-size:22px;font-weight:700;letter-spacing:-.6px;margin-top:6px;color:#173E7D;white-space:nowrap">382 платежа<span style="font-size:13px;font-weight:600;color:#1F4E9C;letter-spacing:0"> · 216 800 сом</span></div>
+      <span class="btn sm" style="background:var(--info);color:#fff;margin-top:10px;width:100%">{{i:download}} Выгрузить реестр</span>
+    </div>
+  </div>
+
+  <div class="card mt16">
+    <div class="row" style="padding:13px 20px">
+      <div class="filters grow" style="gap:10px">
+        <span class="f on">{{i:cal}} 1–14 октября {{i:down}}</span>
+        <div class="seg"><span class="on">Все каналы</span><span><i class="dot" style="background:var(--p)"></i>ЭлPay</span><span><i class="dot" style="background:var(--ink3)"></i>Касса</span><span><i class="dot" style="background:var(--warn)"></i>Банки</span></div>
+        <div class="seg"><span class="on">Любой статус</span><span>Выгружен в 1С</span><span>Ждёт выгрузки · 382</span></div>
+      </div>
+      <span class="btn ghost sm">{{i:download}} Excel</span>
+    </div>
+
+    <table class="tbl">
+      <thead><tr><th>Время</th><th>Лицевой</th><th>Плательщик</th><th class="r">Сумма, сом</th><th>За период</th><th>Канал и способ</th><th>№ квитанции</th><th>В 1С</th></tr></thead>
+      <tbody>
+        <tr class="day"><td colspan="8">Сегодня, 14 октября <span>· после выгрузки 13 окт в 18:00 · 382 платежа на 216 800 сом</span></td></tr>
+        <tr><td class="num">11:58</td><td class="acc">31-01376</td><td><div class="nm">Жээнбеков Улан</div><div class="ad">ул. Навои, 31, кв. 9</div></td><td class="r num"><b>164,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--p)"></span>ЭлPay · Visa</span></td><td class="rc">EP-261014-0217</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr><td class="num">11:54</td><td class="acc">31-00944</td><td><div class="nm">Маматова Гулзат</div><div class="ad">ул. Навои, 18</div></td><td class="r num"><b>100,00</b></td><td>Сентябрь <span class="chip warn" style="margin-left:4px">частично, долг 64</span></td><td><span class="ch"><span class="dot" style="background:var(--p)"></span>ЭлPay · Элкарт</span></td><td class="rc">EP-261014-0216</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr><td class="num">11:47</td><td class="acc">31-02415</td><td><div class="nm">Абдиева Чолпон</div><div class="ad">ул. Масалиева, 60, кв. 21</div></td><td class="r num"><b>205,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--ink3)"></span>Касса службы</span></td><td class="rc">КО-004518</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr><td class="num">11:41</td><td class="acc">31-00687</td><td><div class="nm">Мамытов Эрлан</div><div class="ad">ул. Ленина, 297, кв. 40</div></td><td class="r num"><b>123,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--warn)"></span>MBANK · приложение</span></td><td class="rc">MB-4410228719</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr><td class="num">11:29</td><td class="acc">31-00125</td><td><div class="nm">Сатыбалдиев Азамат</div><div class="ad">ул. Г. Айтиева, 15</div></td><td class="r num"><b>492,00</b></td><td>Август + сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--warn)"></span>О!Деньги · терминал</span></td><td class="rc">OD-77310582</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr><td class="num">11:22</td><td class="acc">31-02108</td><td><div class="nm">Исмаилова Нургуль</div><div class="ad">ул. Курманжан Датка, 218, кв. 5</div></td><td class="r num"><b>82,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--p)"></span>ЭлPay · кошелёк</span></td><td class="rc">EP-261014-0215</td><td><span class="chip info">{{i:clock}} Ждёт выгрузки</span></td></tr>
+        <tr class="day"><td colspan="8">13 октября <span>· выгружены в 1С 13 окт в 18:00 · reestr_2026-10-13.csv</span></td></tr>
+        <tr><td class="num">17:58</td><td class="acc">31-01764</td><td><div class="nm">Камчыбеков Данияр</div><div class="ad">ул. Масалиева, 38, кв. 12</div></td><td class="r num"><b>246,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--warn)"></span>Элкарт · терминал</span></td><td class="rc">ЭК-T0391-5521</td><td><span class="chip ok">{{i:check}} Выгружен</span></td></tr>
+        <tr><td class="num">17:52</td><td class="acc">31-00473</td><td><div class="nm">Орозбаева Мээрим</div><div class="ad">ул. Ленина, 279, кв. 3</div></td><td class="r num"><b>41,00</b></td><td>Сентябрь</td><td><span class="ch"><span class="dot" style="background:var(--p)"></span>ЭлPay · Visa</span></td><td class="rc">EP-261013-0598</td><td><span class="chip ok">{{i:check}} Выгружен</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="note warn" style="margin:12px 16px 0;align-items:center">{{i:alert}}
+      <div class="grow"><b>2 платежа на 464 сом не сопоставлены с лицевым</b> — жители ошиблись в номере: «31-0562» (300 сом) и «31-01854» (164 сом). Их разбирает ЭлPay, деньги не потеряются: после проверки платёж сам попадёт в реестр.</div>
+      <span class="link" style="color:#7A560D;white-space:nowrap">Посмотреть →</span></div>
+
+    <div class="pager">
+      <span><b>1–8</b> из 6 596 платежей за 1–14 октября</span>
+      <span class="tiny" style="margin-left:8px">из них сегодня 382 на 216 800 сом</span>
+      <div class="grow"></div>
+      <span class="pg">{{i:back}}</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">…</span><span class="pg" style="width:auto;padding:0 6px">825</span><span class="pg">{{i:arrow}}</span>
+    </div>
+  </div>
+</div>
+</div>
+<div class="dim" style="background:rgba(15,30,26,.5)"></div>
+<div class="mdl">
+  <div class="mh">
+    <span class="ic" style="background:var(--g-water)">{{i:download}}</span>
+    <div class="grow"><div style="font-size:18px;font-weight:700;letter-spacing:-.3px">Выгрузка реестра платежей в 1С</div>
+      <div class="sub" style="margin-top:2px">Файл для обработки «Загрузка оплат абонентов» в 1С:Бухгалтерия — так же, как вы загружали выписки банков</div></div>
+    <span class="x">{{i:x}}</span>
+  </div>
+  <div class="mb">
+    <div>
+      <div class="lbl">Какие платежи</div>
+      <div class="seg" style="width:100%"><span class="on" style="flex:1;justify-content:center">Всё, что не выгружено</span><span style="flex:1;justify-content:center">За день</span><span style="flex:1;justify-content:center">Свой период</span></div>
+      <div class="row" style="margin-top:8px;gap:8px;font-size:12.5px;font-weight:600;color:var(--ink2)"><span style="width:16px;height:16px;display:inline-flex;color:var(--mut)">{{i:cal}}</span>с 13 окт 18:00 по сейчас — 14 окт, 12:00<span class="grow"></span><span class="chip ok">{{i:check}} без повторов</span></div>
+
+      <div class="lbl" style="margin-top:16px">Формат файла</div>
+      <div class="grid g3" style="gap:8px">
+        <div class="opt on"><span class="rad"></span><div><b>CSV для 1С</b><small>как вы загружаете сейчас</small></div></div>
+        <div class="opt"><span class="rad"></span><div><b>Excel</b><small>для сверки и печати</small></div></div>
+        <div class="opt"><span class="rad"></span><div><b>DBF</b><small>для типовой обработки</small></div></div>
+      </div>
+
+      <div class="lbl" style="margin-top:16px">Колонки — в порядке, который ждёт 1С <span class="grow"></span><span class="link">Изменить</span></div>
+      <div class="cols"><span><i>1</i>Лицевой</span><span><i>2</i>Дата и время</span><span><i>3</i>Сумма</span><span><i>4</i>№ квитанции</span><span><i>5</i>Канал</span></div>
+
+      <div class="lbl" style="margin-top:16px">Как будет выглядеть файл <span class="grow"></span><span class="tiny">Windows-1251 · разделитель «;» · без заголовка</span></div>
+<pre>31-01376;14.10.2026 11:58;164,00;EP-261014-0217;ЭлPay
+31-00944;14.10.2026 11:54;100,00;EP-261014-0216;ЭлPay
+31-02415;14.10.2026 11:47;205,00;КО-004518;Касса
+<em>… ещё 379 строк</em></pre>
+      <div class="note info mt12">{{i:info}}<div>Платёж 300 сом на несуществующий лицевой «31-0562» в файл <b>не попадёт</b>: ЭлPay сначала найдёт абонента, и он придёт следующим реестром — 1С не получит строку, которую не сможет провести.</div></div>
+    </div>
+
+    <div class="col" style="gap:14px">
+      <div style="border-radius:14px;background:var(--l2);padding:14px 16px">
+        <div class="tiny" style="color:var(--p7)">В файл попадёт</div>
+        <div class="row" style="align-items:baseline;gap:10px;margin-top:4px"><div class="num" style="font-size:26px;font-weight:700;letter-spacing:-.8px">382 платежа</div><div class="num" style="font-size:15px;font-weight:700;color:var(--p7)">216 800,00 сом</div></div>
+        <div class="file" style="background:#fff;margin-top:10px;padding:9px 12px"><span class="ft csv">CSV</span><div class="grow"><div class="h4">reestr_2026-10-14.csv</div><div class="tiny" style="margin-top:2px">≈ 21 КБ · ЭлPay, касса и банки — одним файлом</div></div></div>
+      </div>
+
+      <div style="border:1px solid var(--line);border-radius:14px;padding:12px 14px">
+        <div class="row" style="gap:10px"><span class="tog on"></span><div class="grow"><div class="h4">Выгружать автоматически</div><div class="sub" style="font-size:12px">каждый день в 18:00 на <b style="color:var(--ink)">buh@oshvodokanal.kg</b></div></div></div>
+        <div class="tiny" style="margin-top:8px;font-weight:500;color:var(--mut)">Следующая — сегодня в 18:00. Она заберёт только то, что придёт после этого файла. <span class="link" style="font-size:11px">Изменить время и почту</span></div>
+      </div>
+
+      <div>
+        <div class="lbl" style="margin-bottom:2px">Последние выгрузки <span class="grow"></span><span class="link">Вся история</span></div>
+        <div class="hist"><span class="ic soft">{{i:clock}}</span><div class="grow"><div class="h4" style="font-size:12.5px">Сегодня, 18:00 · запланирована</div><div class="tiny" style="margin-top:2px">автоматически, на buh@oshvodokanal.kg</div></div></div>
+        <div class="hist"><span class="ic soft">{{i:mail}}</span><div class="grow"><div class="row" style="gap:6px"><div class="h4" style="font-size:12.5px">13 окт, 18:00</div><span class="chip ok" style="padding:1px 7px">отправлен на почту</span></div><div class="tiny" style="margin-top:2px;color:var(--ink3)">6 214 платежей · 1 270 510 сом · за 1–13 октября</div><div class="tiny" style="margin-top:1px">reestr_2026-10-13.csv · первая автовыгрузка</div></div><span class="btn ghost sm" style="padding:0 9px">{{i:download}}</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="mf">
+    <div class="grow" style="font-size:13px;color:var(--mut)"><b style="color:var(--ink)">382 платежа · 216 800 сом</b> · файл reestr_2026-10-14.csv<div class="tiny" style="margin-top:2px;font-weight:500">После скачивания они отметятся «Выгружен в 1С». Ошиблись — выгрузите тот же период заново.</div></div>
+    <span class="btn ghost">Отмена</span>
+    <span class="btn lg">{{i:download}} Скачать реестр</span>
+  </div>
+</div>
+</div>
